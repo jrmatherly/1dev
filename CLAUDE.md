@@ -129,7 +129,8 @@ src/
 // Core tables:
 projects    → id, name, path (local folder), timestamps
 chats       → id, name, projectId, worktree fields, timestamps
-sub_chats   → id, name, chatId, sessionId, mode, messages (JSON)
+sub_chats   → id, name, chatId, sessionId, mode (plan|agent), messages (JSON)
+              // Individual AI sessions within a chat; sessionId enables resume
 
 // Auth/settings tables:
 claude_code_credentials → encrypted credential storage
@@ -162,7 +163,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - **React Query**: Server state via tRPC (auto-caching, refetch)
 
 ### AI Backend Integration
-- **Claude**: Dynamic import of `@anthropic-ai/claude-code` SDK, plan/agent modes, session resume via `sessionId`, streaming via tRPC subscription (`claude.onMessage`)
+- **Claude**: Dynamic import of `@anthropic-ai/claude-agent-sdk`, plan/agent modes, session resume via `sessionId`, streaming via tRPC subscription (`claude.onMessage`)
 - **Codex**: OpenAI Codex CLI binary, managed via `codex.ts` router
 - **Ollama**: Local model support via `ollama.ts` router
 - All backends: two modes — "plan" (read-only) and "agent" (full permissions)
@@ -176,7 +177,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 | Components | Radix UI, Lucide icons, Motion, Sonner |
 | State | Jotai, Zustand, React Query |
 | Backend | tRPC, Drizzle ORM, better-sqlite3 |
-| AI | @anthropic-ai/claude-code, Codex CLI, Ollama |
+| AI | @anthropic-ai/claude-agent-sdk, Codex CLI, Ollama |
 | Package Manager | bun |
 
 ## File Naming
@@ -242,7 +243,7 @@ bun run codex:download     # Download Codex binary
 bun run build              # Compile TypeScript
 bun run package:mac        # Build & sign macOS app
 bun run dist:manifest      # Generate latest-mac.yml manifests
-./scripts/upload-release-wrangler.sh  # Submit notarization & upload to R2 CDN
+# Submit notarization & upload to R2 CDN (see release pipeline docs)
 ```
 
 ### Bump Version Before Release
@@ -255,9 +256,9 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 
 1. Wait for notarization (2-5 min): `xcrun notarytool history --keychain-profile "21st-notarize"`
 2. Staple DMGs: `cd release && xcrun stapler staple *.dmg`
-3. Re-upload stapled DMGs to R2 and GitHub (see RELEASE.md for commands)
+3. Re-upload stapled DMGs to R2 and GitHub
 4. Update changelog: `gh release edit v0.0.X --notes "..."`
-5. **Upload manifests (triggers auto-updates!)** — see RELEASE.md
+5. **Upload manifests (triggers auto-updates!)**
 6. Sync to public: `./scripts/sync-to-public.sh`
 
 ### Files Uploaded to CDN
@@ -282,7 +283,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 
 **Shipped (v0.0.72+):**
 - Multi-backend AI: Claude, Codex, Ollama
-- Drizzle ORM with 6+ tables, auto-migration
+- Drizzle ORM with 6 tables, auto-migration
 - 21+ tRPC routers covering full feature set
 - Integrated terminal (node-pty)
 - Plugin and skills system
@@ -296,3 +297,5 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - `postinstall` runs `electron-rebuild` for `better-sqlite3` and `node-pty` — if native modules fail, run `bun run postinstall` manually
 - `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences
 - Dev builds require Claude and Codex binaries downloaded locally (`bun run claude:download && bun run codex:download`)
+- Claude Agent SDK version: see `@anthropic-ai/claude-agent-sdk` in `package.json`
+- Protocol handlers: Production uses `twentyfirst-agents://`, dev uses `twentyfirst-agents-dev://`

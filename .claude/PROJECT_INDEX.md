@@ -192,7 +192,7 @@ bun run release =
   build (electron-vite) →
   package:mac (electron-builder) →
   dist:manifest →
-  upload-release-wrangler.sh
+  notarize & upload to R2 CDN
 ```
 
 ---

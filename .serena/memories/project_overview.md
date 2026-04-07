@@ -13,7 +13,7 @@ Local-first Electron desktop app for parallel AI-assisted development by 21st.de
 | Backend | tRPC (trpc-electron), Drizzle ORM, better-sqlite3 |
 | Terminal | node-pty, xterm.js |
 | Editor | Monaco Editor |
-| AI | @anthropic-ai/claude-code, Codex CLI, Ollama |
+| AI | @anthropic-ai/claude-agent-sdk, Codex CLI, Ollama |
 | Package Manager | bun |
 | Analytics | PostHog, Sentry |
 

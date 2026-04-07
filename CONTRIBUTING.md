@@ -1,15 +1,57 @@
 # Contributing to 1Code
 
+## Getting Started
+
+- **Architecture & Tech Stack**: See [CLAUDE.md](CLAUDE.md) for detailed architecture, patterns, and important files
+- **Spec-Driven Development**: See [openspec/AGENTS.md](openspec/AGENTS.md) for proposal-based development workflow
+- **Questions**: Ask on our [Discord](https://discord.gg/8ektTZGnj4)
+
 ## Building from Source
 
-Prerequisites: Bun, Python, Xcode Command Line Tools (macOS)
+Prerequisites: Bun, Python 3.11 (or Python 3.12+ with `setuptools`), Xcode Command Line Tools (macOS)
+
+> **Python note:** Python 3.11 is recommended for native module rebuilds (`better-sqlite3`, `node-pty`). On Python 3.12+, install setuptools first: `pip install setuptools`
 
 ```bash
 bun install
-bun run dev      # Development with hot reload
-bun run build    # Production build
-bun run package:mac  # Create distributable
+bun run claude:download  # Download Claude binary (required!)
+bun run codex:download   # Download Codex binary (required!)
+bun run dev              # Development with hot reload
 ```
+
+For production builds:
+```bash
+bun run build            # Compile app
+bun run package:mac      # Create distributable (or package:win, package:linux)
+```
+
+### Environment Setup (Optional)
+
+To enable analytics or error tracking for development:
+
+1. Copy the environment template: `cp .env.example .env.local`
+2. Edit `.env.local` and uncomment desired integrations (Sentry, PostHog)
+3. Fill in your API keys
+
+### Database Development
+
+The app auto-migrates on startup, but if you need to manage the database manually:
+
+```bash
+bun run db:generate   # Generate migrations from schema changes
+bun run db:push       # Push schema changes (dev only)
+bun run db:studio     # Open Drizzle Studio GUI for inspection
+```
+
+## Code Quality
+
+Before submitting a PR:
+
+```bash
+bun run ts:check    # Type check with tsgo (Go-based, fast)
+```
+
+> Note: There is no test suite configured. `ts:check` is the only automated quality gate.
 
 ## Open Source vs Hosted Version
 
@@ -33,12 +75,21 @@ Analytics (PostHog) and error tracking (Sentry) are **disabled by default** in o
 
 ## Contributing
 
-1. Fork the repo
-2. Create a feature branch
-3. Make your changes
-4. Submit a PR
+### Before You Start
+For feature additions, breaking changes, or architecture changes, read [openspec/AGENTS.md](openspec/AGENTS.md) to understand the proposal-driven development process.
 
-Join our [Discord](https://discord.gg/8ektTZGnj4) for discussions.
+### Workflow
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes
+4. Run quality checks: `bun run ts:check`
+5. Submit a PR with clear description of what and why
+
+### Code Conventions
+See [CLAUDE.md](CLAUDE.md) for:
+- File naming conventions (PascalCase for components, camelCase for utilities)
+- Architecture patterns (Jotai/Zustand state, tRPC IPC)
+- Database patterns (Drizzle ORM usage)
 
 ## License
 

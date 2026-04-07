@@ -2,6 +2,8 @@
 
 Instructions for AI coding assistants using OpenSpec for spec-driven development.
 
+> **Note:** This project uses OpenSpec for proposal-driven development, but the `specs/` and `changes/` directories are created on-demand when the first change proposal is scaffolded. If these directories don't exist yet, create them as part of your first proposal. See the Directory Structure section below for the expected layout.
+
 ## TL;DR Quick Checklist
 
 - Search existing work: `openspec spec list --long`, `openspec list` (use `rg` only for full-text search)

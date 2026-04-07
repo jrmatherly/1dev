@@ -27,7 +27,7 @@
 - `bun run release` — Full release (download binaries, build, sign, upload)
 - `bun run release:dev` — Dev release (no upload)
 - `bun run dist:manifest` — Generate update manifests
-- `./scripts/upload-release-wrangler.sh` — Submit notarization & upload to R2 CDN
+- Submit notarization & upload to R2 CDN (see release pipeline docs)
 - `./scripts/sync-to-public.sh` — Sync to public repo
 
 ## System Utils (macOS/Darwin)

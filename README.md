@@ -172,6 +172,12 @@ bun run dev
 
 Join our [Discord](https://discord.gg/8ektTZGnj4) for support and discussions.
 
+## Developer Guide
+
+For detailed architecture, development patterns, database schema, and release process, see [CLAUDE.md](CLAUDE.md).
+
+For contribution guidelines, setup instructions, and code conventions, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 Apache License 2.0 - see [LICENSE](LICENSE) for details.
