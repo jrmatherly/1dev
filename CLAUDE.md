@@ -296,4 +296,3 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - `postinstall` runs `electron-rebuild` for `better-sqlite3` and `node-pty` — if native modules fail, run `bun run postinstall` manually
 - `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences
 - Dev builds require Claude and Codex binaries downloaded locally (`bun run claude:download && bun run codex:download`)
-
