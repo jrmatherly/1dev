@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in *.ts|*.tsx) cd /Users/jason/dev/ai-stack/ai-coding-cli && bun run ts:check 2>&1 | tail -20;; esac"
+            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in *.ts|*.tsx) cd /Users/jason/dev/ai-stack/ai-coding-cli && if command -v tsgo >/dev/null 2>&1; then bun run ts:check 2>&1 | tail -20; else echo '[hook] tsgo not installed, skipping type check'; fi;; esac"
           }
         ]
       }

@@ -44,11 +44,15 @@ bun run db:push          # Push schema directly (dev only)
 bun run db:studio        # Open Drizzle Studio GUI
 
 # Type Checking
-bun run ts:check         # TypeScript check via tsgo (Go-based, fast)
+bun run ts:check         # TypeScript check via tsgo (requires: go install github.com/nicolo-ribaudo/tsgo@latest)
 
 # AI Binary Management
 bun run claude:download  # Download Claude CLI binary for current platform
 bun run codex:download   # Download Codex binary for current platform
+
+# Dependency Audit
+bun audit                # Check for known vulnerabilities
+bun outdated             # List outdated packages
 ```
 
 ## Architecture
@@ -226,6 +230,8 @@ bun run dev
 
 ## Releasing a New Version
 
+> All release documentation is in this file. There is no separate RELEASE.md.
+
 ### Prerequisites for Notarization
 
 - Keychain profile: `21st-notarize`
@@ -297,5 +303,19 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - `postinstall` runs `electron-rebuild` for `better-sqlite3` and `node-pty` — if native modules fail, run `bun run postinstall` manually
 - `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences
 - Dev builds require Claude and Codex binaries downloaded locally (`bun run claude:download && bun run codex:download`)
+- **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` which was removed in Vite 7+. Use `^6.4.2` minimum.
+- **No test suite** — No Jest/Vitest/Playwright configured. `bun run build` is the only full validation beyond `ts:check`.
+- `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously)
 - Claude Agent SDK version: see `@anthropic-ai/claude-agent-sdk` in `package.json`
 - Protocol handlers: Production uses `twentyfirst-agents://`, dev uses `twentyfirst-agents-dev://`
+
+## Documentation Maintenance
+
+Multiple files contain overlapping project info — keep them in sync when making changes:
+- `CLAUDE.md` — Authoritative reference for architecture, commands, patterns
+- `openspec/project.md` — Brief context summary (references CLAUDE.md for details)
+- `AGENTS.md` — Quick reference for AI agents + OpenSpec redirect
+- `.serena/memories/` — Serena project memories (project_overview, codebase_structure, etc.)
+- `.claude/PROJECT_INDEX.md` — Auto-generated project index
+
+Common drift points: SDK package names, Electron version, release script names, feature lists.
