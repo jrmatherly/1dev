@@ -22,6 +22,7 @@
 ## 1. Main Process (`src/main/`)
 
 ### Core Files
+
 | File | Purpose |
 |------|---------|
 | `index.ts` | App entry — window lifecycle, protocol handlers, auto-update |
@@ -31,6 +32,7 @@
 | `windows/main.ts` | BrowserWindow creation, IPC handler registration |
 
 ### Database Layer (`src/main/lib/db/`)
+
 | File | Purpose |
 |------|---------|
 | `index.ts` | DB initialization, auto-migrate on startup |
