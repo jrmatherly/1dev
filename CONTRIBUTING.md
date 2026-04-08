@@ -45,13 +45,21 @@ bun run db:studio     # Open Drizzle Studio GUI for inspection
 
 ## Code Quality
 
-Before submitting a PR:
+Before submitting a PR, run **both** automated quality gates:
 
 ```bash
-bun run ts:check    # Type check with tsgo (Go-based, fast)
+bun run ts:check    # Type check with tsgo (stricter — catches errors esbuild masks)
+bun run build       # Compile via electron-vite (validates the packaging pipeline)
 ```
 
-> Note: There is no test suite configured. `ts:check` is the only automated quality gate.
+> Note: There is no test suite configured (no Jest/Vitest/Playwright). `ts:check` and `build` are complementary — neither is a superset of the other, so run both.
+
+### Dependency Hygiene
+
+```bash
+bun audit           # Check for known vulnerabilities in installed dependencies
+bun outdated        # List outdated packages (use `bun update` for semver-safe upgrades)
+```
 
 ## Open Source vs Hosted Version
 
@@ -65,9 +73,11 @@ This is the open-source version of 1Code. Some features require the hosted backe
 | Terminal | Yes | Yes |
 | Sign in / Sync | No | Yes |
 | Background agents | No | Yes |
-| Auto-updates | No | Yes |
+| Auto-updates | Yes (points at `cdn.21st.dev` by default) | Yes |
 | Private Discord & support | No | Yes |
 | Early access to new features | No | Yes |
+
+> **Auto-update note:** The auto-update mechanism (`src/main/lib/auto-updater.ts`, `electron-updater`) is wired into every build. By default it polls `https://cdn.21st.dev/releases/desktop`. Self-hosted forks should change `CDN_BASE` in that file (or override the feed URL via `setFeedURL`) to point at their own release channel.
 
 ## Analytics & Telemetry
 
@@ -82,7 +92,7 @@ For feature additions, breaking changes, or architecture changes, read [openspec
 1. Fork the repo
 2. Create a feature branch: `git checkout -b feature/your-feature-name`
 3. Make your changes
-4. Run quality checks: `bun run ts:check`
+4. Run quality checks: `bun run ts:check && bun run build`
 5. Submit a PR with clear description of what and why
 
 ### Code Conventions

@@ -1,21 +1,3 @@
-<!-- OPENSPEC:START -->
-# OpenSpec Instructions
-
-These instructions are for AI assistants working in this project.
-
-Always open `@/openspec/AGENTS.md` when the request:
-- Mentions planning or proposals (words like proposal, spec, change, plan)
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
-- Sounds ambiguous and you need the authoritative spec before coding
-
-Use `@/openspec/AGENTS.md` to learn:
-- How to create and apply change proposals
-- Spec format and conventions
-- Project structure and guidelines
-
-Keep this managed block so 'openspec update' can refresh the instructions.
-
-<!-- OPENSPEC:END -->
 
 ## Quick Reference for AI Agents
 
@@ -28,7 +10,8 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 ### Key Facts
 - Package manager: **bun**
 - AI SDK: `@anthropic-ai/claude-agent-sdk` (not `claude-code`)
-- Quality gate: `bun run ts:check` (tsgo) — no test suite
+- Quality gates: `bun run ts:check` **and** `bun run build` — run both before submitting a PR (no test suite)
 - IPC: tRPC via `trpc-electron`
 - State: Jotai (UI) + Zustand (persisted) + React Query (server)
 - Database: Drizzle ORM + SQLite (auto-migrates on startup)
+- Pinned binaries: Claude CLI `2.1.96`, Codex CLI `0.118.0` (see `claude:download` / `codex:download` in `package.json`)

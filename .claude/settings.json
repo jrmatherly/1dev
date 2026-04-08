@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in *.env|*.env.*) echo 'BLOCK: .env files contain secrets — edit manually' >&2; exit 2;; */bun.lock|*/bun.lockb) echo 'BLOCK: Lock files should not be edited directly' >&2; exit 2;; esac"
+            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in *.env|*.env.*) echo 'BLOCK: .env files contain secrets — edit manually' >&2; exit 2;; */bun.lock|*/bun.lockb) echo 'BLOCK: Lock files should not be edited directly' >&2; exit 2;; */package.json|*/scripts/download-claude-binary.mjs|*/scripts/download-codex-binary.mjs) echo '⚠️  WARNING: Touching binary version pin file. Confirm Claude 2.1.96 / Codex 0.118.0 are the intended targets — bumping the pin requires re-testing session resume (Claude) or the codex-acp bridge (Codex). See CLAUDE.md Environment Notes.' >&2;; esac"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in *.ts|*.tsx) cd /Users/jason/dev/ai-stack/ai-coding-cli && if command -v tsgo >/dev/null 2>&1; then bun run ts:check 2>&1 | tail -20; else echo '[hook] tsgo not installed, skipping type check'; fi;; esac"
+            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in *.ts|*.tsx) cd /Users/jason/dev/ai-stack/ai-coding-cli && if command -v tsgo >/dev/null 2>&1; then CURRENT=$(bun run ts:check 2>&1 | grep -c 'error TS' || echo 0); BASELINE=$(cat .claude/.tscheck-baseline 2>/dev/null || echo 104); if [ \"$CURRENT\" -gt \"$BASELINE\" ]; then echo \"❌ ts:check error count increased: baseline=$BASELINE → current=$CURRENT (+$((CURRENT-BASELINE))). New errors:\" >&2; bun run ts:check 2>&1 | grep 'error TS' | tail -10 >&2; elif [ \"$CURRENT\" -lt \"$BASELINE\" ]; then echo \"✅ ts:check decreased: baseline=$BASELINE → current=$CURRENT (-$((BASELINE-CURRENT))). Consider updating .claude/.tscheck-baseline.\"; else echo \"✅ ts:check baseline holding ($CURRENT errors)\"; fi; else echo '[hook] tsgo not installed, skipping type check'; fi;; esac"
           }
         ]
       }

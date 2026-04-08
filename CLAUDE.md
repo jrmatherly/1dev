@@ -1,21 +1,3 @@
-<!-- OPENSPEC:START -->
-# OpenSpec Instructions
-
-These instructions are for AI assistants working in this project.
-
-Always open `@/openspec/AGENTS.md` when the request:
-- Mentions planning or proposals (words like proposal, spec, change, plan)
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
-- Sounds ambiguous and you need the authoritative spec before coding
-
-Use `@/openspec/AGENTS.md` to learn:
-- How to create and apply change proposals
-- Spec format and conventions
-- Project structure and guidelines
-
-Keep this managed block so 'openspec update' can refresh the instructions.
-
-<!-- OPENSPEC:END -->
 
 # CLAUDE.md
 
@@ -254,7 +236,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 
 ## Known Security Gaps & Footguns
 
-- `scripts/download-claude-binary.mjs` and `scripts/download-codex-binary.mjs` do **NOT verify checksums/signatures** — supply chain risk (Phase 0 hard gate #7, still pending)
+- ~~`scripts/download-claude-binary.mjs` and `scripts/download-codex-binary.mjs` do NOT verify checksums/signatures~~ — **RESOLVED 2026-04-08** (Phase 0 gate #7). The earlier footgun text was factually wrong: both scripts always verified SHA-256 against authoritative manifests (Claude: GCS `manifest.json`; Codex: GitHub release `asset.digest`). The gate closed the remaining gap: `download-claude-binary.mjs` now also verifies the detached GPG signature on `manifest.json` against a vendored Anthropic release-signing public key (`scripts/anthropic-release-pubkey.asc`, fingerprint `31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE`) with fingerprint pinning to catch tampered keys. Signature verification is available for Claude 2.1.89+ (we pin 2.1.96). Regression guard at `tests/regression/gpg-verification-present.test.ts`. Codex releases do not publish a separate detached signature — the GitHub release metadata's TLS chain is the trust anchor for the SHA-256 digest, which is as good as upstream provides. See https://code.claude.com/docs/en/setup#binary-integrity-and-code-signing.
 - ~~`auth:get-token` IPC handler is **dead code** but still registered~~ — **RESOLVED 2026-04-08** (Phase 0 gates #1-4). Handler, preload bridge, and type declaration all deleted. Regression guard at `tests/regression/auth-get-token-deleted.test.ts`.
 - ~~**FIVE token preview logs**~~ — **RESOLVED 2026-04-08** (Phase 0 gates #5-6). All four sites in `src/main/lib/trpc/routers/claude.ts` and the one in `src/main/lib/claude/env.ts` removed. Regression guard at `tests/regression/token-leak-logs-removed.test.ts` scans all of `src/main/` for forbidden substrings (`Token preview:`, `tokenPreview:`, `Token total length:`, `finalCustomConfig.token.slice`, and the env.ts presence-log pattern).
 - `@azure/msal-node` (v3.8.x) ≠ `@azure/msal-node-extensions` (v5.1.x) — versions diverge, do not assume parity
@@ -311,8 +293,8 @@ bun run dev
 bun run release
 
 # Or step by step:
-bun run claude:download    # Download Claude CLI binary (pinned 2.1.45)
-bun run codex:download     # Download Codex binary (pinned 0.98.0)
+bun run claude:download    # Download Claude CLI binary (pinned 2.1.96)
+bun run codex:download     # Download Codex binary (pinned 0.118.0)
 bun run build              # Compile TypeScript
 bun run package:mac        # Build & sign macOS app
 bun run dist:manifest      # Generate latest-mac.yml + latest-mac-x64.yml manifests
@@ -372,8 +354,8 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - `postinstall` runs `electron-rebuild` for `better-sqlite3` and `node-pty` — if native modules fail, run `bun run postinstall` manually
 - `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences (requires: `npm install -g @typescript/native-preview`)
 - Dev builds require Claude and Codex binaries downloaded locally (`bun run claude:download && bun run codex:download`)
-- **Claude CLI binary pinned to `2.1.45`** — see `claude:download` script in `package.json`. Bumping the pin requires re-testing session resume and streaming.
-- **Codex CLI binary pinned to `0.98.0`** — see `codex:download` script in `package.json`. Bumping the pin requires re-testing the `@zed-industries/codex-acp` bridge.
+- **Claude CLI binary pinned to `2.1.96`** — see `claude:download` script in `package.json`. Bumping the pin requires re-testing session resume and streaming. This version supports signed-manifest GPG verification (introduced 2.1.89); the download script enforces it at `scripts/download-claude-binary.mjs`.
+- **Codex CLI binary pinned to `0.118.0`** — see `codex:download` script in `package.json`. Bumping the pin requires re-testing the `@zed-industries/codex-acp` bridge. This version natively supports dynamic short-lived bearer token refresh for custom model providers, which enables the Phase 1 Envoy Gateway rotation pattern without a custom shim.
 - **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` which was removed in Vite 7+. Use `^6.4.2` minimum.
 - **Minimal test suite** — `bun:test` (built in, no config) bootstrapped 2026-04-08 for Phase 0 regression guards under `tests/regression/`. No Jest/Vitest/Playwright — broader test adoption is Phase 0 hard gate #11. Quality gates: `bun run ts:check` (stricter, tsgo-based), `bun run build` (esbuild, validates packaging), `bun test` (regression guards), `bun audit` (dependency advisories). **Run all four before submitting a PR** — none is a superset of the others. The same four are enforced in CI (`.github/workflows/ci.yml`).
 - **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; upgrading requires full config migration (134 files use `cn()`)
