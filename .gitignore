@@ -32,5 +32,8 @@ electron.vite.config.*.mjs
 # Claude binary (downloaded at build time)
 resources/bin/
 
+# Legacy lockfile (migrated to text-based bun.lock)
+bun.lockb
+
 # Session ephemeral files
 .remember/tmp/save-session.pid
