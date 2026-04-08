@@ -431,11 +431,6 @@ function registerIpcHandlers(): void {
     },
   );
 
-  ipcMain.handle("auth:get-token", async (event) => {
-    if (!validateSender(event)) return null;
-    return getAuthManager().getValidToken();
-  });
-
   // Signed fetch - proxies requests through main process (no CORS)
   ipcMain.handle(
     "api:signed-fetch",
