@@ -25,18 +25,20 @@ rm -rf ~/Library/Application\ Support/Agents\ Dev/    # Clear all app data
 defaults delete dev.apollosai.agents.dev                     # Clear preferences
 ```
 
-## Quality Gates (NEITHER is "primary" — run BOTH)
-- No Jest, Vitest, or Playwright configured — no test files exist
+## Quality Gates — ALL FOUR are required (none is a superset)
 - **`bun run ts:check`** (tsgo, Go-based, faster) — stricter, catches type errors esbuild masks. Requires `npm install -g @typescript/native-preview`.
 - **`bun run build`** (electron-vite + esbuild) — validates the packaging pipeline; produces the actual artifact.
-- **Run BOTH before submitting a PR** — neither is a superset of the other. CLAUDE.md / CONTRIBUTING.md / AGENTS.md were aligned this session to consistently say "both gates."
+- **`bun test`** — `bun:test` regression guards under `tests/regression/` (5 tests, ~100ms total). Bootstrapped 2026-04-08 as Phase 0 gate #11. No Jest/Vitest/Playwright — broader test adoption is still pending.
+- **`bun audit`** — checks for known dependency vulnerabilities.
+- **Run all four before submitting a PR.** Together they take under 2 minutes on an M-series Mac.
 - tsgo has known gaps with mapped-type recursion vs tsc — fall back to `tsc` for tricky type errors
-- Current ts:check baseline: 104 pre-existing errors; only fail if count increases
+- **Current ts:check baseline: 88 pre-existing errors** (stored in `.claude/.tscheck-baseline`). PostToolUse hook tracks drift on every TS edit. Only fail if count increases. To verify your changes don't add new errors: `git stash && bun run ts:check 2>&1 | grep -c "error TS" && git stash pop`
 
-## No CI/CD
-- No `.github/` directory exists in the repo
-- No automated builds, audits, or releases — everything runs locally via `bun run release`
-- `bun audit --high` should be wired into a CI gate once CI is set up
+## CI/CD
+- **`.github/workflows/ci.yml` exists** as of Phase 0 gate #9 (2026-04-08). Runs `bun run ts:check && bun run build && bun test && bun audit` on every PR to `main`.
+- Local quality gates are the same four commands — run them before pushing.
+- `.github/dependabot.yml` exists as of Phase 0 gate #10. UI secret-scanning enable still pending (manual GitHub setting).
+- Release pipeline is still local: `bun run release` runs binaries → build → package:mac → notarize → upload to R2 CDN.
 
 ## Dependency Version Constraints (LOAD-BEARING — DO NOT BUMP CASUALLY)
 - **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` removed in Vite 7+. `electron-vite` 5.x supports Vite 7 if/when upgraded.

@@ -16,17 +16,19 @@
 - `bun run db:push` — Push schema directly (dev only)
 - `bun run db:studio` — Open Drizzle Studio GUI
 
-## Type Checking & Quality (BOTH GATES — neither is "primary")
-- `bun run ts:check` — TypeScript check via tsgo (stricter, requires `npm install -g @typescript/native-preview`)
+## Quality Gates (ALL FOUR — none is a superset)
+- `bun run ts:check` — TypeScript check via tsgo (stricter, catches type errors esbuild masks). Requires `npm install -g @typescript/native-preview`. Baseline: 88 errors stored in `.claude/.tscheck-baseline`. PostToolUse hook tracks drift on every TS edit.
 - `bun run build` — Full electron-vite build (validates packaging)
-- **Run both before submitting a PR.** Neither is a superset of the other.
+- `bun test` — `bun:test` regression guards under `tests/regression/` (5 tests, ~100ms total)
+- `bun audit` — Dependency vulnerability scan
+- **Run all four before submitting a PR.** Together they take under 2 minutes on an M-series Mac. CI (`.github/workflows/ci.yml`) enforces the same four on every PR to main.
+- To distinguish "errors I introduced" from "pre-existing baseline": `git stash && bun run ts:check 2>&1 | grep -c "error TS" && git stash pop`
 
-## Dependency Audit
-- `bun audit` — Check for known vulnerabilities
-- `bun audit --high` — High-severity only (recommended CI gate)
+## Dependency Management
+- `bun audit --high` — High-severity only (alternative to plain `bun audit`)
 - `bun outdated` — List outdated packages
 - `bun update` — Semver-safe updates
-- `bun update --latest` — Major version bumps (use cautiously)
+- `bun update --latest` — Major version bumps (use cautiously — 6 load-bearing pins exist; see `.claude/skills/verify-pin/SKILL.md`)
 
 ## Upstream Verification (gh CLI)
 - `gh api repos/electron/electron/security-advisories` — verify Electron CVEs

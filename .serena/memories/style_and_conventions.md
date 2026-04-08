@@ -13,12 +13,12 @@
 - `tsgo` (Go-based checker) used instead of `tsc` — faster but has known gaps with mapped-type recursion; fall back to `tsc` for tricky type errors
 
 ## Security Patterns to Enforce
-- Never log token previews or credential fragments (see prior bug at `claude.ts:200-204`/`:244-248`)
+- Never log token previews or credential fragments. The 5 historical leak sites in `claude.ts` and `claude/env.ts` were removed in Phase 0 gates #5-6 and are now guarded by `tests/regression/token-leak-logs-removed.test.ts`.
 - Use `event.senderFrame.url` (Electron 28+), not `event.sender.getURL()`, in IPC sender validation
-- Delete dead IPC handlers — `auth:get-token` was a CVSS 9.0 dead-code path
-- All binary downloads must verify SHA256 checksums (supply chain hardening)
+- Delete dead IPC handlers — `auth:get-token` was a CVSS 9.0 dead-code path, removed in Phase 0 gates #1-4 and guarded by `tests/regression/auth-get-token-deleted.test.ts`
+- All binary downloads must verify SHA-256 checksums. Claude binary downloader **also** verifies the manifest GPG signature against the vendored Anthropic public key (Phase 0 gate #7, guarded by `tests/regression/gpg-verification-present.test.ts`).
 - MCP server URLs must go through `src/main/lib/trpc/schemas/mcp-url.ts` (SSRF-safe validation)
-- Do not introduce new `remoteTrpc.*` call sites without flagging them in `.scratchpad/upstream-features-inventory.md` — every one becomes a future migration cost
+- Do not introduce new `remoteTrpc.*` call sites without flagging them in `.scratchpad/upstream-features-inventory.md` — every one becomes a future migration cost. The `upstream-boundary-check` skill exists to enforce this on Edit/Write to renderer files.
 
 ## State Management Rules
 - **Jotai**: UI state (selected chat, sidebar open, preview settings)
@@ -37,10 +37,13 @@
 - class-variance-authority (CVA) for component variants
 - Motion (framer-motion) for animations
 
-## Quality Gates (no test framework, no formatter, no linter)
+## Quality Gates (no formatter, no linter, minimal test suite)
 - No Prettier, ESLint, or Biome configured
-- No Jest, Vitest, or Playwright configured
-- **Two automated quality gates** — both required before submitting a PR:
-  1. `bun run ts:check` (tsgo, stricter, catches type errors)
+- `bun:test` is the only test framework (no Jest, Vitest, or Playwright). Bootstrapped 2026-04-08 as Phase 0 gate #11.
+- **Four automated quality gates** — all required before submitting a PR (none is a superset of the others):
+  1. `bun run ts:check` (tsgo, stricter, catches type errors esbuild masks). Baseline: 88 errors stored in `.claude/.tscheck-baseline`. PostToolUse hook tracks drift on every TS edit.
   2. `bun run build` (electron-vite, validates packaging pipeline)
-- Neither gate is a superset of the other — run both
+  3. `bun test` (5 regression guards under `tests/regression/`, ~100ms total)
+  4. `bun audit` (dependency vulnerability scan)
+- All four together run in under 2 minutes on an M-series Mac
+- The same four are enforced in `.github/workflows/ci.yml` on every PR to main
