@@ -58,31 +58,28 @@ export const remoteApi = {
    */
   async getTeams(): Promise<Team[]> {
     const teams = await remoteTrpc.teams.getUserTeams.query()
-    return teams.map((t: { id: string; name: string }) => ({ id: t.id, name: t.name }))
+    return teams.map((t) => ({ id: t.id, name: t.name }))
   },
 
   /**
    * Fetch all agent chats for a team (same as web)
    */
   async getAgentChats(teamId: string): Promise<RemoteChat[]> {
-    const chats = await remoteTrpc.agents.getAgentChats.query({ teamId })
-    return chats as RemoteChat[]
+    return await remoteTrpc.agents.getAgentChats.query({ teamId })
   },
 
   /**
    * Fetch a single agent chat with all sub-chats (same as web)
    */
   async getAgentChat(chatId: string): Promise<RemoteChatWithSubChats> {
-    const chat = await remoteTrpc.agents.getAgentChat.query({ chatId })
-    return chat as RemoteChatWithSubChats
+    return await remoteTrpc.agents.getAgentChat.query({ chatId })
   },
 
   /**
    * Fetch archived chats for a team (same as web)
    */
   async getArchivedChats(teamId: string): Promise<RemoteChat[]> {
-    const chats = await remoteTrpc.agents.getArchivedChats.query({ teamId })
-    return chats as RemoteChat[]
+    return await remoteTrpc.agents.getArchivedChats.query({ teamId })
   },
 
   /**

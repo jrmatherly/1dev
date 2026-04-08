@@ -4,11 +4,7 @@
  */
 import { createTRPCClient, httpLink } from "@trpc/client";
 import SuperJSON from "superjson";
-
-// The hosted web backend defines a typed AppRouter, but it's not available in the
-// open-source repo. This stub allows the tRPC client to work without full type safety.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AppRouter = any;
+import type { AppRouter } from "./remote-app-router";
 
 // Placeholder URL - actual base is fetched dynamically from main process
 const TRPC_PLACEHOLDER = "/__dynamic__/api/trpc";
