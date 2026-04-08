@@ -3,9 +3,12 @@
  * Uses signedFetch via IPC for authentication (no CORS issues)
  */
 import { createTRPCClient, httpLink } from "@trpc/client";
-// @ts-ignore TS2307 - AppRouter is defined in the hosted web repo, not available in open-source build
-import type { AppRouter } from "../../../../web/server/api/root";
 import SuperJSON from "superjson";
+
+// The hosted web backend defines a typed AppRouter, but it's not available in the
+// open-source repo. This stub allows the tRPC client to work without full type safety.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AppRouter = any;
 
 // Placeholder URL - actual base is fetched dynamically from main process
 const TRPC_PLACEHOLDER = "/__dynamic__/api/trpc";
