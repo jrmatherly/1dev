@@ -1,6 +1,6 @@
 ## Why
 
-The `src/renderer/lib/mock-api.ts` file is a 657-line untyped facade (`AnyObj`/`any` throughout) that exists to make the new typed Drizzle/tRPC backend *look like* the dead 21st.dev REST/tRPC API to renderer-side consumers. Its core mechanism is at lines 230-236:
+The `src/renderer/lib/mock-api.ts` file is a 657-line untyped facade (`AnyObj`/`any` throughout) that exists to make the new typed Drizzle/tRPC backend *look like* the dead upstream `21st.dev` REST/tRPC API (now `apollosai.dev` for the local fork; the upstream brand is historical) to renderer-side consumers. Its core mechanism is at lines 230-236:
 
 ```typescript
 return {
@@ -30,15 +30,16 @@ Phase 1 scope only. Phases 2 and 3 are explicitly out of scope and will be track
 
 - **REMOVE** the camelCase → snake_case timestamp translation in `src/renderer/lib/mock-api.ts` at lines 230-236 of the `getAgentChat.useQuery` adapter. Specifically, delete the `created_at: sc.createdAt` and `updated_at: sc.updatedAt` mapping lines so the sub-chat objects emerge with their original camelCase keys (`createdAt: Date | null`, `updatedAt: Date | null`).
 - **REMOVE** the matching `created_at`/`updated_at` fields from any other return-shape sites inside `mock-api.ts` that mirror the same fossil (`getAgentChats`, `getArchivedChats`, and the `utils` block at lines 442-512). Each site's existing return shape stays — only the snake_case timestamp keys are removed.
-- **UPDATE** all 8 consumer files to read camelCase timestamp fields:
-  - `src/renderer/features/agents/main/active-chat.tsx` — at least 12 sites including the agentSubChats type cast at lines 5836-5844, the parent-chat sort callbacks at lines 4321-4325, the addToAllSubChats payload at lines 3760-3771, and the stream-status comparison helpers at lines 6767-6810
-  - `src/renderer/features/agents/ui/agents-content.tsx` — type literal at line 1067 currently declaring `updated_at: Date` (must become `updatedAt: Date | null` to match the Drizzle row) and any remaining sort sites
+- **UPDATE** the consumer files below to read camelCase timestamp fields. Counts are authoritative as of audit on commit `f8166b1` (post-rebrand). **Critical: leave any read of `remoteAgentChat.created_at` / `remoteAgentChat.updated_at` or any `chat.created_at` / `chat.updated_at` inside an `if (chatSourceMode === "sandbox")` block alone — those are F1 boundary translations that intentionally keep snake_case to match the dead upstream `21st.dev` API contract** (now `apollosai.dev` for the local fork; the upstream brand is historical). See Requirement 5 in the spec delta.
+  - `src/renderer/features/agents/main/active-chat.tsx` — **~24 sites**, *but* approximately 6 of those are F1 boundary translations inside the `chatSourceMode === "sandbox"` block at lines 5765-5793 (specifically the `remoteAgentChat.created_at` / `remoteAgentChat.updated_at` reads at 5770-5771 and the `created_at: new Date(sc.created_at)` / `updated_at: new Date(sc.updated_at)` writes at 5787-5788) which **MUST be left unchanged**. The remaining ~18 sites are local-Drizzle reads/writes that need to migrate. Key locations: parent-chat sort callbacks at lines 373-374 and 4325, parent-chat update at 4321, addToAllSubChats payload at 3768, stream-status compare helpers at 6775-6788, sub-chat construction sites at 4914 / 6808 / 7397-7398 / 7418 / 7922-7923, line 6177 (`updatedAt: subChat.updated_at || subChat.created_at || ""` — both reads need camelCase)
+  - `src/renderer/features/agents/ui/agents-content.tsx` — **0 remaining sites.** All 4 prior sites at lines 341 (×2), 480, 481 were already fixed by commit `df421a8`. The "type literal at line 1067" referenced in the original proposal draft no longer exists in the current file. Tasks 4.1-4.2 are already complete; verify with `grep` and check off
   - `src/renderer/features/agents/ui/sub-chat-selector.tsx` — 5 sites at lines 96, 306-307, 568-569
   - `src/renderer/features/agents/ui/mobile-chat-header.tsx` — 3 sites at lines 94-95, 160
   - `src/renderer/features/agents/ui/archive-popover.tsx` — 1 site at line 351 currently doing `updatedAt: chat.updated_at` reverse-translation (becomes a no-op, can be removed entirely)
   - `src/renderer/features/agents/components/subchats-quick-switch-dialog.tsx` — 1 site at line 42
-  - `src/renderer/features/agents/components/agents-quick-switch-dialog.tsx` — type declaration at line 17
-  - `src/renderer/features/sidebar/agents-subchats-sidebar.tsx` — call sites that read sub-chat timestamps
+  - `src/renderer/features/agents/components/agents-quick-switch-dialog.tsx` — 1 type declaration at line 17 (`updated_at: Date` → `updatedAt: Date | null`)
+  - `src/renderer/features/sidebar/agents-subchats-sidebar.tsx` — **8 sites** at lines 136, 381-382, 798, 821-822, 1356, 1719 (originally under-counted as "estimated 2-3 sites")
+  - `src/renderer/features/sidebar/agents-sidebar.tsx` — **2 sites at lines 2077-2078 are F1 boundary translations** reading from `remoteChats` (the F1 remote chat list). These MUST be left unchanged — they belong to the F1 restoration roadmap, not Phase 1. Listed here only to make the boundary explicit so implementers do not accidentally touch them
 - **UPDATE** `src/renderer/features/agents/stores/sub-chat-store.ts`:
   - Type definition at lines 13-17 changes `created_at?: string` and `updated_at?: string` to `createdAt?: string | null` and `updatedAt?: string | null`
   - State update at line 364 changes `{ ...sc, updated_at: newTimestamp }` to `{ ...sc, updatedAt: newTimestamp }`
@@ -46,14 +47,16 @@ Phase 1 scope only. Phases 2 and 3 are explicitly out of scope and will be track
 - **ADD** regression guard test at `tests/regression/mock-api-no-snake-timestamps.test.ts` asserting that `src/renderer/lib/mock-api.ts` does not contain the substrings `created_at:` or `updated_at:` (grep-based structural check). This guard prevents accidental re-introduction of the fossil during merges or future edits
 - **ADD** the `renderer-data-access` capability to the OpenSpec specs directory, with the requirements documented in `specs/renderer-data-access/spec.md` of this change
 
-**Out of scope (tracked for follow-up proposals):**
+**Out of scope (tracked for follow-up proposals or other roadmap items):**
 
 - Migrating consumer files to use `trpc.chats.*` directly instead of `api.agents.*` (Phase 2)
 - Extracting `normalizeCodexToolPart` and the JSON message-parsing pipeline into typed helpers (Phase 2)
 - Deleting `mock-api.ts` entirely (Phase 3)
 - Removing `mock-api.ts`'s translation of `sandbox_id: null` and `stream_id: null` and `meta: null` for sub-chat objects — these are F1/upstream feature fossils tracked separately in `.scratchpad/upstream-features-inventory.md`
 - Adjusting any of the upstream-only feature stubs (`getUserTeams`, `getUserBalance`, F1/F3 GitHub installations, etc.) — these are coupled to the F-entries in the upstream features inventory and have their own restoration roadmap
-- Touching `src/renderer/lib/remote-types.ts` — that file describes the *external* upstream API contract and its snake_case shape is a faithful representation of the dead 21st.dev shape, not a translator artifact
+- Touching `src/renderer/lib/remote-types.ts` — that file describes the *external* upstream API contract and its snake_case shape is a faithful representation of the dead upstream `21st.dev` API shape (now apollosai.dev for the local fork; the upstream brand is historical), not a translator artifact
+- **F1 boundary translation sites in `active-chat.tsx` (lines 5765-5793) and `agents-sidebar.tsx` (lines 2077-2078)** — these reads of `remoteAgentChat.created_at` / `chat.created_at` from the `remoteChats` array intentionally accept the dead upstream snake_case shape and convert it into the local camelCase shape at the F1 boundary. They belong to the F1 restoration roadmap and MUST NOT be touched in Phase 1. Requirement 5 in the spec delta formalizes this exclusion
+- **`src/renderer/features/automations/automations-detail-view.tsx:847`** (`execution.created_at`) — F2 (Automations & Inbox) territory, fully upstream-dependent via `remoteTrpc.*`. The DTO shape is the dead upstream API contract. This site is fossil-by-design until F2 is restored or retired in its own proposal
 
 ## Capabilities
 
@@ -67,20 +70,24 @@ None. There are no existing OpenSpec specs touching renderer data access (the pr
 
 ## Impact
 
-**Affected code:**
+**Affected code (counts authoritative as of audit on commit `f8166b1`):**
 
-- Modified: `src/renderer/lib/mock-api.ts` (~−6 LOC: removal of the timestamp mapping lines)
-- Modified: `src/renderer/features/agents/main/active-chat.tsx` (~12 sites — see `tasks.md` for the full list)
-- Modified: `src/renderer/features/agents/ui/agents-content.tsx` (~3 remaining sites; 4 already fixed in commit `df421a8`)
+- Modified: `src/renderer/lib/mock-api.ts` (~−2 LOC: removal of `created_at: sc.createdAt` and `updated_at: sc.updatedAt` at lines 232-233)
+- Modified: `src/renderer/features/agents/main/active-chat.tsx` (~18 local-Drizzle sites; 6 F1 boundary sites at 5770-5771 and 5787-5788 left unchanged)
 - Modified: `src/renderer/features/agents/ui/sub-chat-selector.tsx` (5 sites)
 - Modified: `src/renderer/features/agents/ui/mobile-chat-header.tsx` (3 sites)
 - Modified: `src/renderer/features/agents/ui/archive-popover.tsx` (1 site, deletes a reverse-translation)
 - Modified: `src/renderer/features/agents/components/subchats-quick-switch-dialog.tsx` (1 site)
 - Modified: `src/renderer/features/agents/components/agents-quick-switch-dialog.tsx` (1 type declaration)
-- Modified: `src/renderer/features/sidebar/agents-subchats-sidebar.tsx` (estimated 2-3 sites)
-- Modified: `src/renderer/features/agents/stores/sub-chat-store.ts` (~10 LOC: type rename + persist migration)
+- Modified: `src/renderer/features/sidebar/agents-subchats-sidebar.tsx` (8 sites — corrected from "2-3" estimate)
+- Modified: `src/renderer/features/agents/stores/sub-chat-store.ts` (~10 LOC: type rename + Zustand persist migration)
 - New file: `tests/regression/mock-api-no-snake-timestamps.test.ts` (~30 LOC)
 - New file: `openspec/changes/retire-mock-api-translator/specs/renderer-data-access/spec.md` (the delta spec — already created as part of this proposal)
+- **NOT modified (verified clean already):** `src/renderer/features/agents/ui/agents-content.tsx` — commit `df421a8` already removed all 4 prior sites
+- **NOT modified (F1 boundary preservation):** `src/renderer/features/sidebar/agents-sidebar.tsx:2077-2078` (F1 remote chat translation), `src/renderer/features/agents/main/active-chat.tsx:5765-5793` (`chatSourceMode === "sandbox"` block)
+- **NOT modified (F2 fossil-by-design):** `src/renderer/features/automations/automations-detail-view.tsx:847`
+
+**Total fossil-site delta:** ~50 sites migrated to camelCase across 8 consumer files + 1 store + 1 translator. ~9 sites left unchanged on purpose (F1/F2 boundary preservation).
 
 **Affected APIs:** None at the tRPC layer. All tRPC procedures are unchanged. The only API change is the `mock-api.ts` shim's return shape, which becomes camelCase-only — and the only callers of that shim are the 8 files this change updates.
 

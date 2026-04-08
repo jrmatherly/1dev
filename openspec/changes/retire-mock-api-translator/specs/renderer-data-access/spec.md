@@ -94,6 +94,39 @@ The file's responsibilities that are REMOVED by this change:
 #### Scenario: Phase 2 has not yet been implemented
 
 - **WHEN** a developer reviews `mock-api.ts` after Phase 1 ships but before Phase 2 begins
-- **THEN** the file is still 657 LOC (minus the 6 deleted timestamp-mapping lines)
+- **THEN** the file is still 657 LOC (minus the 2 deleted timestamp-mapping lines)
 - **AND** the file still contains the upstream-feature stubs and the `normalizeCodexToolPart` adapter logic
 - **AND** the CLAUDE.md "Known Security Gaps & Footguns" deprecation warning still applies, with a note pointing at the Phase 2 proposal as the next step
+
+### Requirement: F1 / F2 boundary translation sites are preserved unchanged
+
+The system SHALL preserve the snake_case timestamp reads at specific boundary translation sites that consume data from the dead upstream `21st.dev` API contract (now `apollosai.dev` for the local fork; the upstream brand is historical). These boundary sites convert F1 (Background Agents / cloud sandboxes) and F2 (Automations & Inbox) external DTO shapes into the local camelCase shape used elsewhere. They MUST NOT be migrated as part of Phase 1 because they belong to the F1 / F2 restoration roadmap tracked separately at `.scratchpad/upstream-features-inventory.md`.
+
+The protected boundary sites at the time of writing this spec are (line numbers may shift slightly post-rebrand and are advisory, not authoritative):
+
+- `src/renderer/features/agents/main/active-chat.tsx` lines 5765-5793 — the `if (chatSourceMode === "sandbox")` block. Specifically the `remoteAgentChat.created_at` / `remoteAgentChat.updated_at` reads at 5770-5771 and the `created_at: new Date(sc.created_at)` / `updated_at: new Date(sc.updated_at)` writes at 5787-5788 inside the sub-chat shape construction
+- `src/renderer/features/sidebar/agents-sidebar.tsx` lines 2077-2078 — the `createdAt: new Date(chat.created_at)` and `updatedAt: new Date(chat.updated_at)` reads inside the `for (const chat of remoteChats)` loop
+- `src/renderer/features/automations/automations-detail-view.tsx` line 847 — `new Date(execution.created_at)` from F2 inbox/automation execution data
+
+The protection is by-name (file paths and surrounding identifier patterns) rather than by-line because line numbers may shift when other Phase 1 edits insert or remove lines above the boundary sites.
+
+#### Scenario: A future implementer accidentally migrates an F1 boundary site
+
+- **WHEN** a developer running the Phase 1 implementation does a careless `sed`-style rename of `created_at` → `createdAt` across `src/renderer/features/agents/main/active-chat.tsx`
+- **THEN** the F1 boundary translation block at lines ~5765-5793 (which reads `remoteAgentChat.created_at`) is incorrectly converted
+- **AND** at runtime, the `chatSourceMode === "sandbox"` code path produces `new Date(undefined)` (because `remoteAgentChat.createdAt` does not exist on the F1 DTO shape) which is `Invalid Date`
+- **AND** the F1 sandbox flow breaks visibly during smoke testing of task 7.4
+- **AND** the fix is to revert the offending edit at the F1 boundary lines and re-run the smoke test
+
+#### Scenario: Phase 9 verification grep finds unchanged boundary sites
+
+- **WHEN** a developer runs `grep -n "remoteAgentChat\.\(created_at\|updated_at\)" src/renderer/features/agents/main/active-chat.tsx` after completing the Phase 1 implementation
+- **THEN** the grep returns matches at the F1 boundary line numbers (or wherever they have shifted to within the same `chatSourceMode === "sandbox"` block)
+- **AND** the count of matches equals the count from before Phase 1 began (i.e., zero net change at the F1 boundary)
+
+#### Scenario: F2 fossil-by-design preservation
+
+- **WHEN** a developer reviews the migrated codebase post-Phase-1 and sees `new Date(execution.created_at)` at `automations-detail-view.tsx:847`
+- **THEN** they understand this is intentional (F2 fossil per the upstream features inventory) and not an oversight
+- **AND** the regression guard test at `tests/regression/mock-api-no-snake-timestamps.test.ts` includes `automations-detail-view.tsx` in its allowlist of files exempted from the consumer-side snake_case scan
+- **AND** any future F2 restoration proposal will include its own consumer migration tasks for this site
