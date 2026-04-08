@@ -6,6 +6,7 @@ import * as os from "os";
 import path from "path";
 import { z } from "zod";
 import { setConnectionMethod } from "../../analytics";
+import { mcpServerUrlSchema } from "../schemas/mcp-url";
 import {
   buildClaudeEnv,
   checkOfflineFallback,
@@ -3016,7 +3017,7 @@ ${prompt}
         command: z.string().optional(),
         args: z.array(z.string()).optional(),
         env: z.record(z.string(), z.string()).optional(),
-        url: z.url().optional(),
+        url: mcpServerUrlSchema.optional(),
         authType: z.enum(["none", "oauth", "bearer"]).optional(),
         bearerToken: z.string().optional(),
       }),
@@ -3094,7 +3095,7 @@ ${prompt}
         command: z.string().optional(),
         args: z.array(z.string()).optional(),
         env: z.record(z.string(), z.string()).optional(),
-        url: z.url().optional(),
+        url: mcpServerUrlSchema.optional(),
         authType: z.enum(["none", "oauth", "bearer"]).optional(),
         bearerToken: z.string().optional(),
         disabled: z.boolean().optional(),

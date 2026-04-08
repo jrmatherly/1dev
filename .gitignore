@@ -13,6 +13,7 @@ out/
 *.swo
 .vscode/
 .scratchpad/
+.full-review/
 
 # System files
 .DS_Store

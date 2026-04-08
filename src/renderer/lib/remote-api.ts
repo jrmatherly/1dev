@@ -14,43 +14,18 @@ async function getApiBase(): Promise<string> {
   return API_BASE
 }
 
-// Re-export types for convenience
-export type Team = {
-  id: string
-  name: string
-  slug?: string
-}
-
-export type RemoteChat = {
-  id: string
-  name: string
-  sandbox_id: string | null
-  meta: {
-    repository?: string
-    github_repo?: string // Automation-created chats use this field
-    branch?: string | null
-    originalSandboxId?: string | null
-    isQuickSetup?: boolean
-    isPublicImport?: boolean
-  } | null
-  created_at: string
-  updated_at: string
-  stats: { fileCount: number; additions: number; deletions: number } | null
-}
-
-export type RemoteSubChat = {
-  id: string
-  name: string
-  mode: string
-  messages: unknown[]
-  stream_id: string | null
-  created_at: string
-  updated_at: string
-}
-
-export type RemoteChatWithSubChats = RemoteChat & {
-  subChats: RemoteSubChat[]
-}
+// Re-export types from the shared types file for convenience
+export type {
+  RemoteChat,
+  RemoteChatWithSubChats,
+  RemoteSubChat,
+  Team,
+} from "./remote-types"
+import type {
+  RemoteChat,
+  RemoteChatWithSubChats,
+  Team,
+} from "./remote-types"
 
 export const remoteApi = {
   /**

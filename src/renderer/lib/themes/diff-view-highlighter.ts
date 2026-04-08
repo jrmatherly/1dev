@@ -69,7 +69,7 @@ type SyntaxLine = {
   }[];
 };
 
-// DiffHighlighter type matching @git-diff-view/react expectations
+// Local DiffHighlighter type for the custom shiki-based highlighter
 export type DiffHighlighter = {
   name: string;
   type: "class" | "style" | string;

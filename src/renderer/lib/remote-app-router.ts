@@ -10,10 +10,12 @@
  *
  * IMPORTANT: This stub must be kept in sync with the hosted backend. When backend
  * procedures are added, removed, or change signatures, update this file accordingly.
+ * To add a new procedure: add it to the appropriate `*Record` type below.
  *
- * The `transformer: true` flag in AppRootTypes is critical — it tells tRPC's type
- * inference that SuperJSON is used, so output types are passed through as-is (Date
- * stays Date, etc.) rather than being wrapped in `Serialize<T>`.
+ * The `transformer: true` flag in AppRootTypes tells tRPC's type inference that
+ * SuperJSON is used, so output types containing Date/Map/Set would round-trip as
+ * those types rather than being wrapped in `Serialize<T>`. None of the current
+ * outputs use non-JSON types, but this is future-proofing.
  *
  * See .scratchpad/typed-approuter-implementation-plan.md for full details.
  */
@@ -23,10 +25,17 @@ import type {
   TRPCQueryProcedure,
 } from "@trpc/server"
 import type {
+  Automation,
+  AutomationDetail,
+  AutomationExecution,
+  ConnectionStatus,
+  CreateAutomationInput,
+  InboxChat,
   RemoteChat,
   RemoteChatWithSubChats,
   Team,
-} from "./remote-api"
+  UpdateAutomationInput,
+} from "./remote-types"
 
 // ---------------------------------------------------------------------------
 // teams.* procedures
@@ -93,48 +102,8 @@ type AgentsRecord = {
 // ---------------------------------------------------------------------------
 // automations.* procedures
 // ---------------------------------------------------------------------------
-type AutomationTrigger = {
-  id?: string
-  platform: string
-  trigger_type: string
-  filters: unknown[]
-}
-
-type AutomationDetail = {
-  id: string
-  name: string
-  agent_prompt: string
-  add_to_inbox: boolean
-  respond_to_trigger: boolean
-  is_enabled: boolean
-  target_repository: string | null
-  triggers: AutomationTrigger[]
-  executions: unknown[]
-}
-
 type InboxChatsResponse = {
-  chats: unknown[]
-}
-
-type CreateAutomationInput = {
-  teamId: string
-  name: string
-  agentPrompt: string
-  addToInbox: boolean
-  respondToTrigger: boolean
-  triggers: AutomationTrigger[]
-  targetRepository?: string
-}
-
-type UpdateAutomationInput = {
-  automationId: string
-  name?: string
-  agentPrompt?: string
-  addToInbox?: boolean
-  respondToTrigger?: boolean
-  isEnabled?: boolean
-  triggers?: AutomationTrigger[]
-  targetRepository?: string | null
+  chats: InboxChat[]
 }
 
 type AutomationsRecord = {
@@ -146,7 +115,7 @@ type AutomationsRecord = {
   listAutomations: TRPCQueryProcedure<{
     meta: unknown
     input: { teamId: string }
-    output: unknown[]
+    output: Automation[]
   }>
   getAutomation: TRPCQueryProcedure<{
     meta: unknown
@@ -156,7 +125,7 @@ type AutomationsRecord = {
   listExecutions: TRPCQueryProcedure<{
     meta: unknown
     input: { automationId: string; limit: number; offset: number }
-    output: { executions: unknown[]; total: number }
+    output: { executions: AutomationExecution[]; total: number }
   }>
   createAutomation: TRPCMutationProcedure<{
     meta: unknown
@@ -193,10 +162,6 @@ type AutomationsRecord = {
 // ---------------------------------------------------------------------------
 // github.* procedures
 // ---------------------------------------------------------------------------
-type ConnectionStatus = {
-  isConnected: boolean
-}
-
 type GithubRecord = {
   getConnectionStatus: TRPCQueryProcedure<{
     meta: unknown

@@ -13,6 +13,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, dirname, join, sep } from "node:path";
 import { z } from "zod";
+import { mcpServerUrlSchema } from "../schemas/mcp-url";
 import {
   normalizeCodexAssistantMessage,
   normalizeCodexStreamChunk,
@@ -695,12 +696,10 @@ function resolveCodexStdioEnv(
 ): Record<string, string> | undefined {
   const merged: Record<string, string> = {};
 
+  // Schema guarantees string keys/values via z.record(z.string(), z.string()),
+  // so no runtime type guard is needed here.
   if (transport.env) {
-    for (const [name, value] of Object.entries(transport.env)) {
-      if (typeof name === "string" && typeof value === "string") {
-        merged[name] = value;
-      }
-    }
+    Object.assign(merged, transport.env);
   }
 
   if (Array.isArray(transport.env_vars)) {
@@ -720,20 +719,15 @@ function resolveCodexHttpHeaders(
 ): Record<string, string> | undefined {
   const merged: Record<string, string> = {};
 
+  // Schema guarantees string keys/values via z.record(z.string(), z.string()).
   if (transport.http_headers) {
-    for (const [name, value] of Object.entries(transport.http_headers)) {
-      if (typeof name === "string" && typeof value === "string") {
-        merged[name] = value;
-      }
-    }
+    Object.assign(merged, transport.http_headers);
   }
 
   if (transport.env_http_headers) {
     for (const [headerName, envName] of Object.entries(
       transport.env_http_headers,
     )) {
-      if (typeof headerName !== "string" || typeof envName !== "string")
-        continue;
       const value = process.env[envName];
       if (typeof value === "string" && value.length > 0) {
         merged[headerName] = value;
@@ -848,7 +842,26 @@ async function resolveCodexMcpSnapshot(params: {
     throw new Error("Failed to parse Codex MCP list JSON output.");
   }
 
-  const entries = z.array(codexMcpListEntrySchema).parse(parsed);
+  // Use safeParse for forward-compat: if upstream Codex CLI adds new fields
+  // or changes types, degrade gracefully with an empty snapshot rather than
+  // throwing and hiding ALL MCP servers from the user.
+  const parseResult = z.array(codexMcpListEntrySchema).safeParse(parsed);
+  if (!parseResult.success) {
+    console.error(
+      "[codex] Failed to validate mcp list output:",
+      parseResult.error.issues,
+    );
+    const emptySnapshot: CodexMcpSnapshot = {
+      mcpServersForSession: [],
+      groups: [],
+      fingerprint: getCodexMcpFingerprint([]),
+      fetchedAt: Date.now(),
+      toolsResolved: shouldIncludeTools,
+    };
+    codexMcpCache.set(lookupPath, emptySnapshot);
+    return emptySnapshot;
+  }
+  const entries = parseResult.data;
   const mcpServersForSession: CodexMcpServerForSession[] = [];
   const mcpServersForSettings: CodexMcpServerForSettings[] = [];
 
@@ -1514,7 +1527,7 @@ export const codexRouter = router({
         transport: z.enum(["stdio", "http"]),
         command: z.string().optional(),
         args: z.array(z.string()).optional(),
-        url: z.url().optional(),
+        url: mcpServerUrlSchema.optional(),
       }),
     )
     .mutation(async ({ input }) => {

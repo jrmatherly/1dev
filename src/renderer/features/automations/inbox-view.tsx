@@ -42,19 +42,7 @@ import { OpenLocallyDialog } from "../agents/components/open-locally-dialog"
 import { useAutoImport } from "../agents/hooks/use-auto-import"
 import { trpc } from "../../lib/trpc"
 import type { RemoteChat } from "../../lib/remote-api"
-
-interface InboxChat {
-  id: string
-  executionId: string
-  name: string
-  createdAt: Date
-  automationId: string
-  automationName: string
-  externalUrl: string | null
-  status: string
-  isRead: boolean
-  meta?: { repository?: string; branch?: string } | null
-}
+import type { InboxChat } from "../../lib/remote-types"
 
 function AutomationsIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
