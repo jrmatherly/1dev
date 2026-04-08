@@ -27,4 +27,11 @@ defaults delete dev.21st.agents.dev                     # Clear preferences
 ## No Test Suite
 - No Jest, Vitest, or Playwright configured
 - No test files exist in the codebase
-- `bun run ts:check` (tsgo) is the only automated quality gate
+- `bun run build` is the primary validation gate (full TypeScript compilation via electron-vite)
+- `bun run ts:check` (tsgo) is the type-check gate (requires: `npm install -g @typescript/native-preview`)
+
+## Dependency Version Constraints
+- **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` removed in Vite 7+
+- **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; 134 files use `cn()`
+- **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream update
+- `bun update` is semver-safe; `bun update --latest` pulls major bumps (use cautiously)

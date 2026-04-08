@@ -3,6 +3,7 @@
  * Uses signedFetch via IPC for authentication (no CORS issues)
  */
 import { createTRPCClient, httpLink } from "@trpc/client";
+// @ts-ignore TS2307 - AppRouter is defined in the hosted web repo, not available in open-source build
 import type { AppRouter } from "../../../../web/server/api/root";
 import SuperJSON from "superjson";
 

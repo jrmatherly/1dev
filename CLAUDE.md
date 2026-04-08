@@ -44,7 +44,7 @@ bun run db:push          # Push schema directly (dev only)
 bun run db:studio        # Open Drizzle Studio GUI
 
 # Type Checking
-bun run ts:check         # TypeScript check via tsgo (requires: go install github.com/nicolo-ribaudo/tsgo@latest)
+bun run ts:check         # TypeScript check via tsgo (requires: npm install -g @typescript/native-preview)
 
 # AI Binary Management
 bun run claude:download  # Download Claude CLI binary for current platform
@@ -301,11 +301,15 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 ## Environment Notes
 
 - `postinstall` runs `electron-rebuild` for `better-sqlite3` and `node-pty` — if native modules fail, run `bun run postinstall` manually
-- `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences
+- `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences (requires: `npm install -g @typescript/native-preview`)
 - Dev builds require Claude and Codex binaries downloaded locally (`bun run claude:download && bun run codex:download`)
 - **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` which was removed in Vite 7+. Use `^6.4.2` minimum.
 - **No test suite** — No Jest/Vitest/Playwright configured. `bun run build` is the only full validation beyond `ts:check`.
+- **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; upgrading requires full config migration (134 files use `cn()`)
+- **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream releases compatible version
 - `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously)
+- `bun audit` — check for known vulnerabilities
+- `bun outdated` — list outdated packages
 - Claude Agent SDK version: see `@anthropic-ai/claude-agent-sdk` in `package.json`
 - Protocol handlers: Production uses `twentyfirst-agents://`, dev uses `twentyfirst-agents-dev://`
 

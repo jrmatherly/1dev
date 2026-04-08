@@ -16,8 +16,13 @@
 - `bun run db:push` — Push schema directly (dev only)
 - `bun run db:studio` — Open Drizzle Studio GUI
 
-## Type Checking
-- `bun run ts:check` — TypeScript check via tsgo (Go-based, fast)
+## Type Checking & Quality
+- `bun run ts:check` — TypeScript check via tsgo (requires: `npm install -g @typescript/native-preview`)
+- `bun run build` — Full validation (TypeScript compilation via electron-vite)
+
+## Dependency Audit
+- `bun audit` — Check for known vulnerabilities
+- `bun outdated` — List outdated packages
 
 ## AI Binary Management
 - `bun run claude:download` — Download Claude CLI binary for current platform
