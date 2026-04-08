@@ -11,7 +11,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Restoration theme (locked 2026-04-08):** Anything the upstream SaaS was providing will be **reverse-engineered, re-created, and self-hosted** — the fork controls every runtime endpoint the shipped app talks to. "Drop the feature" and "use someone else's hosted service" are both off the table. Two F-entries turned out not to need restoration after code investigation by the `upstream-dependency-auditor` agent: **F7 (Plugin Marketplace)** is local-only (reads Claude Code's `~/.claude/plugins/` directly, never talked to upstream), and **F9 (Live Browser Previews)** is dead UI on desktop (gated on `sandbox_id` which `mock-api.ts:46` hard-codes to `null`). F9 will be rebuilt as a Phase 2 greenfield feature using the existing `src/main/lib/terminal/port-manager.ts` substrate. All other F-entries (F1-F6, F8, F10) have self-hosted or local-subprocess restore decisions recorded in the inventory — Phase 0 hard gate #15 complete.
 
-**Chosen enterprise auth strategy (2026-04-08):** `.scratchpad/auth-strategy-envoy-gateway.md` **v2.1** (Envoy Gateway dual-auth, **empirically validated** via live smoke test against the Talos AI cluster — see `.full-review/envoy-gateway-review/05-final-report.md` for the full review + resolution status). The competing v5 MSAL-in-Electron strategy at `.scratchpad/enterprise-auth-integration-strategy.md` is retained as a fallback. **Phase 0 progress (2026-04-08):** Gates #1-6 (dead `auth:get-token` IPC handler deletion + token log sanitization), #7 (Claude binary SHA-256 + GPG signature verification, Codex SHA-256 verification), #9 (minimum CI workflow), #10 (Dependabot config — secret scanning still needs UI enable), #11 (bun:test framework + regression guards), #12 (feature flag infrastructure + Drizzle schema + tRPC router), #13 (OpenSpec 1.2.0 migration), #14 (Electron 39.8.6→39.8.7 patch), and #15 (F1-F10 restoration decisions) **completed** — 12 of 15 gates done. Regression guards live in `tests/regression/`. **Remaining Phase 0 gates:** #8 (upstream sandbox OAuth extraction from `claude-code.ts:178-220`).
+**Chosen enterprise auth strategy (2026-04-08):** `.scratchpad/auth-strategy-envoy-gateway.md` **v2.1** (Envoy Gateway dual-auth, **empirically validated** via live smoke test against the Talos AI cluster — see `.full-review/envoy-gateway-review/05-final-report.md`). Fallback: `.scratchpad/enterprise-auth-integration-strategy.md` v5 (MSAL-in-Electron).
+
+**Phase 0 progress (2026-04-08):** 12 of 15 hard gates complete.
+- ✅ **#1-6** — dead `auth:get-token` IPC handler deletion + token log sanitization
+- ✅ **#7** — Claude binary SHA-256 + GPG signature verification, Codex SHA-256 verification
+- ⏳ **#8** — upstream sandbox OAuth extraction from `claude-code.ts` (grep the Claude Code router for `sandbox_id`; current implementation uses an upstream sandbox as the OAuth redirect host — must be replaced with a localhost-loopback redirect like `auth-manager.ts` already uses)
+- ✅ **#9** — minimum CI workflow (`.github/workflows/ci.yml`)
+- ✅ **#10** — Dependabot config (secret scanning UI enable still pending)
+- ✅ **#11** — bun:test framework + regression guards (`tests/regression/`)
+- ✅ **#12** — feature flag infrastructure (Drizzle schema + tRPC router + lib module)
+- ✅ **#13** — OpenSpec 1.2.0 migration
+- ✅ **#14** — Electron 39.8.6 → 39.8.7 patch
+- ✅ **#15** — F1-F10 restoration decisions (see `.scratchpad/upstream-features-inventory.md` v2)
 
 ## Commands
 
@@ -33,6 +45,9 @@ bun run db:studio        # Open Drizzle Studio GUI
 
 # Type Checking
 bun run ts:check         # TypeScript check via tsgo (requires: npm install -g @typescript/native-preview)
+
+# Tests
+bun test                 # bun:test regression guards (under tests/regression/)
 
 # AI Binary Management
 bun run claude:download  # Download Claude CLI binary for current platform
@@ -223,7 +238,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - `src/renderer/features/agents/main/active-chat.tsx` - Main chat component
 - `src/main/lib/trpc/routers/claude.ts` - Claude SDK integration
 - `src/renderer/lib/remote-types.ts` - Shared types for remote tRPC (breaks circular dep with app-router stub)
-- `src/renderer/lib/remote-app-router.ts` - Typed AppRouter stub for remote 21st.dev backend (TRPCBuiltRouter pattern)
+- `src/renderer/lib/remote-app-router.ts` - Typed AppRouter stub for remote upstream backend (TRPCBuiltRouter pattern)
 - `src/main/lib/trpc/schemas/mcp-url.ts` - SSRF-safe URL validation schema for MCP server URLs
 - `src/main/lib/auto-updater.ts` - `electron-updater` config; `CDN_BASE` constant on line 33 is the upstream CDN — flip this for self-hosted update channel
 - `.scratchpad/upstream-features-inventory.md` - Catalog of upstream-backend dependencies (F1-F10) with priority ratings and restore strategies
@@ -232,9 +247,9 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 
 - `.scratchpad/` — Working documents (strategy docs, design notes, research). Currently holds two parallel auth strategy docs: `enterprise-auth-integration-strategy.md` (v5, full custom) and `auth-strategy-envoy-gateway.md` (Envoy Gateway alternative).
 - `.full-review/` — Output from `comprehensive-review:full-review` plugin (gitignored)
-- `.serena/memories/` — Serena project memories (read via `mcp__serena__read_memory`)
+- `.serena/memories/` — Serena project memories: `codebase_structure`, `environment_and_gotchas`, `project_overview`, `style_and_conventions`, `suggested_commands`, `task_completion_checklist`. Read via `mcp__serena__read_memory` *after* activating the project with `mcp__serena__activate_project`.
 - **`.github/workflows/ci.yml`** — minimum-viable CI runs `bun run ts:check` + `bun run build` + `bun test` + `bun audit` on every PR to `main`. Added 2026-04-08 (Phase 0 hard gate #9). Local quality gates are the same commands — run them before pushing.
-- **`tests/regression/`** — bun:test regression guards. Currently holds two structural guards for Phase 0 gates #1-6. Run with `bun test`.
+- **`tests/regression/`** — bun:test regression guards (5 tests: `auth-get-token-deleted`, `token-leak-logs-removed`, `credential-manager-deleted`, `gpg-verification-present`, `feature-flags-shape`). Run with `bun test`.
 - **Deployment target cluster repo:** `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos K8s, Envoy Gateway, LiteLLM, OIDC stack — coordinate cross-repo when working on auth/backend)
 - **Cluster access:** `cd /Users/jason/dev/ai-k8s/talos-ai-cluster && KUBECONFIG=./kubeconfig kubectl ...` (mise/direnv loads KUBECONFIG on cd; `~/.kube/config` is a separate unrelated config). The cluster is **Flux/GitOps managed** — never use direct `kubectl apply` for cluster resources; all changes go through `templates/config/**/*.j2` Jinja2 templates + `cluster.yaml` plaintext variables + SOPS encryption + git commit + Flux reconcile. Direct applies are reconciled away within 60s.
 - **Cluster facts (discovered 2026-04-08):** Envoy Gateway `v1.7.1` (image: `mirror.gcr.io/envoyproxy/gateway:v1.7.1`); Entra tenant ID `f505346f-75cf-458b-baeb-10708d41967d`; test echo server at `https://echo.aarons.com/` (`default/echo` HTTPRoute, runs `mendhak/http-https-echo:39`, returns `.headers.authorization` lowercase); existing working OIDC SecurityPolicy reference pattern at `kube-system/hubble-ui-oidc` (single-auth OIDC; dual-auth is NEW as of the 2026-04-08 smoke test).
@@ -288,8 +303,8 @@ bun run dev
 
 ### Prerequisites for Notarization
 
-- Keychain profile: `21st-notarize`
-- Create with: `xcrun notarytool store-credentials "21st-notarize" --apple-id YOUR_APPLE_ID --team-id YOUR_TEAM_ID`
+- Keychain profile: `apollosai-notarize` (new installs). Existing dev machines may still use the pre-rebrand `21st-notarize` profile — check `xcrun notarytool history --keychain-profile <name>` against both if a notarize step fails.
+- Create a fresh profile with: `xcrun notarytool store-credentials "apollosai-notarize" --apple-id YOUR_APPLE_ID --team-id YOUR_TEAM_ID`
 
 ### Release Commands
 
@@ -316,7 +331,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 
 ### After Release Script Completes
 
-1. Wait for notarization (2-5 min): `xcrun notarytool history --keychain-profile "21st-notarize"`
+1. Wait for notarization (2-5 min): `xcrun notarytool history --keychain-profile "apollosai-notarize"` (or `21st-notarize` on pre-rebrand dev machines)
 2. Staple DMGs: `cd release && xcrun stapler staple *.dmg`
 3. Re-upload stapled DMGs to R2 and GitHub
 4. Update changelog: `gh release edit v0.0.X --notes "..."`
@@ -362,7 +377,9 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - **Claude CLI binary pinned to `2.1.96`** — see `claude:download` script in `package.json`. Bumping the pin requires re-testing session resume and streaming. This version supports signed-manifest GPG verification (introduced 2.1.89); the download script enforces it at `scripts/download-claude-binary.mjs`.
 - **Codex CLI binary pinned to `0.118.0`** — see `codex:download` script in `package.json`. Bumping the pin requires re-testing the `@zed-industries/codex-acp` bridge. This version natively supports dynamic short-lived bearer token refresh for custom model providers, which enables the Phase 1 Envoy Gateway rotation pattern without a custom shim.
 - **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` which was removed in Vite 7+. Use `^6.4.2` minimum.
-- **Minimal test suite** — `bun:test` (built in, no config) bootstrapped 2026-04-08 for Phase 0 regression guards under `tests/regression/`. No Jest/Vitest/Playwright — broader test adoption is Phase 0 hard gate #11. Quality gates: `bun run ts:check` (stricter, tsgo-based), `bun run build` (esbuild, validates packaging), `bun test` (regression guards), `bun audit` (dependency advisories). **Run all four before submitting a PR** — none is a superset of the others. The same four are enforced in CI (`.github/workflows/ci.yml`).
+- **Minimal test suite** — `bun:test` (built in, no config) bootstrapped 2026-04-08 for Phase 0 regression guards under `tests/regression/`. No Jest/Vitest/Playwright — broader test adoption is Phase 0 hard gate #11. Quality gates: `bun run ts:check` (stricter, tsgo-based), `bun run build` (esbuild, validates packaging), `bun test` (regression guards, ~100ms for the current suite), `bun audit` (dependency advisories). **Run all four before submitting a PR** — none is a superset of the others, and the four together run in under 2 minutes on an M-series Mac. The same four are enforced in CI (`.github/workflows/ci.yml`).
+- **TypeScript baseline is not clean** — `bun run ts:check` currently reports ~88 pre-existing errors on `main` (auth/mentions/layout hotspots, unrelated to active work). Before investigating any TS error, establish the baseline: `git stash && bun run ts:check 2>&1 | grep -c "error TS" && git stash pop`. Only worry about *new* errors your changes introduce. Cleaning the baseline is an open Phase 0 concern.
+- **`claude-mem` Read-tool interaction** — Files with prior observations return only line 1 + a semantic-priming timeline on first `Read()`. This is NOT a "file unchanged" signal. To get actual content: re-invoke `Read()` with explicit `offset`/`limit` *strictly within* the file length (the tool rejects offsets ≥ file length with "file is shorter than offset"), or fall back to `sed -n 'M,Np' <file>` via Bash (an exception to the "no Bash for reading files" rule). Applies to any file that has `### <date>` entries prepended to the tool result.
 - **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; upgrading requires full config migration (134 files use `cn()`)
 - **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream releases compatible version
 - `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously). For `bun audit` / `bun outdated` see the Commands block above.
@@ -373,21 +390,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 
 ## Documentation Maintenance
 
-Multiple files contain overlapping project info — keep them in sync when making changes:
-- `CLAUDE.md` — Authoritative reference for architecture, commands, patterns (this file)
-- `README.md` — User-facing pitch + install/dev instructions
-- `CONTRIBUTING.md` — Contributor setup, workflow, quality gates
-- `AGENTS.md` — Quick reference for AI agents + OpenSpec redirect
-- `openspec/config.yaml` — OpenSpec 1.2.0 configuration (no separate `project.md`; context lives in `changes/<id>/proposal.md` per proposal)
-- `.serena/memories/` — Serena project memories (project_overview, codebase_structure, etc.)
-- `.claude/PROJECT_INDEX.md` — Auto-generated project index
-- `.full-review/` — Review plugin artifacts (gitignored)
-- `.scratchpad/` — Working strategy/research docs (gitignored, see "Working Directories & Conventions")
-  - `enterprise-auth-integration-strategy.md` (v5) — MSAL-in-Electron auth migration plan (fallback, not the chosen strategy)
-  - `auth-strategy-envoy-gateway.md` (**v2.1** as of 2026-04-08) — Envoy Gateway dual-auth, **CHOSEN strategy, empirically validated**
-  - `forwardaccesstoken-smoke-test.md` — reproducible runbook for validating Envoy dual-auth against the cluster (executed 2026-04-08, Outcome A PASS)
-  - `upstream-features-inventory.md` (**v2** as of 2026-04-08) — F1-F10 upstream-backend dependency catalog. **All 10 F-entries have restoration decisions** (Phase 0 hard gate #15). Self-host-everything theme locked in. F7 and F9 investigated by `upstream-dependency-auditor` agent and turned out to be local-only / dead-UI — neither requires restoration work.
-- `.full-review/envoy-gateway-review/` — Comprehensive review of the Envoy Gateway strategy (9 files, 47 findings, all 8 Critical resolved as of 2026-04-08; includes Smoke Test Addendum in `05-final-report.md`)
+The authoritative repo navigation map is `.claude/PROJECT_INDEX.md` — regenerate it after any structural change (new router, new table, new renderer feature). Doc sync targets: `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, this file, `.serena/memories/*`, `.claude/PROJECT_INDEX.md`. Working directories (`.scratchpad/`, `.full-review/`) and the key strategy docs in them are catalogued under "Working Directories & Conventions" above.
 
 Common drift points:
 - SDK package names and versions (`@anthropic-ai/claude-agent-sdk`)
