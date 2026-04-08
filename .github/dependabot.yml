@@ -1,0 +1,79 @@
+# Dependabot configuration for the 1Code enterprise fork.
+#
+# Phase 0 hard gate #10 from the enterprise auth strategy
+# (.scratchpad/auth-strategy-envoy-gateway.md v2.1 §6). Secret scanning is
+# enabled separately in the GitHub repo settings UI — it is not file-driven.
+#
+# Two ecosystems are watched:
+#   1. "bun"          — package.json / bun.lock (Bun >= 1.2.5)
+#   2. "github-actions" — workflows under .github/workflows/
+#
+# Notes:
+#   - Weekly cadence (Monday) — daily was considered but would create noise
+#     for a small team. Bump to "daily" if desired once the repo has more
+#     reviewers.
+#   - open-pull-requests-limit is intentionally low so Dependabot cannot
+#     accidentally flood the PR queue. Raise if needed.
+#   - Grouping keeps the main-to-main churn manageable: all minor/patch
+#     dependency updates land in one PR per week per ecosystem. Major
+#     updates stay separate so they get their own review.
+#   - Load-bearing version pins are excluded from the grouped PRs — see
+#     CLAUDE.md "Environment Notes" for the canonical list. Updating any
+#     of these requires a separate manual decision.
+#
+# Docs: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+
+version: 2
+
+updates:
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "bun"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+        # Exclude load-bearing pins that require manual migration work.
+        # Source of truth: CLAUDE.md "Environment Notes".
+        exclude-patterns:
+          - "electron"          # EOL 2026-05-05, requires Phase 0.5 migration
+          - "vite"              # Must stay on 6.x (electron-vite 3 depends on splitVendorChunk)
+          - "tailwindcss"       # Must stay on 3.x (134 files use cn())
+          - "tailwind-merge"    # Pinned to v2.x for tailwind 3 compat
+          - "shiki"             # Must stay on 3.x (@pierre/diffs pins ^3.0.0)
+          - "@anthropic-ai/claude-agent-sdk"  # Resume/streaming is version-sensitive
+    # Major version bumps opt into Dependabot's default behavior (one PR per
+    # major bump) — no `ignore` block needed. Add one here if specific majors
+    # become noisy.
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
