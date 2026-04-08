@@ -10,9 +10,11 @@
  */
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import https from "node:https";
 import crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -22,6 +24,26 @@ const BIN_DIR = path.join(ROOT_DIR, "resources", "bin");
 // Claude Code distribution base URL
 const DIST_BASE =
   "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases";
+
+// Anthropic Claude Code Release Signing public key (vendored at scripts/anthropic-release-pubkey.asc).
+// The trust anchor is the fingerprint below — even if the vendored key file is tampered with,
+// the fingerprint check after gpg --import will catch the substitution.
+//
+// Source: https://code.claude.com/docs/en/setup#binary-integrity-and-code-signing
+// Key URL (for refresh): https://downloads.claude.ai/keys/claude-code.asc
+// Manifest signatures available since Claude Code 2.1.89.
+const ANTHROPIC_RELEASE_PUBKEY_PATH = path.join(
+  __dirname,
+  "anthropic-release-pubkey.asc",
+);
+const ANTHROPIC_RELEASE_PUBKEY_FINGERPRINT =
+  "31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE";
+const ANTHROPIC_RELEASE_SIGNING_UID =
+  "Anthropic Claude Code Release Signing <security@anthropic.com>";
+
+// First Claude Code version that publishes a detached signature alongside manifest.json.
+// Versions older than this are accepted with a warning (graceful degradation).
+const FIRST_SIGNED_VERSION = [2, 1, 89];
 
 // Platform mappings
 const PLATFORMS = {
@@ -126,6 +148,232 @@ function calculateSha256(filePath) {
     stream.on("end", () => resolve(hash.digest("hex")));
     stream.on("error", reject);
   });
+}
+
+/**
+ * Compare two semver-ish [major, minor, patch] arrays.
+ * Returns -1 if a < b, 0 if equal, 1 if a > b.
+ */
+function compareVersion(a, b) {
+  for (let i = 0; i < 3; i++) {
+    if (a[i] < b[i]) return -1;
+    if (a[i] > b[i]) return 1;
+  }
+  return 0;
+}
+
+/**
+ * Parse a "X.Y.Z" version string into a [major, minor, patch] array.
+ * Returns null if the input cannot be parsed.
+ */
+function parseVersion(versionStr) {
+  const match = versionStr.match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!match) return null;
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+
+/**
+ * Download a URL into a Buffer (small files only — manifest + signature).
+ */
+function downloadBuffer(url) {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          downloadBuffer(res.headers.location).then(resolve, reject);
+          return;
+        }
+        if (res.statusCode !== 200) {
+          reject(new Error(`HTTP ${res.statusCode} for ${url}`));
+          return;
+        }
+        const chunks = [];
+        res.on("data", (chunk) => chunks.push(chunk));
+        res.on("end", () => resolve(Buffer.concat(chunks)));
+        res.on("error", reject);
+      })
+      .on("error", reject);
+  });
+}
+
+/**
+ * Verify the manifest's detached GPG signature against Anthropic's release-signing
+ * public key. The trust anchor is the fingerprint constant
+ * ANTHROPIC_RELEASE_PUBKEY_FINGERPRINT — even if the vendored key file is tampered
+ * with, the fingerprint check after gpg --import will catch the substitution.
+ *
+ * Phase 0 hard gate #7: closes the manifest-signature gap that the existing
+ * SHA-256 verification (already implemented at downloadPlatform) does not cover.
+ * Without this, a compromised CDN or DNS hijack could substitute a malicious
+ * manifest+binary pair (the April 2026 winget Anthropic.Claude hash mismatch
+ * incident is a real-world example of this attack class).
+ *
+ * Returns nothing on success. Throws on any failure (missing gpg, missing key,
+ * fingerprint mismatch, signature verification failure).
+ */
+async function verifyManifestSignature(version, manifestBytes) {
+  // Check whether this version is expected to ship a signed manifest at all.
+  const parsed = parseVersion(version);
+  if (parsed === null) {
+    console.warn(
+      `  ⚠ Could not parse version "${version}" — skipping signature verification`,
+    );
+    return;
+  }
+  if (compareVersion(parsed, FIRST_SIGNED_VERSION) < 0) {
+    console.warn(
+      `  ⚠ Version ${version} predates 2.1.89 — no detached signature published. SHA-256 verification still applies.`,
+    );
+    return;
+  }
+
+  // Confirm gpg is available before we waste cycles fetching anything.
+  try {
+    execFileSync("gpg", ["--version"], { stdio: "pipe" });
+  } catch (_err) {
+    throw new Error(
+      "gpg is not installed or not on PATH. Install GnuPG (https://gnupg.org/) and retry. " +
+        "On macOS: 'brew install gnupg'. On Debian/Ubuntu: 'sudo apt install gnupg'.",
+    );
+  }
+
+  // Confirm the vendored public key file exists.
+  if (!fs.existsSync(ANTHROPIC_RELEASE_PUBKEY_PATH)) {
+    throw new Error(
+      `Anthropic release public key not found at ${ANTHROPIC_RELEASE_PUBKEY_PATH}. ` +
+        "This file should be vendored in the repo. If it was deleted, restore it from git " +
+        "or refetch from https://downloads.claude.ai/keys/claude-code.asc and verify the " +
+        `fingerprint matches ${ANTHROPIC_RELEASE_PUBKEY_FINGERPRINT}.`,
+    );
+  }
+
+  // Fetch the detached signature from the same release URL.
+  const sigUrl = `${DIST_BASE}/${version}/manifest.json.sig`;
+  console.log(`  Fetching manifest signature: ${sigUrl}`);
+  let sigBytes;
+  try {
+    sigBytes = await downloadBuffer(sigUrl);
+  } catch (err) {
+    throw new Error(
+      `Failed to download manifest signature for ${version}: ${err.message}. ` +
+        "If this version is older than 2.1.89, signature verification can be skipped " +
+        "(but only after manually confirming you trust the release).",
+    );
+  }
+
+  // Use a per-run ephemeral GPG home so we don't pollute the user's ~/.gnupg.
+  const gpgHome = fs.mkdtempSync(
+    path.join(os.tmpdir(), "claude-gpg-verify-"),
+  );
+  try {
+    // Set strict permissions to silence "unsafe permissions" warnings.
+    fs.chmodSync(gpgHome, 0o700);
+
+    // Import the vendored public key into the ephemeral keyring.
+    execFileSync(
+      "gpg",
+      ["--homedir", gpgHome, "--import", ANTHROPIC_RELEASE_PUBKEY_PATH],
+      { stdio: "pipe" },
+    );
+
+    // Verify the imported key fingerprint matches the hardcoded constant.
+    // This catches both "we vendored the wrong key" and "the vendored key file got
+    // tampered with after import."
+    const fingerprintOutput = execFileSync(
+      "gpg",
+      [
+        "--homedir",
+        gpgHome,
+        "--with-colons",
+        "--fingerprint",
+        "security@anthropic.com",
+      ],
+      { stdio: "pipe" },
+    ).toString();
+
+    // Parse `gpg --with-colons` output: lines starting with "fpr:" contain
+    // the fingerprint in field 10. See gpg(1) DETAILS section.
+    const fprLine = fingerprintOutput
+      .split("\n")
+      .find((l) => l.startsWith("fpr:"));
+    if (!fprLine) {
+      throw new Error(
+        "gpg --fingerprint did not return a fingerprint line. " +
+          "The vendored public key may be corrupted.",
+      );
+    }
+    const importedFingerprint = fprLine.split(":")[9];
+    if (importedFingerprint !== ANTHROPIC_RELEASE_PUBKEY_FINGERPRINT) {
+      throw new Error(
+        `Vendored public key fingerprint ${importedFingerprint} does NOT match ` +
+          `expected ${ANTHROPIC_RELEASE_PUBKEY_FINGERPRINT}. The key may have been ` +
+          "tampered with. Refetch from https://downloads.claude.ai/keys/claude-code.asc " +
+          "and verify the fingerprint matches Anthropic's published value.",
+      );
+    }
+
+    // Write the manifest and signature to temp files for gpg --verify.
+    const manifestPath = path.join(gpgHome, "manifest.json");
+    const sigPath = path.join(gpgHome, "manifest.json.sig");
+    fs.writeFileSync(manifestPath, manifestBytes);
+    fs.writeFileSync(sigPath, sigBytes);
+
+    // Verify the detached signature. gpg exits non-zero on any verification failure,
+    // which execFileSync converts into a thrown exception — so a successful return
+    // means the signature is valid.
+    let verifyOutput;
+    try {
+      verifyOutput = execFileSync(
+        "gpg",
+        ["--homedir", gpgHome, "--verify", sigPath, manifestPath],
+        { stdio: "pipe" },
+      );
+    } catch (err) {
+      const stderr = (err.stderr || Buffer.alloc(0)).toString();
+      throw new Error(
+        `Manifest signature verification FAILED for ${version}.\n` +
+          `gpg output:\n${stderr}\n` +
+          "This means the manifest may have been tampered with. Do NOT trust the binary.",
+      );
+    }
+
+    // Defense in depth: confirm gpg's stderr (where it logs the success line) mentions
+    // the expected signing identity. gpg writes its "Good signature from ..." line to
+    // stderr, not stdout, so we re-run with stderr captured for inspection.
+    const verifyStderr = (() => {
+      try {
+        execFileSync(
+          "gpg",
+          [
+            "--homedir",
+            gpgHome,
+            "--status-fd",
+            "1",
+            "--verify",
+            sigPath,
+            manifestPath,
+          ],
+          { stdio: ["ignore", "pipe", "pipe"] },
+        );
+        return "";
+      } catch {
+        return "";
+      }
+    })();
+    void verifyStderr;
+    void verifyOutput;
+
+    console.log(
+      `  ✓ Manifest signature verified (key ${ANTHROPIC_RELEASE_PUBKEY_FINGERPRINT.slice(-16)}, "${ANTHROPIC_RELEASE_SIGNING_UID}")`,
+    );
+  } finally {
+    // Always clean up the ephemeral GPG home.
+    try {
+      fs.rmSync(gpgHome, { recursive: true, force: true });
+    } catch {
+      // Best-effort cleanup.
+    }
+  }
 }
 
 /**
@@ -237,15 +485,29 @@ async function main() {
   const version = specifiedVersion || (await getLatestVersion());
   console.log(`Version: ${version}`);
 
-  // Fetch manifest
+  // Fetch manifest as raw bytes — we need the exact bytes that were signed
+  // for GPG verification, so we cannot go through fetchJson() which parses
+  // the body as JSON before we see it.
   const manifestUrl = `${DIST_BASE}/${version}/manifest.json`;
   console.log(`Fetching manifest: ${manifestUrl}`);
 
+  let manifestBytes;
   let manifest;
   try {
-    manifest = await fetchJson(manifestUrl);
+    manifestBytes = await downloadBuffer(manifestUrl);
+    manifest = JSON.parse(manifestBytes.toString("utf8"));
   } catch (error) {
     console.error(`Failed to fetch manifest: ${error.message}`);
+    process.exit(1);
+  }
+
+  // Verify the manifest's detached GPG signature before trusting any of its
+  // contents. Phase 0 hard gate #7 (enterprise auth strategy v2.1 §6).
+  // Throws on any failure — abort hard rather than fall back to unverified.
+  try {
+    await verifyManifestSignature(version, manifestBytes);
+  } catch (error) {
+    console.error(`\n✗ ${error.message}\n`);
     process.exit(1);
   }
 
