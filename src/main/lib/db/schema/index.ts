@@ -130,6 +130,22 @@ export const anthropicSettings = sqliteTable("anthropic_settings", {
   ),
 });
 
+// ============ FEATURE FLAG OVERRIDES ============
+// Stores runtime overrides for feature flags. Default values live in
+// src/main/lib/feature-flags.ts as a TypeScript const map (FLAG_DEFAULTS);
+// this table only persists keys whose value the user or operator has
+// explicitly set away from the default. Missing row → use the default.
+// Value is JSON-encoded so the single text column can hold bool, string,
+// number, or plain-object flag values without schema churn per flag type.
+// See openspec/changes/add-feature-flag-infrastructure/ for the contract.
+export const featureFlagOverrides = sqliteTable("feature_flag_overrides", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(), // JSON-encoded
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // ============ TYPE EXPORTS ============
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
@@ -142,3 +158,5 @@ export type NewClaudeCodeCredential = typeof claudeCodeCredentials.$inferInsert;
 export type AnthropicAccount = typeof anthropicAccounts.$inferSelect;
 export type NewAnthropicAccount = typeof anthropicAccounts.$inferInsert;
 export type AnthropicSettings = typeof anthropicSettings.$inferSelect;
+export type FeatureFlagOverride = typeof featureFlagOverrides.$inferSelect;
+export type NewFeatureFlagOverride = typeof featureFlagOverrides.$inferInsert;
