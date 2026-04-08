@@ -1,0 +1,134 @@
+# Minimum-viable CI for the 1Code enterprise fork.
+#
+# Phase 0 hard gate #9 from the enterprise auth strategy:
+#   .scratchpad/auth-strategy-envoy-gateway.md §6
+#
+# The four quality gates run in parallel:
+#   1. ts:check  - tsgo-based TypeScript check (stricter than tsc)
+#   2. build     - full electron-vite build (main + preload + renderer)
+#   3. test      - bun:test regression guards under tests/regression/
+#   4. audit     - bun audit dependency vulnerability scan
+#
+# A fifth job (status) aggregates them so branch protection can require a
+# single check. None of these run on push-to-main; they only gate PRs.
+#
+# Security notes:
+#   - No untrusted event inputs are used in any run: step.
+#   - The only expression interpolation is on trusted needs.<job>.result in
+#     the status aggregator.
+#   - See https://github.blog/security/vulnerability-research/how-to-catch-github-actions-workflow-injections-before-attackers-do/
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ts-check:
+    name: TypeScript (tsgo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install system build deps
+        run: sudo apt-get update && sudo apt-get install -y build-essential python3
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install tsgo (TypeScript native preview)
+        run: bun add -g @typescript/native-preview
+
+      - name: Run ts:check
+        run: bun run ts:check
+
+  build:
+    name: Build (electron-vite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install system build deps
+        run: sudo apt-get update && sudo apt-get install -y build-essential python3
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run build
+        run: bun run build
+
+  test:
+    name: Tests (bun:test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install system build deps
+        run: sudo apt-get update && sudo apt-get install -y build-essential python3
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run regression tests
+        run: bun test
+
+  audit:
+    name: Dependency audit (bun audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Run bun audit
+        run: bun audit
+
+  status:
+    name: CI Status
+    runs-on: ubuntu-latest
+    needs: [ts-check, build, test, audit]
+    if: always()
+    env:
+      TS_CHECK_RESULT: ${{ needs.ts-check.result }}
+      BUILD_RESULT: ${{ needs.build.result }}
+      TEST_RESULT: ${{ needs.test.result }}
+      AUDIT_RESULT: ${{ needs.audit.result }}
+    steps:
+      - name: Fail if any upstream job failed
+        run: |
+          if [ "$TS_CHECK_RESULT" != "success" ] \
+            || [ "$BUILD_RESULT" != "success" ] \
+            || [ "$TEST_RESULT" != "success" ] \
+            || [ "$AUDIT_RESULT" != "success" ]; then
+            echo "One or more CI jobs failed."
+            exit 1
+          fi
+          echo "All CI jobs passed."
