@@ -5,9 +5,9 @@
 - If native modules fail after node/electron upgrade, run `bun run postinstall` manually
 
 ## Dev vs Production
-- Dev protocol: `twentyfirst-agents-dev://`
+- Dev protocol: `apollosai-agents-dev://`
 - Dev userData: `~/Library/Application Support/Agents Dev/`
-- Production protocol: `twentyfirst-agents://`
+- Production protocol: `apollosai-agents://`
 - These are separate to prevent conflicts between dev and production installs
 
 ## Binary Dependencies (PINNED)
@@ -22,7 +22,7 @@
 ## Clearing Dev State
 ```bash
 rm -rf ~/Library/Application\ Support/Agents\ Dev/    # Clear all app data
-defaults delete dev.21st.agents.dev                     # Clear preferences
+defaults delete dev.apollosai.agents.dev                     # Clear preferences
 ```
 
 ## Quality Gates (NEITHER is "primary" — run BOTH)
@@ -60,7 +60,7 @@ defaults delete dev.21st.agents.dev                     # Clear preferences
 
 ## Upstream Backend Boundary
 - **`remoteTrpc.*`** (`src/renderer/lib/remote-trpc.ts`) is the typed tRPC client for the upstream `21st.dev` / `1code.dev` backend
-- Default base URL: `https://21st.dev` (overridable via `desktopApi.getApiBaseUrl()`)
+- Default base URL: `https://apollosai.dev` (overridable via `desktopApi.getApiBaseUrl()`)
 - Any feature touching `remoteTrpc.foo.bar` will break when upstream is retired
 - Refresh inventory: `grep -rn "remoteTrpc\." src/renderer/`
 - See `.scratchpad/upstream-features-inventory.md` for the full F1-F10 catalog

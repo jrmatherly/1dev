@@ -5,7 +5,7 @@ schema: spec-driven
 # migration. CLAUDE.md remains the authoritative long-form reference for
 # architecture, commands, debugging, and release process.
 context: |
-  1Code (by 21st.dev, enterprise fork) — local-first Electron desktop app for
+  1Code (by apollosai.dev, enterprise fork) — local-first Electron desktop app for
   parallel AI-assisted development. Users create chat sessions linked to local
   project folders, interact with multiple AI backends (Claude, Codex, Ollama)
   in Plan or Agent mode, and see real-time tool execution (bash, file edits,

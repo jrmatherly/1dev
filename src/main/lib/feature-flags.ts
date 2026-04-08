@@ -65,7 +65,7 @@ export const FLAG_DEFAULTS = {
 
   /**
    * Gates the F4 voice transcription cutover from upstream
-   * 21st.dev/api/voice/transcribe to LiteLLM's Whisper deployment
+   * apollosai.dev/api/voice/transcribe to LiteLLM's Whisper deployment
    * behind the Envoy Gateway. When false, voice still hits upstream
    * (or the user's own OpenAI key if present).
    */
@@ -73,7 +73,7 @@ export const FLAG_DEFAULTS = {
 
   /**
    * Gates the F6 changelog display cutover from the hardcoded
-   * https://21st.dev/api/changelog/desktop fetch to a self-hosted
+   * https://apollosai.dev/api/changelog/desktop fetch to a self-hosted
    * endpoint reached via getApiBaseUrl(). When false, the popover
    * still fetches from upstream.
    */
@@ -83,7 +83,7 @@ export const FLAG_DEFAULTS = {
    * Gates the F2 automations backend cutover. When true, the
    * automations/inbox UI talks to a self-hosted tRPC service
    * exposing automations.*, github.*, linear.*, agents.* instead
-   * of the upstream 21st.dev equivalents. When false, the old
+   * of the upstream apollosai.dev equivalents. When false, the old
    * remoteTrpc.automations.* calls still run.
    */
   automationsSelfHosted: false,
@@ -126,9 +126,7 @@ export interface FlagSnapshot {
  * throwing. A corrupt override row should never take down the app — it's
  * safer to use the default than to crash on startup.
  */
-export function getFlag<K extends FeatureFlagKey>(
-  key: K,
-): FeatureFlagValue<K> {
+export function getFlag<K extends FeatureFlagKey>(key: K): FeatureFlagValue<K> {
   const defaultValue = FLAG_DEFAULTS[key];
   const db = getDatabase();
   const rows = db
@@ -225,7 +223,10 @@ export function clearFlag<K extends FeatureFlagKey>(key: K): void {
 export function getAllFlagsWithSources(): FlagSnapshot[] {
   const db = getDatabase();
   const rows = db.select().from(featureFlagOverrides).all();
-  const overrideMap = new Map<string, { value: string; updatedAt: Date | null }>();
+  const overrideMap = new Map<
+    string,
+    { value: string; updatedAt: Date | null }
+  >();
   for (const row of rows) {
     overrideMap.set(row.key, {
       value: row.value,

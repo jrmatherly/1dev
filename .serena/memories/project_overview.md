@@ -6,6 +6,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Originall
 Users create chat sessions linked to local project folders, interact with multiple AI backends (Claude, Codex, Ollama) in Plan or Agent mode, and see real-time tool execution (bash, file edits, web search, terminal).
 
 ## Tech Stack
+
 | Layer | Tech |
 |-------|------|
 | Desktop | Electron ~39, electron-vite 3, electron-builder |
@@ -34,7 +35,7 @@ v0.0.72+
 - Skills, slash commands, sub-agents
 - Memory: reads `CLAUDE.md` and `AGENTS.md` from project root
 - Plan mode + extended thinking
-- Auto-update mechanism (`electron-updater`, points at configurable CDN — defaults to upstream `cdn.21st.dev`)
+- Auto-update mechanism (`electron-updater`, points at configurable CDN — defaults to upstream `cdn.apollosai.dev`)
 
 ## Upstream-Dependent Features (will break when upstream retires)
 See `.scratchpad/upstream-features-inventory.md` for the F1-F10 catalog with priority ratings and restoration strategies. High-level:

@@ -5,13 +5,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is this?
 
-**1Code** (by 21st.dev) - A local-first Electron desktop app for parallel AI-assisted development. Users create chat sessions linked to local project folders, interact with multiple AI backends (Claude, Codex, Ollama) in Plan or Agent mode, and see real-time tool execution (bash, file edits, web search, terminal, etc.).
+**1Code** (by apollosai.dev) - A local-first Electron desktop app for parallel AI-assisted development. Users create chat sessions linked to local project folders, interact with multiple AI backends (Claude, Codex, Ollama) in Plan or Agent mode, and see real-time tool execution (bash, file edits, web search, terminal, etc.).
 
 **Fork posture:** This repo is the **enterprise fork** of upstream 1Code. It is being decoupled from the `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway). See `.scratchpad/upstream-features-inventory.md` for the catalog of upstream-dependent features (F1-F10) and restoration priorities.
 
 **Restoration theme (locked 2026-04-08):** Anything the upstream SaaS was providing will be **reverse-engineered, re-created, and self-hosted** — the fork controls every runtime endpoint the shipped app talks to. "Drop the feature" and "use someone else's hosted service" are both off the table. Two F-entries turned out not to need restoration after code investigation by the `upstream-dependency-auditor` agent: **F7 (Plugin Marketplace)** is local-only (reads Claude Code's `~/.claude/plugins/` directly, never talked to upstream), and **F9 (Live Browser Previews)** is dead UI on desktop (gated on `sandbox_id` which `mock-api.ts:46` hard-codes to `null`). F9 will be rebuilt as a Phase 2 greenfield feature using the existing `src/main/lib/terminal/port-manager.ts` substrate. All other F-entries (F1-F6, F8, F10) have self-hosted or local-subprocess restore decisions recorded in the inventory — Phase 0 hard gate #15 complete.
 
-**Chosen enterprise auth strategy (2026-04-08):** `.scratchpad/auth-strategy-envoy-gateway.md` **v2.1** (Envoy Gateway dual-auth, **empirically validated** via live smoke test against the Talos AI cluster — see `.full-review/envoy-gateway-review/05-final-report.md` for the full review + resolution status). The competing v5 MSAL-in-Electron strategy at `.scratchpad/enterprise-auth-integration-strategy.md` is retained as a fallback. **Phase 0 progress (2026-04-08):** Gates #1-6 (dead `auth:get-token` IPC handler deletion + token log sanitization), #9 (minimum CI workflow), #10 (Dependabot config — secret scanning still needs UI enable), #11 (bun:test framework + regression guards for items 4 and 6), #14 (Electron 39.8.6→39.8.7 patch), and #15 (F1-F10 restoration decisions) **completed**. Regression guards live in `tests/regression/`. **Remaining Phase 0 gates:** #7 (binary checksum verification), #8 (upstream sandbox OAuth extraction), #12 (feature flag infra + Drizzle schema), #13 (OpenSpec conversion).
+**Chosen enterprise auth strategy (2026-04-08):** `.scratchpad/auth-strategy-envoy-gateway.md` **v2.1** (Envoy Gateway dual-auth, **empirically validated** via live smoke test against the Talos AI cluster — see `.full-review/envoy-gateway-review/05-final-report.md` for the full review + resolution status). The competing v5 MSAL-in-Electron strategy at `.scratchpad/enterprise-auth-integration-strategy.md` is retained as a fallback. **Phase 0 progress (2026-04-08):** Gates #1-6 (dead `auth:get-token` IPC handler deletion + token log sanitization), #7 (Claude binary SHA-256 + GPG signature verification, Codex SHA-256 verification), #9 (minimum CI workflow), #10 (Dependabot config — secret scanning still needs UI enable), #11 (bun:test framework + regression guards), #12 (feature flag infrastructure + Drizzle schema + tRPC router), #13 (OpenSpec 1.2.0 migration), #14 (Electron 39.8.6→39.8.7 patch), and #15 (F1-F10 restoration decisions) **completed** — 12 of 15 gates done. Regression guards live in `tests/regression/`. **Remaining Phase 0 gates:** #8 (upstream sandbox OAuth extraction from `claude-code.ts:178-220`).
 
 ## Commands
 
@@ -180,7 +180,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 ### Upstream Backend Boundary
 - **`remoteTrpc.*`** (`src/renderer/lib/remote-trpc.ts`) is the typed tRPC client for the upstream `21st.dev` / `1code.dev` backend. Any `remoteTrpc.foo.bar` call site will break when upstream is retired — grep for it before claiming a feature is local.
 - Type contract lives in `src/renderer/lib/remote-app-router.ts` (TRPCBuiltRouter stub)
-- Default base URL is `https://21st.dev`, overridable via `desktopApi.getApiBaseUrl()` (reads from main-process env)
+- Default base URL is `https://apollosai.dev`, overridable via `desktopApi.getApiBaseUrl()` (reads from main-process env)
 - Raw `fetch(\`${apiUrl}/...\`)` is the secondary upstream channel — used in `voice.ts`,`sandbox-import.ts`,`claude-code.ts` OAuth flow, `agents-help-popover.tsx` changelog
 - Refresh the inventory of upstream call sites with: `grep -rn "remoteTrpc\." src/renderer/`
 
@@ -266,8 +266,8 @@ rm -rf ~/Library/Application\ Support/Agents\ Dev/
 /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -kill -r -domain local -domain system -domain user
 
 # 3. Clear app preferences
-defaults delete dev.21st.agents.dev  # Dev mode
-defaults delete dev.21st.agents      # Production
+defaults delete dev.apollosai.agents.dev  # Dev mode
+defaults delete dev.apollosai.agents      # Production
 
 # 4. Run in dev mode with clean state
 bun run dev
@@ -278,7 +278,7 @@ bun run dev
 - **Folder dialog not appearing**: Window focus timing issues on first launch. Fixed by ensuring window focus before showing `dialog.showOpenDialog()`.
 
 **Dev vs Production App:**
-- Dev mode uses `twentyfirst-agents-dev://` protocol
+- Dev mode uses `apollosai-agents-dev://` protocol
 - Dev mode uses separate userData path (`~/Library/Application Support/Agents Dev/`)
 - This prevents conflicts between dev and production installs
 
@@ -336,7 +336,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 
 ### Auto-Update Flow
 
-1. App checks `https://cdn.21st.dev/releases/desktop/latest-mac.yml` on startup and when window regains focus (with 1 min cooldown)
+1. App checks `https://cdn.apollosai.dev/releases/desktop/latest-mac.yml` on startup and when window regains focus (with 1 min cooldown)
 2. If version in manifest > current version, shows "Update Available" banner
 3. User clicks Download → downloads ZIP in background
 4. User clicks "Restart Now" → installs update and restarts
@@ -367,7 +367,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream releases compatible version
 - `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously). For `bun audit` / `bun outdated` see the Commands block above.
 - Claude Agent SDK version: see `@anthropic-ai/claude-agent-sdk` in `package.json`
-- Protocol handlers: Production uses `twentyfirst-agents://`, dev uses `twentyfirst-agents-dev://`
+- Protocol handlers: Production uses `apollosai-agents://`, dev uses `apollosai-agents-dev://`
 - **Serena MCP requires `mcp__serena__activate_project` first** before `list_memories` / `read_memory` will work — call with `project: "ai-coding-cli"` or the absolute repo path. Without activation it returns `Error: No active project`.
 - **Decoding JWTs on macOS requires padding + URL-safe alphabet translation** — BSD `base64 -d` silently truncates JWT payloads because JWTs use base64url (no padding, `-`/`_` instead of `+`/`/`). Symptom: `jq: Unfinished JSON term at EOF at line 1, column <N>`. Working one-liner: `echo "$JWT" | cut -d. -f2 | tr '_-' '/+' | awk '{l=length($0); printf "%s%s\n", $0, substr("====", 1, (4-l%4)%4)}' | base64 -d | jq`. Alternatives: Python `base64.urlsafe_b64decode` with manual padding, or paste to https://jwt.ms (client-side only — throwaway test tokens only).
 
@@ -378,7 +378,7 @@ Multiple files contain overlapping project info — keep them in sync when makin
 - `README.md` — User-facing pitch + install/dev instructions
 - `CONTRIBUTING.md` — Contributor setup, workflow, quality gates
 - `AGENTS.md` — Quick reference for AI agents + OpenSpec redirect
-- `openspec/project.md` — Brief context summary (references CLAUDE.md for details)
+- `openspec/config.yaml` — OpenSpec 1.2.0 configuration (no separate `project.md`; context lives in `changes/<id>/proposal.md` per proposal)
 - `.serena/memories/` — Serena project memories (project_overview, codebase_structure, etc.)
 - `.claude/PROJECT_INDEX.md` — Auto-generated project index
 - `.full-review/` — Review plugin artifacts (gitignored)

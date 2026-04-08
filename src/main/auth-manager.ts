@@ -5,9 +5,9 @@ import { AUTH_SERVER_PORT } from "./constants";
 // Get API URL - in packaged app always use production, in dev allow override
 function getApiBaseUrl(): string {
   if (app.isPackaged) {
-    return "https://21st.dev";
+    return "https://apollosai.dev";
   }
-  return import.meta.env.MAIN_VITE_API_URL || "https://21st.dev";
+  return import.meta.env.MAIN_VITE_API_URL || "https://apollosai.dev";
 }
 
 export class AuthManager {
@@ -226,7 +226,7 @@ export class AuthManager {
     if (this.isDev) {
       authUrl += `&callback=${encodeURIComponent(`http://localhost:${AUTH_SERVER_PORT}/auth/callback`)}`;
       // Pass dev protocol so production web can use correct deep link if callback fails
-      authUrl += `&protocol=twentyfirst-agents-dev`;
+      authUrl += `&protocol=apollosai-agents-dev`;
     }
 
     shell.openExternal(authUrl);

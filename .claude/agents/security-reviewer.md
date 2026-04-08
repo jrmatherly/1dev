@@ -22,7 +22,7 @@ When reviewing code changes, check for:
 - nodeIntegration or contextIsolation misconfiguration
 - Renderer accessing electron APIs directly (should go through preload)
 - shell.openExternal() with unsanitized URLs
-- Protocol handler injection via deep links (twentyfirst-agents-dev://)
+- Protocol handler injection via deep links (apollosai-agents-dev://)
 
 ### Input Validation
 - Missing Zod validation on tRPC procedure inputs

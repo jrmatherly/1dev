@@ -1,12 +1,12 @@
 {
-  "name": "21st-desktop",
+  "name": "1code-desktop",
   "version": "0.0.72",
   "private": true,
   "description": "1Code - UI for parallel work with AI agents",
-  "homepage": "https://21st.dev",
+  "homepage": "https://apollosai.dev",
   "author": {
-    "name": "21st.dev",
-    "email": "support@21st.dev"
+    "name": "apollosai.dev",
+    "email": "support@apollosai.dev"
   },
   "main": "out/main/index.js",
   "scripts": {
@@ -138,14 +138,14 @@
     "vite": "^6.4.2"
   },
   "build": {
-    "appId": "dev.21st.agents",
+    "appId": "dev.apollosai.agents",
     "productName": "1Code",
     "npmRebuild": true,
     "protocols": [
       {
         "name": "1Code",
         "schemes": [
-          "twentyfirst-agents"
+          "apollosai-agents"
         ]
       }
     ],
@@ -251,7 +251,7 @@
     },
     "publish": {
       "provider": "generic",
-      "url": "https://cdn.21st.dev/releases/desktop"
+      "url": "https://cdn.apollosai.dev/releases/desktop"
     }
   },
   "pnpm": {

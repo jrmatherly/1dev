@@ -62,7 +62,7 @@ import { IS_DEV, AUTH_SERVER_PORT } from "./constants";
 
 // Deep link protocol (must match package.json build.protocols.schemes)
 // Use different protocol in dev to avoid conflicts with production app
-const PROTOCOL = IS_DEV ? "twentyfirst-agents-dev" : "twentyfirst-agents";
+const PROTOCOL = IS_DEV ? "apollosai-agents-dev" : "apollosai-agents";
 
 // Set dev mode userData path BEFORE requestSingleInstanceLock()
 // This ensures dev and prod have separate instance locks
@@ -101,13 +101,13 @@ if (app.isPackaged && !IS_DEV) {
 // In dev mode, allow override via MAIN_VITE_API_URL env variable
 export function getBaseUrl(): string {
   if (app.isPackaged) {
-    return "https://21st.dev";
+    return "https://apollosai.dev";
   }
-  return import.meta.env.MAIN_VITE_API_URL || "https://21st.dev";
+  return import.meta.env.MAIN_VITE_API_URL || "https://apollosai.dev";
 }
 
 export function getAppUrl(): string {
-  return process.env.ELECTRON_RENDERER_URL || "https://21st.dev/agents";
+  return process.env.ELECTRON_RENDERER_URL || "https://apollosai.dev/agents";
 }
 
 // Auth manager singleton (use the one from auth-manager module)
@@ -211,7 +211,7 @@ function handleDeepLink(url: string): void {
   try {
     const parsed = new URL(url);
 
-    // Handle auth callback: twentyfirst-agents://auth?code=xxx
+    // Handle auth callback: apollosai-agents://auth?code=xxx
     if (parsed.pathname === "/auth" || parsed.host === "auth") {
       const code = parsed.searchParams.get("code");
       if (code) {
@@ -220,7 +220,7 @@ function handleDeepLink(url: string): void {
       }
     }
 
-    // Handle MCP OAuth callback: twentyfirst-agents://mcp-oauth?code=xxx&state=yyy
+    // Handle MCP OAuth callback: apollosai-agents://mcp-oauth?code=xxx&state=yyy
     if (parsed.pathname === "/mcp-oauth" || parsed.host === "mcp-oauth") {
       const code = parsed.searchParams.get("code");
       const state = parsed.searchParams.get("state");
@@ -627,7 +627,7 @@ if (gotTheLock) {
       applicationName: "1Code",
       applicationVersion: app.getVersion(),
       version: `Claude Code ${claudeCodeVersion}`,
-      copyright: "Copyright © 2026 21st.dev",
+      copyright: "Copyright © 2026 apollosai.dev",
     });
 
     // Track update availability for menu
@@ -880,7 +880,7 @@ if (gotTheLock) {
               label: "Learn More",
               click: async () => {
                 const { shell } = await import("electron");
-                await shell.openExternal("https://21st.dev");
+                await shell.openExternal("https://apollosai.dev");
               },
             },
           ],

@@ -60,7 +60,7 @@
 ## System Utils (macOS/Darwin)
 - `git` — Version control
 - `ls`, `find`, `grep` — File system exploration
-- `defaults delete dev.21st.agents.dev` — Clear dev app preferences
+- `defaults delete dev.apollosai.agents.dev` — Clear dev app preferences
 - `rm -rf ~/Library/Application\ Support/Agents\ Dev/` — Clear dev app data
 - `xcrun notarytool` — macOS notarization management
 - `xcrun stapler staple` — Staple notarization tickets to DMGs

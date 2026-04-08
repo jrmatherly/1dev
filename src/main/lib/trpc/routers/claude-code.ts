@@ -180,7 +180,7 @@ export const claudeCodeRouter = router({
   startAuth: publicProcedure.mutation(async () => {
     const token = await getDesktopToken();
     if (!token) {
-      throw new Error("Not authenticated with 21st.dev");
+      throw new Error("Not authenticated with apollosai.dev");
     }
 
     // Server creates sandbox (has CodeSandbox SDK)

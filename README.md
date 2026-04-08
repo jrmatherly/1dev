@@ -25,22 +25,25 @@ These features run entirely on your machine — no hosted backend required.
 - **Message Queue** — Queue prompts while an agent is working
 - **Plan Mode** — Structured plans with markdown preview before execution
 - **Extended Thinking** — Visual thinking gradient for Claude reasoning
-- **Auto-Updates** — `electron-updater` polling a configurable CDN (defaults to upstream `cdn.21st.dev`; self-hosters override `CDN_BASE` in `src/main/lib/auto-updater.ts`)
+- **Auto-Updates** — `electron-updater` polling a configurable CDN (defaults to upstream `cdn.apollosai.dev`; self-hosters override `CDN_BASE` in `src/main/lib/auto-updater.ts`)
 - **Cross Platform** — macOS, Windows, Linux
 
-### Removed in this fork
+### Upstream-dependent features — restoration in progress
 
-The following upstream features depend on the `1code.dev` hosted backend and have been removed from this fork's highlights pending self-hosted replacements. They may still appear in the codebase but will not function once the upstream backend is retired.
+The following features depend on the `1code.dev` hosted backend. Per the fork's **self-host-everything** theme (locked 2026-04-08), each will be **reverse-engineered, re-created, and self-hosted** — not dropped. Until then they remain in the codebase but will not function once the upstream backend is retired.
 
-- Background Agents (cloud sandboxes that run when your laptop sleeps)
-- Automations & Inbox (`@1code` triggers from GitHub / Linear / Slack)
-- Remote agent chats / multi-team sync
-- Hosted voice transcription (BYOK OpenAI key path still works)
-- Hosted plugin marketplace (status pending — see inventory)
-- PWA companion app (was always a separate upstream project)
-- The hosted REST API (`POST /api/v1/tasks`)
+- **Background Agents** — cloud sandboxes that run when your laptop sleeps (F1)
+- **Automations & Inbox** — `@1code` triggers from GitHub / Linear / Slack (F2)
+- **Remote agent chats / multi-team sync** (F3)
+- **Hosted voice transcription** — BYOK OpenAI key path still works (F4)
+- **PWA companion app** — always a separate upstream project (F6)
+- **The hosted REST API** — `POST /api/v1/tasks` (F8)
+- **Live Browser Previews** — currently dead UI on desktop (gated on `sandbox_id` hard-coded to `null`); will be rebuilt Phase 2 on top of `src/main/lib/terminal/port-manager.ts` (F9)
 
-See [`.scratchpad/upstream-features-inventory.md`](.scratchpad/upstream-features-inventory.md) for restoration priorities and candidate self-host approaches.
+**Not affected** (investigated 2026-04-08, no restoration needed):
+- **Plugin marketplace** — local-only, reads `~/.claude/plugins/` directly, never talked to upstream (F7)
+
+See [`.scratchpad/upstream-features-inventory.md`](.scratchpad/upstream-features-inventory.md) for restoration priorities, per-feature decisions, and candidate self-host approaches.
 
 ## Features
 
