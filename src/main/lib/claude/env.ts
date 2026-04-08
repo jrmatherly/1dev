@@ -298,7 +298,4 @@ export function logClaudeEnv(
   console.log(
     `${prefix}[claude-env] PATH includes /usr/local/bin: ${env.PATH?.includes("/usr/local/bin")}`,
   );
-  console.log(
-    `${prefix}[claude-env] ANTHROPIC_AUTH_TOKEN: ${env.ANTHROPIC_AUTH_TOKEN ? "set" : "not set"}`,
-  );
 }

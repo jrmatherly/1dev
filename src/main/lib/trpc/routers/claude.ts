@@ -198,14 +198,6 @@ function getClaudeCodeToken(): string | null {
         );
         const decrypted = decryptToken(account.oauthToken);
         console.log("[claude-auth] Token decrypted successfully");
-        console.log(
-          "[claude-auth] Token preview:",
-          decrypted.slice(0, 20) + "..." + decrypted.slice(-10),
-        );
-        console.log("[claude-auth] Token total length:", decrypted.length);
-        console.log(
-          "[claude-auth] ============================================",
-        );
         return decrypted;
       }
 
@@ -242,12 +234,6 @@ function getClaudeCodeToken(): string | null {
 
     const decrypted = decryptToken(cred.oauthToken);
     console.log("[claude-auth] Token decrypted successfully (legacy)");
-    console.log(
-      "[claude-auth] Token preview:",
-      decrypted.slice(0, 20) + "..." + decrypted.slice(-10),
-    );
-    console.log("[claude-auth] Token total length:", decrypted.length);
-    console.log("[claude-auth] ============================================");
 
     return decrypted;
   } catch (error) {
@@ -1535,10 +1521,11 @@ export const claudeRouter = router({
               `[SD] Query options - cwd: ${input.cwd}, projectPath: ${input.projectPath || "(not set)"}, mcpServers: ${mcpServersForSdk ? Object.keys(mcpServersForSdk).join(", ") : "(none)"}`,
             );
             if (finalCustomConfig) {
-              const redactedConfig = {
-                ...finalCustomConfig,
-                token: `${finalCustomConfig.token.slice(0, 6)}...`,
-              };
+              // Strip token entirely from logged config — no preview, no length.
+              // Phase 0 hard gate #5 (strategy v2.1 §6).
+              const { token: _redactedToken, ...redactedConfig } =
+                finalCustomConfig;
+              void _redactedToken;
               if (isUsingOllama) {
                 console.log(
                   `[Ollama] Using offline mode - Model: ${finalCustomConfig.model}, Base URL: ${finalCustomConfig.baseUrl}`,
@@ -1630,8 +1617,6 @@ export const claudeRouter = router({
                 cwd: input.cwd,
                 configDir: isolatedConfigDir,
                 hasAuthToken: !!finalEnv.ANTHROPIC_AUTH_TOKEN,
-                tokenPreview:
-                  finalEnv.ANTHROPIC_AUTH_TOKEN?.slice(0, 10) + "...",
               });
               console.log("[Ollama Debug] Session settings:", {
                 resumeSessionId: resumeSessionId || "none (first message)",
