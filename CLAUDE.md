@@ -57,9 +57,9 @@ src/
 │       │   ├── index.ts     # DB init, auto-migrate on startup
 │       │   ├── schema/      # Drizzle table definitions
 │       │   └── utils.ts     # ID generation
-│       └── trpc/routers/    # tRPC routers (19 feature routers in routers/,
+│       └── trpc/routers/    # tRPC routers (20 feature routers in routers/,
 │           │                 # mounted in index.ts alongside the git router
-│           │                 # from ../../git for a total of 20 in createAppRouter)
+│           │                 # from ../../git for a total of 21 in createAppRouter)
 │           ├── index.ts             # createAppRouter composition root
 │           ├── claude.ts            # Claude SDK streaming
 │           ├── claude-code.ts       # Claude Code binary management
@@ -129,7 +129,7 @@ src/
 
 **Location:** `{userData}/data/agents.db` (SQLite)
 
-**Schema:** `src/main/lib/db/schema/index.ts` (6 tables — source of truth)
+**Schema:** `src/main/lib/db/schema/index.ts` (7 tables — source of truth)
 
 ```typescript
 // Core tables:
@@ -149,6 +149,11 @@ sub_chats   → id, name, chatId, sessionId, streamId,
 claude_code_credentials → encrypted OAuth token (safeStorage); DEPRECATED — use anthropic_accounts
 anthropic_accounts      → multi-account: email, displayName, oauthToken, lastUsedAt
 anthropic_settings      → singleton row tracking activeAccountId
+
+// Feature flag infrastructure (Phase 0 hard gate #12, added 2026-04-08):
+feature_flag_overrides  → key (PK), value (JSON-encoded text), updatedAt
+                          // backs src/main/lib/feature-flags.ts, spec in
+                          // openspec/changes/add-feature-flag-infrastructure/
 ```
 
 See the schema file for exact column types and defaults.
@@ -176,7 +181,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - **`remoteTrpc.*`** (`src/renderer/lib/remote-trpc.ts`) is the typed tRPC client for the upstream `21st.dev` / `1code.dev` backend. Any `remoteTrpc.foo.bar` call site will break when upstream is retired — grep for it before claiming a feature is local.
 - Type contract lives in `src/renderer/lib/remote-app-router.ts` (TRPCBuiltRouter stub)
 - Default base URL is `https://21st.dev`, overridable via `desktopApi.getApiBaseUrl()` (reads from main-process env)
-- Raw `fetch(\`${apiUrl}/...\`)` is the secondary upstream channel — used in `voice.ts`, `sandbox-import.ts`, `claude-code.ts` OAuth flow, `agents-help-popover.tsx` changelog
+- Raw `fetch(\`${apiUrl}/...\`)` is the secondary upstream channel — used in `voice.ts`,`sandbox-import.ts`,`claude-code.ts` OAuth flow, `agents-help-popover.tsx` changelog
 - Refresh the inventory of upstream call sites with: `grep -rn "remoteTrpc\." src/renderer/`
 
 ### State Management
@@ -340,8 +345,8 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 
 **Shipped (v0.0.72+):**
 - Multi-backend AI: Claude, Codex, Ollama
-- Drizzle ORM with 6 tables, auto-migration
-- 20 tRPC routers in `createAppRouter` (19 feature routers in `routers/` + 1 git router from `../../git`)
+- Drizzle ORM with 7 tables, auto-migration
+- 21 tRPC routers in `createAppRouter` (20 feature routers in `routers/` + 1 git router from `../../git`)
 - Integrated terminal (node-pty)
 - Plugin and skills system
 - File viewer, kanban board, automations
