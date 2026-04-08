@@ -531,7 +531,7 @@ const MermaidBlockInner = memo(function MermaidBlockInner({
                   maxScale={8}
                   centerOnInit
                   limitToBounds={false}
-                  wheel={{ smoothStep: 0.1 }}
+                  wheel={{ step: 0.1 }}
                   panning={{ velocityDisabled: true }}
                 >
                   <ZoomControls />

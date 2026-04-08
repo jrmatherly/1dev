@@ -159,28 +159,24 @@ type CodexUsageMetadata = {
   modelContextWindow?: number;
 };
 
-const codexMcpListEntrySchema = z
-  .object({
+const codexMcpListEntrySchema = z.looseObject({
     name: z.string(),
     enabled: z.boolean(),
     disabled_reason: z.string().nullable().optional(),
-    transport: z
-      .object({
-        type: z.string(),
-        command: z.string().nullable().optional(),
-        args: z.array(z.string()).nullable().optional(),
-        env: z.record(z.string()).nullable().optional(),
-        env_vars: z.array(z.string()).nullable().optional(),
-        cwd: z.string().nullable().optional(),
-        url: z.string().nullable().optional(),
-        bearer_token_env_var: z.string().nullable().optional(),
-        http_headers: z.record(z.string()).nullable().optional(),
-        env_http_headers: z.record(z.string()).nullable().optional(),
-      })
-      .passthrough(),
+    transport: z.looseObject({
+      type: z.string(),
+      command: z.string().nullable().optional(),
+      args: z.array(z.string()).nullable().optional(),
+      env: z.record(z.string(), z.string()).nullable().optional(),
+      env_vars: z.array(z.string()).nullable().optional(),
+      cwd: z.string().nullable().optional(),
+      url: z.string().nullable().optional(),
+      bearer_token_env_var: z.string().nullable().optional(),
+      http_headers: z.record(z.string(), z.string()).nullable().optional(),
+      env_http_headers: z.record(z.string(), z.string()).nullable().optional(),
+    }),
     auth_status: z.string().nullable().optional(),
-  })
-  .passthrough();
+  });
 
 type CodexMcpListEntry = z.infer<typeof codexMcpListEntrySchema>;
 
@@ -1518,7 +1514,7 @@ export const codexRouter = router({
         transport: z.enum(["stdio", "http"]),
         command: z.string().optional(),
         args: z.array(z.string()).optional(),
-        url: z.string().url().optional(),
+        url: z.url().optional(),
       }),
     )
     .mutation(async ({ input }) => {
