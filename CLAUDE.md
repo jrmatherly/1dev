@@ -25,6 +25,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **1Code** (by 21st.dev) - A local-first Electron desktop app for parallel AI-assisted development. Users create chat sessions linked to local project folders, interact with multiple AI backends (Claude, Codex, Ollama) in Plan or Agent mode, and see real-time tool execution (bash, file edits, web search, terminal, etc.).
 
+**Fork posture:** This repo is the **enterprise fork** of upstream 1Code. It is being decoupled from the `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway). See `.scratchpad/upstream-features-inventory.md` for the catalog of upstream-dependent features (F1-F10) and restoration priorities.
+
+**Restoration theme (locked 2026-04-08):** Anything the upstream SaaS was providing will be **reverse-engineered, re-created, and self-hosted** — the fork controls every runtime endpoint the shipped app talks to. "Drop the feature" and "use someone else's hosted service" are both off the table. Two F-entries turned out not to need restoration after code investigation by the `upstream-dependency-auditor` agent: **F7 (Plugin Marketplace)** is local-only (reads Claude Code's `~/.claude/plugins/` directly, never talked to upstream), and **F9 (Live Browser Previews)** is dead UI on desktop (gated on `sandbox_id` which `mock-api.ts:46` hard-codes to `null`). F9 will be rebuilt as a Phase 2 greenfield feature using the existing `src/main/lib/terminal/port-manager.ts` substrate. All other F-entries (F1-F6, F8, F10) have self-hosted or local-subprocess restore decisions recorded in the inventory — Phase 0 hard gate #15 complete.
+
+**Chosen enterprise auth strategy (2026-04-08):** `.scratchpad/auth-strategy-envoy-gateway.md` **v2.1** (Envoy Gateway dual-auth, **empirically validated** via live smoke test against the Talos AI cluster — see `.full-review/envoy-gateway-review/05-final-report.md` for the full review + resolution status). The competing v5 MSAL-in-Electron strategy at `.scratchpad/enterprise-auth-integration-strategy.md` is retained as a fallback. **Phase 0 progress (2026-04-08):** Gates #1-6 (dead `auth:get-token` IPC handler deletion + token log sanitization), #9 (minimum CI workflow), #10 (Dependabot config — secret scanning still needs UI enable), #11 (bun:test framework + regression guards for items 4 and 6), #14 (Electron 39.8.6→39.8.7 patch), and #15 (F1-F10 restoration decisions) **completed**. Regression guards live in `tests/regression/`. **Remaining Phase 0 gates:** #7 (binary checksum verification), #8 (upstream sandbox OAuth extraction), #12 (feature flag infra + Drizzle schema), #13 (OpenSpec conversion).
+
 ## Commands
 
 ```bash
@@ -69,20 +75,30 @@ src/
 │       │   ├── index.ts     # DB init, auto-migrate on startup
 │       │   ├── schema/      # Drizzle table definitions
 │       │   └── utils.ts     # ID generation
-│       └── trpc/routers/    # tRPC routers (21+ routers)
-│           ├── claude.ts        # Claude SDK streaming
-│           ├── claude-code.ts   # Claude Code binary management
-│           ├── codex.ts         # Codex integration
-│           ├── ollama.ts        # Ollama local model support
-│           ├── projects.ts      # Project CRUD
-│           ├── chats.ts         # Chat CRUD
-│           ├── agents.ts        # Agent management
-│           ├── terminal.ts      # Terminal/PTY sessions
-│           ├── files.ts         # File operations
-│           ├── plugins.ts       # Plugin system
-│           ├── skills.ts        # Skills system
-│           ├── voice.ts         # Voice features
-│           └── ...              # + commands, debug, external, etc.
+│       └── trpc/routers/    # tRPC routers (19 feature routers in routers/,
+│           │                 # mounted in index.ts alongside the git router
+│           │                 # from ../../git for a total of 20 in createAppRouter)
+│           ├── index.ts             # createAppRouter composition root
+│           ├── claude.ts            # Claude SDK streaming
+│           ├── claude-code.ts       # Claude Code binary management
+│           ├── claude-settings.ts   # Claude-specific user settings
+│           ├── anthropic-accounts.ts# Multi-account Anthropic OAuth
+│           ├── codex.ts             # Codex integration
+│           ├── ollama.ts            # Ollama local model support
+│           ├── projects.ts          # Project CRUD
+│           ├── chats.ts             # Chat CRUD
+│           ├── agents.ts            # Agent management
+│           ├── terminal.ts          # Terminal/PTY sessions
+│           ├── files.ts             # File operations
+│           ├── external.ts          # External / remote backend bridges
+│           ├── plugins.ts           # Plugin system
+│           ├── skills.ts            # Skills system
+│           ├── commands.ts          # Slash command registry
+│           ├── voice.ts             # Voice features
+│           ├── worktree-config.ts   # Worktree configuration
+│           ├── sandbox-import.ts    # Sandbox import flow
+│           ├── debug.ts             # Debug utilities
+│           └── agent-utils.ts       # Shared helpers (not a router)
 │
 ├── preload/                 # IPC bridge (context isolation)
 │   └── index.ts             # Exposes desktopApi + tRPC bridge
@@ -93,13 +109,17 @@ src/
     │   ├── agents/          # Main chat interface (core feature)
     │   │   ├── main/        # active-chat.tsx, messages, input
     │   │   ├── ui/          # Tool renderers, preview, diff view
+    │   │   ├── components/  # Shared agent-scoped components
     │   │   ├── commands/    # Slash commands
     │   │   ├── atoms/       # Jotai atoms for agent state
     │   │   ├── stores/      # Zustand stores
     │   │   ├── hooks/       # Chat-specific hooks
     │   │   ├── context/     # React context providers
+    │   │   ├── lib/         # Agent-scoped utilities
+    │   │   ├── utils/       # Pure helper functions
     │   │   ├── search/      # Chat search
-    │   │   └── mentions/    # @-mention system
+    │   │   ├── mentions/    # @-mention system
+    │   │   └── constants.ts # Agent constants
     │   ├── sidebar/         # Chat list, navigation
     │   ├── terminal/        # Integrated terminal (node-pty)
     │   ├── kanban/          # Kanban board view
@@ -120,27 +140,36 @@ src/
         ├── remote-trpc.ts   # Remote tRPC client
         ├── remote-api.ts    # Remote API helpers
         ├── analytics.ts     # Analytics tracking
-        └── mock-api.ts      # DEPRECATED
+        └── mock-api.ts      # DEPRECATED — still imported by 6 agents/ files; migrate callers before removal
 ```
 
 ## Database (Drizzle ORM)
 
 **Location:** `{userData}/data/agents.db` (SQLite)
 
-**Schema:** `src/main/lib/db/schema/index.ts`
+**Schema:** `src/main/lib/db/schema/index.ts` (6 tables — source of truth)
 
 ```typescript
 // Core tables:
-projects    → id, name, path (local folder), timestamps
-chats       → id, name, projectId, worktree fields, timestamps
-sub_chats   → id, name, chatId, sessionId, mode (plan|agent), messages (JSON)
-              // Individual AI sessions within a chat; sessionId enables resume
+projects    → id, name, path, timestamps,
+              gitRemoteUrl, gitProvider, gitOwner, gitRepo,   // git metadata
+              iconPath                                          // custom icon
+chats       → id, name, projectId, timestamps, archivedAt,
+              worktreePath, branch, baseBranch,                // worktree isolation
+              prUrl, prNumber                                   // PR tracking
+              // + index on worktreePath
+sub_chats   → id, name, chatId, sessionId, streamId,
+              mode (plan|agent), messages (JSON), timestamps
+              // sessionId enables Claude SDK session resume
+              // streamId tracks in-progress streams
 
 // Auth/settings tables:
-claude_code_credentials → encrypted credential storage
-anthropic_accounts      → linked Anthropic account info
-anthropic_settings      → per-account settings
+claude_code_credentials → encrypted OAuth token (safeStorage); DEPRECATED — use anthropic_accounts
+anthropic_accounts      → multi-account: email, displayName, oauthToken, lastUsedAt
+anthropic_settings      → singleton row tracking activeAccountId
 ```
+
+See the schema file for exact column types and defaults.
 
 **Auto-migration:** On app start, `initDatabase()` runs migrations from `drizzle/` folder (dev) or `resources/migrations` (packaged).
 
@@ -160,6 +189,13 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - Uses **tRPC** with `trpc-electron` for type-safe main↔renderer communication
 - All backend calls go through tRPC routers, not raw IPC
 - Preload exposes `window.desktopApi` for native features (window controls, clipboard, notifications)
+
+### Upstream Backend Boundary
+- **`remoteTrpc.*`** (`src/renderer/lib/remote-trpc.ts`) is the typed tRPC client for the upstream `21st.dev` / `1code.dev` backend. Any `remoteTrpc.foo.bar` call site will break when upstream is retired — grep for it before claiming a feature is local.
+- Type contract lives in `src/renderer/lib/remote-app-router.ts` (TRPCBuiltRouter stub)
+- Default base URL is `https://21st.dev`, overridable via `desktopApi.getApiBaseUrl()` (reads from main-process env)
+- Raw `fetch(\`${apiUrl}/...\`)` is the secondary upstream channel — used in `voice.ts`, `sandbox-import.ts`, `claude-code.ts` OAuth flow, `agents-help-popover.tsx` changelog
+- Refresh the inventory of upstream call sites with: `grep -rn "remoteTrpc\." src/renderer/`
 
 ### State Management
 - **Jotai**: UI state (selected chat, sidebar open, preview settings)
@@ -202,6 +238,34 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - `src/renderer/lib/remote-types.ts` - Shared types for remote tRPC (breaks circular dep with app-router stub)
 - `src/renderer/lib/remote-app-router.ts` - Typed AppRouter stub for remote 21st.dev backend (TRPCBuiltRouter pattern)
 - `src/main/lib/trpc/schemas/mcp-url.ts` - SSRF-safe URL validation schema for MCP server URLs
+- `src/main/lib/auto-updater.ts` - `electron-updater` config; `CDN_BASE` constant on line 33 is the upstream CDN — flip this for self-hosted update channel
+- `.scratchpad/upstream-features-inventory.md` - Catalog of upstream-backend dependencies (F1-F10) with priority ratings and restore strategies
+
+## Working Directories & Conventions
+
+- `.scratchpad/` — Working documents (strategy docs, design notes, research). Currently holds two parallel auth strategy docs: `enterprise-auth-integration-strategy.md` (v5, full custom) and `auth-strategy-envoy-gateway.md` (Envoy Gateway alternative).
+- `.full-review/` — Output from `comprehensive-review:full-review` plugin (gitignored)
+- `.serena/memories/` — Serena project memories (read via `mcp__serena__read_memory`)
+- **`.github/workflows/ci.yml`** — minimum-viable CI runs `bun run ts:check` + `bun run build` + `bun test` + `bun audit` on every PR to `main`. Added 2026-04-08 (Phase 0 hard gate #9). Local quality gates are the same commands — run them before pushing.
+- **`tests/regression/`** — bun:test regression guards. Currently holds two structural guards for Phase 0 gates #1-6. Run with `bun test`.
+- **Deployment target cluster repo:** `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos K8s, Envoy Gateway, LiteLLM, OIDC stack — coordinate cross-repo when working on auth/backend)
+- **Cluster access:** `cd /Users/jason/dev/ai-k8s/talos-ai-cluster && KUBECONFIG=./kubeconfig kubectl ...` (mise/direnv loads KUBECONFIG on cd; `~/.kube/config` is a separate unrelated config). The cluster is **Flux/GitOps managed** — never use direct `kubectl apply` for cluster resources; all changes go through `templates/config/**/*.j2` Jinja2 templates + `cluster.yaml` plaintext variables + SOPS encryption + git commit + Flux reconcile. Direct applies are reconciled away within 60s.
+- **Cluster facts (discovered 2026-04-08):** Envoy Gateway `v1.7.1` (image: `mirror.gcr.io/envoyproxy/gateway:v1.7.1`); Entra tenant ID `f505346f-75cf-458b-baeb-10708d41967d`; test echo server at `https://echo.aarons.com/` (`default/echo` HTTPRoute, runs `mendhak/http-https-echo:39`, returns `.headers.authorization` lowercase); existing working OIDC SecurityPolicy reference pattern at `kube-system/hubble-ui-oidc` (single-auth OIDC; dual-auth is NEW as of the 2026-04-08 smoke test).
+
+## Known Security Gaps & Footguns
+
+- `scripts/download-claude-binary.mjs` and `scripts/download-codex-binary.mjs` do **NOT verify checksums/signatures** — supply chain risk (Phase 0 hard gate #7, still pending)
+- ~~`auth:get-token` IPC handler is **dead code** but still registered~~ — **RESOLVED 2026-04-08** (Phase 0 gates #1-4). Handler, preload bridge, and type declaration all deleted. Regression guard at `tests/regression/auth-get-token-deleted.test.ts`.
+- ~~**FIVE token preview logs**~~ — **RESOLVED 2026-04-08** (Phase 0 gates #5-6). All four sites in `src/main/lib/trpc/routers/claude.ts` and the one in `src/main/lib/claude/env.ts` removed. Regression guard at `tests/regression/token-leak-logs-removed.test.ts` scans all of `src/main/` for forbidden substrings (`Token preview:`, `tokenPreview:`, `Token total length:`, `finalCustomConfig.token.slice`, and the env.ts presence-log pattern).
+- `@azure/msal-node` (v3.8.x) ≠ `@azure/msal-node-extensions` (v5.1.x) — versions diverge, do not assume parity
+- **LiteLLM OSS edition: SSO is hard-capped at ≤5 users** — beyond that requires Enterprise license
+- **Electron 39 EOL: 2026-05-05** — plan upgrade to Electron 40+ before that date
+- **Envoy Gateway dual-auth pattern** (`passThroughAuthHeader: true` + `jwt.optional: true`) was **empirically validated on 2026-04-08** via live smoke test against the Talos AI cluster (Envoy Gateway v1.7.1, `default/echo` HTTPRoute, Outcome A — full pass). The CLI Bearer passes through to upstream character-for-character unchanged; `claimToHeaders` populates `x-user-oid`/`x-user-tid`/`x-user-azp`. Reproducible runbook: `.scratchpad/forwardaccesstoken-smoke-test.md`. Evidence: `.full-review/envoy-gateway-review/envoy-claims-validation.md` "Smoke Test Results" section. **Important caveats discovered during the test**: see the Entra gotchas below.
+- **`src/renderer/lib/mock-api.ts` is marked DEPRECATED but still imported by 6 files in `features/agents/`** — do not delete without migrating call sites first (verified via grep `2026-04-08`)
+- **Claude Code OAuth flow uses upstream sandboxes as a redirect host** (`src/main/lib/trpc/routers/claude-code.ts:178-220`) — this is a P0 hidden dependency inside what looks like a P3 background-agents feature. Must extract to a localhost-loopback redirect (like `auth-manager.ts` already uses) before retiring upstream backend.
+- **Entra `requestedAccessTokenVersion` defaults to `null` = v1, NOT v2** — new Entra app registrations issue v1.0 tokens by default EVEN when calling `/oauth2/v2.0/token`. Token format is determined by the **resource API's manifest**, not the endpoint. Explicitly set `"requestedAccessTokenVersion": 2` (integer, no quotes) in the app manifest via the Entra portal's Manifest tab — takes ~60s to propagate. Without this, `aud` is `api://<client>` (not the GUID) and `iss` is `sts.windows.net/<tenant>/` (no `/v2.0` suffix), breaking Envoy JWT validation. Discovered empirically 2026-04-08 — see `.full-review/envoy-gateway-review/05-final-report.md` §C8.
+- **Entra "Add optional claim" dialog does NOT show `oid`, `tid`, `azp`** — these are default v2.0 access token claims and always present. Only `email`, `upn`, `family_name`, `idtyp`, etc. appear in the dialog. Future sessions configuring Entra should only check `email` and `idtyp`; don't search for the default claims or assume they're missing.
+- **`preferred_username` MUST NOT be used for authorization** per Microsoft docs — tenant-admin-mutable, empty for service principals, synthetic for B2B guests. Use `oid` (+ `tid` for cross-tenant scoping) as the authoritative identity key in any LiteLLM `user_header_mappings` or JWT-claim-based auth.
 
 ## Debugging First Install Issues
 
@@ -247,12 +311,14 @@ bun run dev
 bun run release
 
 # Or step by step:
-bun run claude:download    # Download Claude CLI binary
-bun run codex:download     # Download Codex binary
+bun run claude:download    # Download Claude CLI binary (pinned 2.1.45)
+bun run codex:download     # Download Codex binary (pinned 0.98.0)
 bun run build              # Compile TypeScript
 bun run package:mac        # Build & sign macOS app
-bun run dist:manifest      # Generate latest-mac.yml manifests
-# Submit notarization & upload to R2 CDN (see release pipeline docs)
+bun run dist:manifest      # Generate latest-mac.yml + latest-mac-x64.yml manifests
+bun run dist:upload        # Upload built artifacts to R2 CDN (scripts/upload-release.mjs)
+# Notarization is submitted by electron-builder when signing succeeds.
+# Stapling + manifest re-upload are manual steps described below.
 ```
 
 ### Bump Version Before Release
@@ -293,7 +359,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 **Shipped (v0.0.72+):**
 - Multi-backend AI: Claude, Codex, Ollama
 - Drizzle ORM with 6 tables, auto-migration
-- 21+ tRPC routers covering full feature set
+- 20 tRPC routers in `createAppRouter` (19 feature routers in `routers/` + 1 git router from `../../git`)
 - Integrated terminal (node-pty)
 - Plugin and skills system
 - File viewer, kanban board, automations
@@ -306,24 +372,44 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - `postinstall` runs `electron-rebuild` for `better-sqlite3` and `node-pty` — if native modules fail, run `bun run postinstall` manually
 - `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences (requires: `npm install -g @typescript/native-preview`)
 - Dev builds require Claude and Codex binaries downloaded locally (`bun run claude:download && bun run codex:download`)
+- **Claude CLI binary pinned to `2.1.45`** — see `claude:download` script in `package.json`. Bumping the pin requires re-testing session resume and streaming.
+- **Codex CLI binary pinned to `0.98.0`** — see `codex:download` script in `package.json`. Bumping the pin requires re-testing the `@zed-industries/codex-acp` bridge.
 - **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` which was removed in Vite 7+. Use `^6.4.2` minimum.
-- **No test suite** — No Jest/Vitest/Playwright configured. `bun run build` is the primary validation gate; `bun run ts:check` (tsgo) is stricter than `build` (esbuild) and reveals pre-existing errors the bundler masks.
+- **Minimal test suite** — `bun:test` (built in, no config) bootstrapped 2026-04-08 for Phase 0 regression guards under `tests/regression/`. No Jest/Vitest/Playwright — broader test adoption is Phase 0 hard gate #11. Quality gates: `bun run ts:check` (stricter, tsgo-based), `bun run build` (esbuild, validates packaging), `bun test` (regression guards), `bun audit` (dependency advisories). **Run all four before submitting a PR** — none is a superset of the others. The same four are enforced in CI (`.github/workflows/ci.yml`).
 - **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; upgrading requires full config migration (134 files use `cn()`)
 - **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream releases compatible version
-- `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously)
-- `bun audit` — check for known vulnerabilities
-- `bun outdated` — list outdated packages
+- `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously). For `bun audit` / `bun outdated` see the Commands block above.
 - Claude Agent SDK version: see `@anthropic-ai/claude-agent-sdk` in `package.json`
 - Protocol handlers: Production uses `twentyfirst-agents://`, dev uses `twentyfirst-agents-dev://`
+- **Serena MCP requires `mcp__serena__activate_project` first** before `list_memories` / `read_memory` will work — call with `project: "ai-coding-cli"` or the absolute repo path. Without activation it returns `Error: No active project`.
+- **Decoding JWTs on macOS requires padding + URL-safe alphabet translation** — BSD `base64 -d` silently truncates JWT payloads because JWTs use base64url (no padding, `-`/`_` instead of `+`/`/`). Symptom: `jq: Unfinished JSON term at EOF at line 1, column <N>`. Working one-liner: `echo "$JWT" | cut -d. -f2 | tr '_-' '/+' | awk '{l=length($0); printf "%s%s\n", $0, substr("====", 1, (4-l%4)%4)}' | base64 -d | jq`. Alternatives: Python `base64.urlsafe_b64decode` with manual padding, or paste to https://jwt.ms (client-side only — throwaway test tokens only).
 
 ## Documentation Maintenance
 
 Multiple files contain overlapping project info — keep them in sync when making changes:
-- `CLAUDE.md` — Authoritative reference for architecture, commands, patterns
-- `openspec/project.md` — Brief context summary (references CLAUDE.md for details)
+- `CLAUDE.md` — Authoritative reference for architecture, commands, patterns (this file)
+- `README.md` — User-facing pitch + install/dev instructions
+- `CONTRIBUTING.md` — Contributor setup, workflow, quality gates
 - `AGENTS.md` — Quick reference for AI agents + OpenSpec redirect
+- `openspec/project.md` — Brief context summary (references CLAUDE.md for details)
 - `.serena/memories/` — Serena project memories (project_overview, codebase_structure, etc.)
 - `.claude/PROJECT_INDEX.md` — Auto-generated project index
 - `.full-review/` — Review plugin artifacts (gitignored)
+- `.scratchpad/` — Working strategy/research docs (gitignored, see "Working Directories & Conventions")
+  - `enterprise-auth-integration-strategy.md` (v5) — MSAL-in-Electron auth migration plan (fallback, not the chosen strategy)
+  - `auth-strategy-envoy-gateway.md` (**v2.1** as of 2026-04-08) — Envoy Gateway dual-auth, **CHOSEN strategy, empirically validated**
+  - `forwardaccesstoken-smoke-test.md` — reproducible runbook for validating Envoy dual-auth against the cluster (executed 2026-04-08, Outcome A PASS)
+  - `upstream-features-inventory.md` (**v2** as of 2026-04-08) — F1-F10 upstream-backend dependency catalog. **All 10 F-entries have restoration decisions** (Phase 0 hard gate #15). Self-host-everything theme locked in. F7 and F9 investigated by `upstream-dependency-auditor` agent and turned out to be local-only / dead-UI — neither requires restoration work.
+- `.full-review/envoy-gateway-review/` — Comprehensive review of the Envoy Gateway strategy (9 files, 47 findings, all 8 Critical resolved as of 2026-04-08; includes Smoke Test Addendum in `05-final-report.md`)
 
-Common drift points: SDK package names, Electron version, release script names, feature lists.
+Common drift points:
+- SDK package names and versions (`@anthropic-ai/claude-agent-sdk`)
+- Electron / Vite / Tailwind / Shiki version pins (load-bearing — see Environment Notes)
+- Electron EOL dates
+- Claude / Codex CLI binary version pins (in `package.json` `claude:download` / `codex:download` scripts)
+- Release script names and the `release` pipeline composition
+- Database schema columns (the snippet in this file vs `src/main/lib/db/schema/index.ts`)
+- tRPC router count and the list under the architecture diagram
+- Renderer feature subdirectories (`src/renderer/features/agents/*`)
+- Quality-gate naming (always: both `ts:check` and `build`)
+- Hosted-vs-OSS feature claims in README/CONTRIBUTING (verify against actual code paths, not assumptions)
