@@ -199,6 +199,9 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - `src/renderer/features/agents/atoms/index.ts` - Agent UI state atoms
 - `src/renderer/features/agents/main/active-chat.tsx` - Main chat component
 - `src/main/lib/trpc/routers/claude.ts` - Claude SDK integration
+- `src/renderer/lib/remote-types.ts` - Shared types for remote tRPC (breaks circular dep with app-router stub)
+- `src/renderer/lib/remote-app-router.ts` - Typed AppRouter stub for remote 21st.dev backend (TRPCBuiltRouter pattern)
+- `src/main/lib/trpc/schemas/mcp-url.ts` - SSRF-safe URL validation schema for MCP server URLs
 
 ## Debugging First Install Issues
 
@@ -304,7 +307,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences (requires: `npm install -g @typescript/native-preview`)
 - Dev builds require Claude and Codex binaries downloaded locally (`bun run claude:download && bun run codex:download`)
 - **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` which was removed in Vite 7+. Use `^6.4.2` minimum.
-- **No test suite** — No Jest/Vitest/Playwright configured. `bun run build` is the only full validation beyond `ts:check`.
+- **No test suite** — No Jest/Vitest/Playwright configured. `bun run build` is the primary validation gate; `bun run ts:check` (tsgo) is stricter than `build` (esbuild) and reveals pre-existing errors the bundler masks.
 - **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; upgrading requires full config migration (134 files use `cn()`)
 - **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream releases compatible version
 - `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously)
@@ -321,5 +324,6 @@ Multiple files contain overlapping project info — keep them in sync when makin
 - `AGENTS.md` — Quick reference for AI agents + OpenSpec redirect
 - `.serena/memories/` — Serena project memories (project_overview, codebase_structure, etc.)
 - `.claude/PROJECT_INDEX.md` — Auto-generated project index
+- `.full-review/` — Review plugin artifacts (gitignored)
 
 Common drift points: SDK package names, Electron version, release script names, feature lists.

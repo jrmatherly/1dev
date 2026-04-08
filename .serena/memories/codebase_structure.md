@@ -33,6 +33,8 @@ lib/
     routers/plugins.ts — Plugin system
     routers/skills.ts — Skills system
     routers/...       — + projects, chats, agents, voice, commands, etc.
+    schemas/
+      mcp-url.ts      — SSRF-safe MCP server URL validation schema
 ```
 
 ## Renderer (`src/renderer/`)
@@ -66,8 +68,10 @@ lib/
   atoms/              — Global Jotai atoms
   stores/             — Global Zustand stores
   trpc.ts             — Local tRPC client
-  remote-trpc.ts      — Remote tRPC client
-  remote-api.ts       — Remote API helpers
+  remote-trpc.ts      — Remote tRPC client (uses typed AppRouter stub)
+  remote-api.ts       — Remote API wrapper (thin facade over remoteTrpc)
+  remote-app-router.ts — Typed AppRouter stub (TRPCBuiltRouter pattern)
+  remote-types.ts     — Shared types for remote tRPC (breaks circular dep)
   analytics.ts        — PostHog analytics
 ```
 
