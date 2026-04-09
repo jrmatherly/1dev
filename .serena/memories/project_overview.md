@@ -14,17 +14,19 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Phase 0:** 15/15 hard gates complete
 - **Electron 40:** Upgraded from 39.8.7 (Node 24, Chromium 144)
 - **mock-api.ts Phase 1:** Timestamp fossil retired; Phase 2 on roadmap
-- **Enterprise auth:** MSAL Node wired into auth-manager via Strangler Fig adapter (`enterpriseAuthEnabled` flag), `applyEnterpriseAuth()` injects token into Claude spawn env, enterprise-auth tRPC router added
+- **Enterprise auth:** Wired into auth-manager via Strangler Fig adapter pattern (`enterpriseAuthEnabled` flag), `applyEnterpriseAuth()` injects token into Claude spawn env, enterprise-auth tRPC router added. Module isolated — not yet active in production.
 - **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
 - **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth
 - **Branch protection:** main branch protected with required CI status check, admin bypass
 - **CodeQL:** 19 findings resolved (18 fixed, 1 dismissed as false positive)
 - **12 package upgrades landed** (all deps current as of 2026-04-09)
-- **Active OpenSpec:** `wire-enterprise-auth` — 36/36 tasks complete, ready to archive
+- **Active OpenSpec changes (5):** `upgrade-electron-41`, `upgrade-typescript-6`, `upgrade-tailwind-4`, `upgrade-vite-8-build-stack`, `migrate-mock-api-consumers`
+- **Upgrade execution order:** E41 → TS6 → Vite7-A → TW4 → Vite8-B+Shiki4
+- **Archived:** `wire-enterprise-auth` (36/36 tasks complete) + 8 other Phase 0 changes
 
 ## Architecture (3-tier)
 - CLAUDE.md is a 125-line thin index (links, doesn't contain content)
 - `docs/` is the canonical source of truth (Operations tab has roadmap)
 - `.claude/rules/` has 9 behavioral rules (2 global + 7 path-scoped)
-- `openspec/specs/` has 9 baseline capability specs (45 requirements)
+- `openspec/specs/` has 9 capability specs (incl. `enterprise-auth-wiring`)
 - Skills/agents read from canonical docs, not CLAUDE.md

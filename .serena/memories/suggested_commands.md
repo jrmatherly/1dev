@@ -32,6 +32,7 @@
 - `/opsx:apply <name>` — Implement change tasks
 - `/opsx:archive <name>` — Archive and promote specs
 - `bunx @fission-ai/openspec@1.2.0 validate --all --strict --no-interactive` — Validate all changes
+- `/roadmap` — View, add, or complete items on the centralized roadmap
 
 ## Upstream Backend Discovery
 - `grep -rn "remoteTrpc\." src/renderer/` — Find upstream tRPC call sites

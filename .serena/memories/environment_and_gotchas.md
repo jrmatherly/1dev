@@ -15,10 +15,17 @@
 - Top-level `permissions: { contents: read }`
 
 ## Key Version Pins
-- Electron 40.8.5, electron-vite 5.0.0, Vite 6.x (can upgrade to 7 now)
+- Electron 40.8.5 (EOL 2026-06-30), electron-vite 5.0.0, Vite 6.x
 - Tailwind 3.x, shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0
+- @azure/msal-node ^5.1.2 (upgraded from 3.8.x), @azure/msal-node-extensions ^5.1.2
 - @types/node ^24, @swc/core ^1 (electron-vite 5 peer dep)
 - `build.externalizeDeps` config in electron.vite.config.ts (replaced `externalizeDepsPlugin`)
+
+## Upgrade Blockers (as of 2026-04-09)
+- **Vite pin (6.x):** Vite 8 needs electron-vite 6.0.0 (beta-only); Vite 7 works with electron-vite 5.0.0
+- **Shiki pin (3.x):** `@pierre/diffs` pins `shiki: ^3.0.0` AND `@shikijs/transformers: ^3.0.0` — blocks shiki 4
+- **TypeScript 6.0 risk:** `types` defaults to `[]` — must explicitly list all 5 `@types/*` packages
+- **Tailwind 4 risk:** `agents-styles.css` escaped hover selectors (lines 191-195) and `--tw-ring-*` internal vars (lines 219-234) need manual migration
 
 ## Dev Auth
 - `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` — skips login, creates `dev@localhost`

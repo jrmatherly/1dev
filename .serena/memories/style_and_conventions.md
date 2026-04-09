@@ -45,6 +45,13 @@
 - Four automated quality gates + docs build (5 in CI)
 - All required before submitting a PR
 
+## OpenSpec Conventions
+- Change proposals should include cross-dependency ordering analysis when multiple upgrades interact
+- Multi-reviewer pattern proved valuable: 5 agents found issues individual reviewers missed
+- Upgrade proposals need spike tasks for untested integration points (e.g. `@tailwindcss/vite` + `electron-vite`)
+- Verify `docs/conventions/pinned-deps.md` accuracy before touching version-sensitive code
+- Grep for actual imports (ground truth) rather than trusting research patterns alone
+
 ## Regression Guard Conventions
 - File-level allowlists (not line-number)
 - Every allowlist entry has a comment explaining the exemption

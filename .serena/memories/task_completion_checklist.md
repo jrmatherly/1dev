@@ -42,12 +42,14 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 - No `.env` files or secrets staged
 - No `console.log` debugging left behind
 - Run `/docs-drift-check` skill if you touched schema, routers, version pins, or any doc surface. The skill catalog of drift points lives in `.claude/skills/docs-drift-check/SKILL.md`.
+- Verify `docs/conventions/pinned-deps.md` accuracy before touching version-sensitive code
+- Grep for actual imports (ground truth) rather than trusting research patterns alone
 
 ## OpenSpec Workflow (for larger changes)
 1. `/opsx:propose <description>` — create change with all artifacts
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:archive <name>` — archive and promote capability specs
-- 9 capability specs in `openspec/specs/` (45 requirements): `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`, `electron-runtime`
+- 9 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`, `enterprise-auth-wiring`, `electron-runtime`
 - Full rules: [`.claude/rules/openspec.md`](../../.claude/rules/openspec.md)
 
 ## Phase 0 Status (15 of 15 complete ✅)

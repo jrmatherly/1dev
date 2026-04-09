@@ -4,7 +4,7 @@
 ```
 src/           — Application source code
 docs/          — Canonical xyd-js documentation site (Operations tab has roadmap)
-openspec/      — OpenSpec change proposals + 8 capability specs
+openspec/      — OpenSpec change proposals + 9 capability specs
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, etc.)
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
@@ -25,7 +25,7 @@ drizzle/       — 9 database migration files
 
 ## Renderer (`src/renderer/`)
 - `login.html` — Pre-auth sign-in screen (1Code logo, static HTML)
-- `lib/mock-api.ts` — DEPRECATED (Phase 1 timestamp fossil retired, Phase 2 on roadmap)
+- `lib/mock-api.ts` — DEPRECATED (Phase 1 timestamp fossil retired; Phase 2 migration planned: 6 real consumers, 13 useUtils cache sites; `message-parser.ts` will be created during migration)
 - `lib/remote-trpc.ts` — Upstream tRPC client (F-entry boundary)
 - `features/agents/stores/sub-chat-store.ts` — No persist middleware; rebuilt from DB
 
@@ -34,11 +34,15 @@ drizzle/       — 9 database migration files
 - `operations/roadmap.md` — **Single source of truth** for outstanding work
 - Build: `cd docs && bun run build` (cleans .xyd/ artifacts first)
 
-## OpenSpec Specs (9 baseline capabilities, 45 requirements)
+## OpenSpec Specs (9 capabilities)
 brand-identity, feature-flags, claude-code-auth-import, documentation-site,
-credential-storage, renderer-data-access, enterprise-auth, electron-runtime
+credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime
 
-## Regression Tests (12 guards, 48 tests)
+## Active OpenSpec Changes (5)
+upgrade-electron-41, upgrade-typescript-6, upgrade-tailwind-4,
+upgrade-vite-8-build-stack, migrate-mock-api-consumers
+
+## Regression Tests (13 guards, 53 tests)
 auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted,
 gpg-verification-present, feature-flags-shape, brand-sweep-complete,
 no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamps,
