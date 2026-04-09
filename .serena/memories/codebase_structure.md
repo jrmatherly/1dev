@@ -4,6 +4,7 @@
 ```
 src/           — Application source code
 docs/          — Canonical xyd-js documentation site (Operations tab has roadmap)
+deploy/        — K8s Flux v2 manifests: 1code-api, 1code-update-server, envoy-auth-policy (all ${PLACEHOLDER})
 openspec/      — OpenSpec change proposals + 9 capability specs
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, etc.)
@@ -17,7 +18,7 @@ drizzle/       — 9 database migration files
 - `lib/credential-store.ts` — Unified 3-tier credential encryption
 - `lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (wired into auth-manager)
 - `lib/terminal/session.ts` — **Lazy import** for node-pty (prevents crash if native module fails)
-- `lib/db/schema/index.ts` — Drizzle schema (7 tables)
+- `lib/db/schema/index.ts` — Drizzle schema (8 tables, incl. feature_flag_overrides)
 - `lib/trpc/routers/index.ts` — 22 routers in `createAppRouter` (incl. enterprise-auth)
 - `lib/trpc/routers/enterprise-auth.ts` — Enterprise auth tRPC router (signIn/signOut/getStatus/refreshToken)
 - `lib/feature-flags.ts` — Type-safe feature flags backed by DB table

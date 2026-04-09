@@ -1,7 +1,7 @@
 # Task Completion Checklist
 
 ## Required — All Quality Gates
-1. `bun run ts:check` — baseline ~87 errors (`.claude/.tscheck-baseline`), only fail if count increases
+1. `bun run ts:check` — baseline ~86 errors (`.claude/.tscheck-baseline`), only fail if count increases
 2. `bun run build` — electron-vite build
 3. `bun test` — 13 guards, 53 tests under `tests/regression/`
 4. `bun audit` — focus on NEW advisories only

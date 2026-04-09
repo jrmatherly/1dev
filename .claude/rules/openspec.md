@@ -76,6 +76,24 @@ Required baseline structure:
 
 Missing the H1 or using `## ADDED Requirements` causes the CLI to report "0 requirements" for that spec.
 
+## Tasks format (load-bearing)
+
+`tasks.md` must use **checkbox format** — the CLI parses `- [ ]` and `- [x]` to count/track tasks. Narrative `### Task N:` headers with bullet points are invalid and report as "No tasks" in `openspec list`.
+
+Required structure:
+```markdown
+## 1. <Phase name>
+
+- [ ] 1.1 <First action>
+- [ ] 1.2 <Second action>
+
+## 2. <Next phase>
+
+- [ ] 2.1 <Action>
+```
+
+`/opsx:apply` iterates through tasks and flips `- [ ]` → `- [x]` as work progresses. Without checkboxes, apply cannot track completion and archive cannot detect doneness.
+
 ## Baseline capability specs
 
 Canonical capability baselines under `openspec/specs/` (count grows when changes archive — currently 9 specs, 45 requirements). Current list:
