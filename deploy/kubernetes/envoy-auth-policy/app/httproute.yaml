@@ -1,0 +1,38 @@
+---
+# NOTE: This component does NOT create its own HTTPRoute.
+#
+# The SecurityPolicy (securitypolicy.yaml) targets the EXISTING LiteLLM
+# HTTPRoute in your cluster by name (`litellm`). That route already handles
+# /v1/*, /health, etc.
+#
+# If your LiteLLM HTTPRoute has a different name, update the SecurityPolicy's
+# targetRefs[].name to match.
+#
+# This file is kept as documentation. Remove it from kustomization.yaml
+# resources once you've confirmed the SecurityPolicy targets the correct
+# HTTPRoute in your cluster.
+#
+# If you need a SEPARATE authenticated route (e.g., different hostname for
+# desktop clients vs. browser users), uncomment the HTTPRoute below and
+# update the SecurityPolicy targetRef to point to it instead.
+#
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: HTTPRoute
+# metadata:
+#   name: litellm-auth
+# spec:
+#   parentRefs:
+#     - name: envoy-external
+#       namespace: network
+#       sectionName: https
+#   hostnames:
+#     - "${LITELLM_HOSTNAME}"
+#   rules:
+#     - matches:
+#         - path:
+#             type: PathPrefix
+#             value: /v1
+#       backendRefs:
+#         - name: litellm
+#           namespace: ai
+#           port: 4000

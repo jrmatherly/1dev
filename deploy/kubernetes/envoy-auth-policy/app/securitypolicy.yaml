@@ -1,0 +1,76 @@
+---
+# Envoy Gateway SecurityPolicy for Entra ID dual-auth
+#
+# Implements the dual-mode auth pattern from docs/enterprise/auth-strategy.md v2.1:
+#   - JWT validation for CLI/SDK Bearer tokens (desktop app via applyEnterpriseAuth)
+#   - OIDC redirect for browser-based access (LiteLLM admin UI)
+#
+# Required Entra app registration configuration:
+#   - Token format: v2.0 (set in app manifest: "accessTokenAcceptedVersion": 2)
+#   - Redirect URI: http://localhost (MSAL loopback for desktop apps)
+#   - Redirect URI: https://${LITELLM_HOSTNAME}/oauth2/callback (browser OIDC)
+#   - Scopes: openid, profile, email, offline_access
+#
+# This SecurityPolicy targets the existing LiteLLM HTTPRoute in the cluster.
+# Do NOT create a duplicate HTTPRoute — the SecurityPolicy attaches to the
+# existing one by name.
+#
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: entra-oidc-jwt-auth
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: litellm
+  # --- JWT validation (CLI/SDK Bearer tokens) ---
+  jwt:
+    optional: true  # Load-bearing: without this, browser requests without
+                    # Bearer get "Jwt issuer is not configured" instead of
+                    # the OIDC 302 redirect. See auth-strategy.md line 910.
+    providers:
+      - name: entra-id
+        issuer: "${ENTRA_ISSUER_URL}"
+        audiences:
+          - "${ENTRA_CLIENT_ID}"
+        remoteJWKS:
+          uri: "https://login.microsoftonline.com/${ENTRA_TENANT_ID}/discovery/v2.0/keys"
+          cacheDuration: 300s
+        claimToHeaders:
+          - header: x-user-oid
+            claim: oid
+          - header: x-user-tid
+            claim: tid
+          - header: x-user-azp
+            claim: azp
+          - header: x-user-name
+            claim: name
+          - header: x-user-email
+            claim: email
+        extractFrom:
+          headers:
+            - name: Authorization
+              valuePrefix: "Bearer "
+  # --- OIDC redirect (browser-based admin UI access) ---
+  oidc:
+    provider:
+      issuer: "${ENTRA_ISSUER_URL}"
+      authorizationEndpoint: "https://login.microsoftonline.com/${ENTRA_TENANT_ID}/oauth2/v2.0/authorize"
+      tokenEndpoint: "https://login.microsoftonline.com/${ENTRA_TENANT_ID}/oauth2/v2.0/token"
+    clientID: "${ENTRA_CLIENT_ID}"
+    clientSecret:
+      name: entra-oidc-client-secret
+      namespace: "${AUTH_POLICY_NAMESPACE}"
+    redirectURL: "https://${LITELLM_HOSTNAME}/oauth2/callback"
+    logoutPath: "/oauth2/logout"
+    scopes:
+      - openid
+      - profile
+      - email
+    cookieNameOverrides:
+      accessToken: "_entra_at"
+      idToken: "_entra_it"
+    cookieSuffix: "entra"
+    defaultTokenTTL: 3600s
+    refreshToken: true

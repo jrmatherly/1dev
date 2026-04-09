@@ -1,0 +1,53 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: 1code-api
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: 1code-api
+  enableDefaultDeny:
+    egress: false
+    ingress: false
+  ingress:
+    # Allow traffic from Envoy Gateway
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: envoy
+            gateway.envoyproxy.io/owning-gateway-name: envoy-external
+            gateway.envoyproxy.io/owning-gateway-namespace: network
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    # Allow traffic to PostgreSQL database
+    # Update the namespace and labels to match your database deployment
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: "${DB_APP_LABEL}"
+            io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Allow traffic to LiteLLM (cluster-internal)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: litellm
+            io.kubernetes.pod.namespace: ai
+      toPorts:
+        - ports:
+            - port: "4000"
+              protocol: TCP

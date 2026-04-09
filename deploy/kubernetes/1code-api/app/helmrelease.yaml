@@ -1,0 +1,126 @@
+---
+# 1Code API Backend
+# Self-hosted replacement for upstream 1code.dev API.
+# Provides: auth exchange, user profile, subscription/plan info, changelog.
+#
+# The Electron desktop app calls these endpoints:
+#   POST /api/auth/desktop/exchange  — OAuth code exchange
+#   POST /api/auth/desktop/refresh   — Token refresh
+#   GET  /api/desktop/user/plan      — Subscription plan lookup
+#   PATCH /api/user/profile           — Profile update
+#   GET  /api/changelog/desktop       — Desktop changelog feed
+#
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: 1code-api
+  annotations:
+    secret.reloader.stakater.com/reload: 1code-api-secret
+spec:
+  timeout: 15m
+  chartRef:
+    kind: OCIRepository
+    name: 1code-api
+  interval: 1h
+  values:
+    controllers:
+      1code-api:
+        replicas: 1
+        strategy: RollingUpdate
+        pod:
+          terminationGracePeriodSeconds: 30
+          annotations:
+            secret.reloader.stakater.com/reload: 1code-api-secret
+        containers:
+          app:
+            image:
+              repository: "${IMAGE_REGISTRY}/1code-api"
+              tag: "${IMAGE_TAG}"
+            env:
+              # -- LiteLLM proxy (cluster-internal)
+              LITELLM_BASE_URL: "${LITELLM_INTERNAL_URL}"
+              # -- Public-facing URLs
+              API_BASE_URL: "https://${APP_HOSTNAME}"
+              CORS_ORIGINS: "https://${APP_HOSTNAME}"
+              # -- Entra ID configuration
+              ENTRA_TENANT_ID: "${ENTRA_TENANT_ID}"
+              ENTRA_CLIENT_ID: "${ENTRA_CLIENT_ID}"
+              # -- Logging
+              LOG_LEVEL: "INFO"
+              LOG_JSON: "true"
+            envFrom:
+              - secretRef:
+                  name: 1code-api-secret
+            ports:
+              - name: http
+                containerPort: 8000
+                protocol: TCP
+            probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: http
+                  initialDelaySeconds: 15
+                  periodSeconds: 5
+                  timeoutSeconds: 5
+                  failureThreshold: 20
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: http
+                  periodSeconds: 15
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: http
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              runAsNonRoot: true
+              runAsUser: 1000
+              capabilities:
+                drop: ["ALL"]
+              seccompProfile:
+                type: RuntimeDefault
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+    defaultPodOptions:
+      # Uncomment if using a private image registry:
+      # imagePullSecrets:
+      #   - name: ghcr-pull-secret
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+    service:
+      app:
+        ports:
+          http:
+            port: 8000
+    persistence:
+      tmp:
+        type: emptyDir
+        sizeLimit: 100Mi
+        globalMounts:
+          - path: /tmp

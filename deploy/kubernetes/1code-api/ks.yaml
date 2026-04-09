@@ -1,0 +1,25 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: 1code-api
+spec:
+  interval: 1h
+  dependsOn:
+    - name: coredns
+      namespace: kube-system
+    # Add your database dependency here:
+    # - name: <your-db-kustomization-name>
+    #   namespace: database
+  path: ./kubernetes/apps/<namespace>/1code-api/app
+  postBuild:
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: <namespace>
+  wait: false

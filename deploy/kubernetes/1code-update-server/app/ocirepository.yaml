@@ -1,0 +1,15 @@
+---
+# Uses the bjw-s app-template generic Helm chart (same as other cluster apps).
+# Pin the tag to the version used in your cluster.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: 1code-update-server
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    tag: "${APP_TEMPLATE_VERSION}"
+  url: oci://ghcr.io/bjw-s-labs/helm/app-template
