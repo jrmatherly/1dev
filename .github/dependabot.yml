@@ -46,14 +46,13 @@ updates:
           - "minor"
           - "patch"
         # Exclude load-bearing pins that require manual migration work.
-        # Source of truth: CLAUDE.md "Environment Notes".
+        # Source of truth: docs/conventions/pinned-deps.md
         exclude-patterns:
-          - "electron"          # EOL 2026-05-05, requires Phase 0.5 migration
-          - "vite"              # Must stay on 6.x (electron-vite 3 depends on splitVendorChunk)
-          - "tailwindcss"       # Must stay on 3.x (134 files use cn())
+          - "electron"          # Upgraded to 40.8.5 (2026-04-09); exclude major bumps
+          - "vite"              # Stays on 6.x for stability (electron-vite 5 supports 6+7; Tailwind/shiki compat)
+          - "tailwindcss"       # Must stay on 3.x (134 files use cn(), tailwind-merge v2)
           - "tailwind-merge"    # Pinned to v2.x for tailwind 3 compat
           - "shiki"             # Must stay on 3.x (@pierre/diffs pins ^3.0.0)
-          - "@anthropic-ai/claude-agent-sdk"  # Resume/streaming is version-sensitive
     # Major version bumps opt into Dependabot's default behavior (one PR per
     # major bump) — no `ignore` block needed. Add one here if specific majors
     # become noisy.
