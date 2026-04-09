@@ -1,5 +1,7 @@
 # Code Style and Conventions
 
+> Behavioral rules loaded automatically by Claude Code live in [`.claude/rules/`](../../.claude/rules/). This memory summarizes the conventions for human reference — Claude Code enforces them via rule files and regression guards.
+
 ## File Naming
 - Components: PascalCase (`ActiveChat.tsx`, `AgentsSidebar.tsx`)
 - Utilities/hooks: camelCase (`useFileUpload.ts`, `formatters.ts`)

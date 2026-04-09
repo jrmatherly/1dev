@@ -6,11 +6,12 @@
 - `bun run preview` — Preview built app
 
 ## Quality Gates (ALL REQUIRED)
-- `bun run ts:check` — TypeScript check via tsgo (baseline: 87 errors)
+- `bun run ts:check` — TypeScript check via tsgo (baseline: ~87 errors, see `.claude/.tscheck-baseline`)
 - `bun run build` — Full electron-vite build
-- `bun test` — 11 regression guards, 45 tests (~2.5s)
+- `bun test` — 12 regression guards, 48 tests (~2.5s)
 - `bun audit` — Dependency vulnerability scan
 - `cd docs && bun run build` — Docs site build (also a CI gate)
+- Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md)
 
 ## Documentation Site
 - `cd docs && bunx xyd` — Dev server at http://localhost:5175
@@ -38,11 +39,17 @@
 - See `docs/architecture/upstream-boundary.md` for the rules
 
 ## Claude Code Skills
-- `/docs-drift-check` — Audit docs against codebase (11 drift points)
+- `/docs-drift-check` — Audit docs against codebase (drift points catalogued in the skill itself)
 - `/new-regression-guard` — Scaffold new regression guard
 - `/new-router` — Scaffold new tRPC router
-- `/phase-0-progress` — Verify Phase 0 gate status
+- `/phase-0-progress` — Verify Phase 0 gate status against `docs/enterprise/phase-0-gates.md`
 - `/verify-pin` — Safely bump load-bearing pins (Vite, Tailwind, shiki, Electron, Claude, Codex, xyd-js)
+- `/upstream-boundary-check` — Verify `remoteTrpc.*` / `fetch(${apiUrl}/...)` additions have F-entry coverage
+
+## Claude Code Rules (auto-loaded)
+- Global: `.claude/rules/scratchpad.md`
+- Path-scoped: `.claude/rules/{auth-env-vars,credential-storage,database,openspec,testing,tscheck-baseline,upstream-boundary}.md`
+- Index: `.claude/rules/README.md`
 
 ## Serena MCP
 - `mcp__serena__activate_project` with `project: "ai-coding-cli"` — required before read/write memories

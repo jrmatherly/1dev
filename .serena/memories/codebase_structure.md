@@ -1,5 +1,7 @@
 # Codebase Structure
 
+> Canonical reference: [`docs/architecture/codebase-layout.md`](../../docs/architecture/codebase-layout.md). This memory is a summary supporting Claude's mental model — consult the canonical doc for authoritative layout details.
+
 ## Top-Level
 ```
 src/           — Application source code
@@ -7,15 +9,20 @@ drizzle/       — Database migration files
 resources/     — Static assets (icons, migrations for packaged app)
 scripts/       — Build, release, and utility scripts
 build/         — Electron-builder config
-docs/          — Canonical documentation site (xyd-js, 25 pages, 5 tabs)
+docs/          — Canonical documentation site (xyd-js, 5 tabs: Architecture, Enterprise, Conventions, Operations, API Reference)
 openspec/      — OpenSpec change proposal system
-  specs/       — Durable capability specs (7: brand-identity, feature-flags, claude-code-auth-import, documentation-site, credential-storage, renderer-data-access, enterprise-auth)
+  specs/       — Durable capability specs (8: brand-identity, feature-flags, claude-code-auth-import, documentation-site, credential-storage, renderer-data-access, enterprise-auth, electron-runtime)
   changes/     — Active change proposals
   changes/archive/ — Archived completed changes
-.scratchpad/   — Ephemeral local-only working notes (gitignored). Canonical docs live in docs/
+.scratchpad/   — Ephemeral local-only working notes (gitignored). Never referenced from tracked files — canonical docs live in docs/
 .full-review/  — Comprehensive review artifacts (gitignored)
-.serena/       — Serena project memories
-tests/regression/ — bun:test regression guards (11 files, 45 tests as of 2026-04-09)
+.claude/
+  rules/       — Claude Code behavioral rules (global + path-scoped, 7 rules + README)
+  skills/      — Claude Code workflow skills (on-demand)
+  agents/      — Claude Code subagents (5 task-specific)
+  PROJECT_INDEX.md — repo navigation map
+.serena/       — Serena project memories (6 files)
+tests/regression/ — bun:test regression guards (12 files, 48 tests as of 2026-04-09)
 ```
 
 ## Main Process (`src/main/`)

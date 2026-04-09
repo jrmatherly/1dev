@@ -1,11 +1,13 @@
 # Task Completion Checklist
 
 ## Required — All Quality Gates
-1. `bun run ts:check` — baseline 87 errors (`.claude/.tscheck-baseline`), only fail if count increases
+1. `bun run ts:check` — baseline ~87 errors (`.claude/.tscheck-baseline`), only fail if count increases
 2. `bun run build` — electron-vite build
-3. `bun test` — 11 guards, 45 tests under `tests/regression/`
+3. `bun test` — 12 guards, 48 tests under `tests/regression/`
 4. `bun audit` — focus on NEW advisories only
 5. CI also runs `cd docs && bun run build` — recommended locally too
+
+Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md).
 
 ## If Schema Changed
 - `bun run db:generate` — create migration from schema changes
@@ -17,8 +19,10 @@
 
 ## If New Regression Guard Added
 - Use `new-regression-guard` skill to scaffold
-- Increment guard count in CLAUDE.md and Serena memories
+- Update [`docs/conventions/regression-guards.md`](../../docs/conventions/regression-guards.md) — the canonical guard list (authoritative count + purpose)
+- Update any other surface that cites a guard count (CLAUDE.md, PROJECT_INDEX.md, Serena memories that mention a count)
 - File-level allowlists, structured error messages, runs in &lt;200ms
+- See [`.claude/rules/testing.md`](../../.claude/rules/testing.md) for the full guard requirements
 
 ## If Introducing New Documentation
 - Author as a `docs/` page — **never** as a `.scratchpad/` file cited from tracked files
@@ -37,13 +41,14 @@
 ## Before Committing
 - No `.env` files or secrets staged
 - No `console.log` debugging left behind
-- Verify documentation sync (CLAUDE.md drift points)
+- Run `/docs-drift-check` skill if you touched schema, routers, version pins, or any doc surface. The skill catalog of drift points lives in `.claude/skills/docs-drift-check/SKILL.md`.
 
 ## OpenSpec Workflow (for larger changes)
 1. `/opsx:propose <description>` — create change with all artifacts
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:archive <name>` — archive and promote capability specs
-- 7 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`
+- 8 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`, `electron-runtime`
+- Full rules: [`.claude/rules/openspec.md`](../../.claude/rules/openspec.md)
 
 ## Phase 0 Status (15 of 15 complete ✅)
 All gates closed. Phase 0.5 (harden-credential-storage) also complete.
@@ -52,6 +57,7 @@ All gates closed. Phase 0.5 (harden-credential-storage) also complete.
 - All encryption MUST go through `src/main/lib/credential-store.ts`
 - Do NOT add `safeStorage.encryptString/decryptString` calls in any other file
 - PreToolUse hook blocks violations; regression guard catches in CI
+- Full rule: [`.claude/rules/credential-storage.md`](../../.claude/rules/credential-storage.md)
 
 ## If Editing Enterprise Auth / Token Injection Code
 - Claude CLI 2.1.96 does NOT support `ANTHROPIC_AUTH_TOKEN_FILE` — use `ANTHROPIC_AUTH_TOKEN` env var
@@ -60,3 +66,4 @@ All gates closed. Phase 0.5 (harden-credential-storage) also complete.
 - `buildClaudeEnv()` has 1 call site (`claude.ts:1142`) — NOT 5 as auth-strategy doc claims
 - `acquireTokenSilent()` before each spawn — no custom setTimeout timer
 - Read `docs/enterprise/auth-strategy.md` §4.9 and §5.4 but cross-reference against agent team findings in `project_phase1_prep.md`
+- Full rule: [`.claude/rules/auth-env-vars.md`](../../.claude/rules/auth-env-vars.md)

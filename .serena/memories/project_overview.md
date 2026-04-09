@@ -14,17 +14,17 @@ Users create chat sessions linked to local project folders, interact with multip
 
 | Layer | Tech |
 |-------|------|
-| Desktop | Electron ~39.8.7, electron-vite 3, electron-builder |
+| Desktop | Electron ~40.8, electron-vite 3, electron-builder |
 | UI | React 19, TypeScript 5, Tailwind CSS 3 |
 | Components | Radix UI, Lucide icons, Motion, Sonner |
 | State | Jotai (UI), Zustand (persisted), React Query (server via tRPC) |
 | Backend | tRPC (trpc-electron), Drizzle ORM, better-sqlite3 |
 | Terminal | node-pty, xterm.js |
 | Editor | Monaco Editor |
-| AI | @anthropic-ai/claude-agent-sdk (0.2.45), Codex CLI (pinned 0.118.0), Ollama |
+| AI | @anthropic-ai/claude-agent-sdk, Codex CLI (pinned 0.118.0), Ollama |
 | Claude binary | pinned 2.1.96 (see `claude:download` script) |
 | Package Manager | bun |
-| Testing | bun:test (built in, no config) under `tests/regression/` — 11 guards, 45 tests as of 2026-04-09 |
+| Testing | bun:test (built in, no config) under `tests/regression/` — 12 guards, 48 tests as of 2026-04-09 |
 | Documentation | xyd-js (`@xyd-js/cli` pinned `0.0.0-build-1202121-20260121231224`) under `docs/` |
 | Analytics | PostHog, Sentry (disabled by default in OSS builds) |
 
@@ -42,11 +42,23 @@ v0.0.72+
 - **Archived OpenSpec changes:** `rebrand-residual-sweep`, `bootstrap-documentation-site`, `remove-upstream-sandbox-oauth`, `harden-credential-storage`, `retire-mock-api-translator`, `add-enterprise-auth-module` (all 2026-04-09).
 - Target deployment: Talos Kubernetes cluster at `/Users/jason/dev/ai-k8s/talos-ai-cluster/` with LiteLLM + Envoy Gateway.
 
-## Source-of-Truth Docs
-- `CLAUDE.md` — architecture, commands, patterns, Phase 0 status, release process (authoritative)
-- `docs/` — canonical documentation site (25 pages, 5 tabs — Architecture, Enterprise, Conventions, Operations, API Reference)
+## Source-of-Truth Docs (post-2026-04-09 restructure)
+
+**Canonical home:** `docs/` (xyd-js site). All architectural facts, conventions, and runbooks live here. CLAUDE.md, README, memories link to `docs/` — they do NOT duplicate content. Enforced by `openspec/specs/documentation-site/spec.md`.
+
+- `docs/` — canonical documentation site (5 tabs — Architecture, Enterprise, Conventions, Operations, API Reference)
+  - `docs/architecture/` — codebase-layout, database, tech-stack, trpc-routers, upstream-boundary
+  - `docs/enterprise/` — auth-strategy, auth-fallback, cluster-facts, envoy-smoke-test, fork-posture, phase-0-gates, upstream-features
+  - `docs/conventions/` — brand-taxonomy, feature-flags, pinned-deps, quality-gates, regression-guards, tscheck-baseline, no-scratchpad-references
+  - `docs/operations/` — cluster-access, debugging-first-install, env-gotchas, release
+- `CLAUDE.md` — **124 lines** (trimmed from 434 on 2026-04-09). Identity, critical rules (6 load-bearing), commands, architecture summary, pointers. Links to `docs/` and `.claude/rules/` for details.
+- `.claude/rules/` — Claude Code behavioral rules loaded automatically (7 rules + README):
+  - **Global:** `scratchpad.md`
+  - **Path-scoped:** `auth-env-vars.md`, `credential-storage.md`, `database.md`, `openspec.md`, `testing.md`, `tscheck-baseline.md`, `upstream-boundary.md`
+- `.claude/skills/` — Claude Code workflow skills (on-demand): `phase-0-progress`, `docs-drift-check`, `verify-pin`, OpenSpec flow skills, etc.
+- `.claude/agents/` — Claude Code subagents (task-specific): `db-schema-auditor`, `trpc-router-auditor`, `upstream-dependency-auditor`, `security-reviewer`, `ui-reviewer`
 - `.claude/PROJECT_INDEX.md` — auto-generated repo navigation map
 - `README.md` — user-facing pitch (positions repo as enterprise fork)
-- `CONTRIBUTING.md` — contributor setup, four quality gates, fork posture
+- `CONTRIBUTING.md` — contributor setup, quality gates, fork posture
 - `AGENTS.md` — AI quick-reference
-- `openspec/specs/` — 7 capability specs: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`
+- `openspec/specs/` — 8 capability specs: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`, `electron-runtime`

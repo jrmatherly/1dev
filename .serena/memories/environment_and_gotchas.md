@@ -33,7 +33,7 @@
 - **Tailwind 3.x** — tailwind-merge v3 requires TW v4; 134 files use `cn()`
 - **shiki 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`
 - **`@xyd-js/cli` pinned to `0.0.0-build-1202121-20260121231224`** — xyd-js publishes lockstep pre-releases across 28 packages. Bump via `verify-pin` skill. `docs/bun.lock` is tracked.
-- **Electron 39 EOL: 2026-05-05**
+- **Electron 40.x** — upgraded from 39.8.7 on 2026-04-09 (Phase 0 gate #14 re-scope). Canonical pin info: `docs/conventions/pinned-deps.md`. Capability spec: `openspec/specs/electron-runtime/spec.md`.
 - **`@azure/msal-node` v5.1.2 + `@azure/msal-node-extensions` v5.1.2** — installed in lockstep. `jose` v6.2.2. Powers `enterprise-auth.ts` / `enterprise-store.ts` (Phase 1, isolated). `msal-node-extensions` ships pre-built `.node` binaries — no electron-rebuild needed.
 
 ## No .scratchpad/ References from Tracked Files
@@ -92,6 +92,6 @@
 ## Tool-Specific Gotchas
 - **`claude-mem` Read deflection:** First Read() returns only line 1 + timeline. Fall back to `cat -n` via Bash or `sed -n 'M,Np' <file>`.
 - **Serena MCP requires activation** — `mcp__serena__activate_project` with `project: "ai-coding-cli"` before `list_memories`/`read_memory`
-- **macOS base64url JWT decoding** — BSD `base64 -d` silently truncates. Use the `tr`/`awk`/`base64` pipeline in CLAUDE.md.
+- **macOS base64url JWT decoding** — BSD `base64 -d` silently truncates. Use the `tr`/`awk`/`base64` pipeline in [`docs/operations/env-gotchas.md`](../../docs/operations/env-gotchas.md).
 - **`bun audit` exit code** — pre-existing advisories mean non-zero is normal; focus on NEW advisories
 - **code-review-graph `graph.db` transaction errors** — If `build_or_update_graph_tool` fails with "cannot start a transaction within a transaction", delete `graph.db` and rebuild: `rm .code-review-graph/graph.db && /build-graph`. Root cause: Python sqlite3 implicit transactions conflict with the plugin's explicit `BEGIN IMMEDIATE` — a bug in the plugin's connection setup (missing `isolation_level=None`).
