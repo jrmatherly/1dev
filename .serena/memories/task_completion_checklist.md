@@ -3,7 +3,7 @@
 ## Required — All Quality Gates
 1. `bun run ts:check` — baseline 87 errors (`.claude/.tscheck-baseline`), only fail if count increases
 2. `bun run build` — electron-vite build
-3. `bun test` — 10 guards, 36 tests under `tests/regression/`
+3. `bun test` — 11 guards, 45 tests under `tests/regression/`
 4. `bun audit` — focus on NEW advisories only
 5. CI also runs `cd docs && bun run build` — recommended locally too
 
@@ -43,7 +43,7 @@
 1. `/opsx:propose <description>` — create change with all artifacts
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:archive <name>` — archive and promote capability specs
-- 5 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`
+- 7 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`
 
 ## Phase 0 Status (15 of 15 complete ✅)
 All gates closed. Phase 0.5 (harden-credential-storage) also complete.
@@ -52,3 +52,11 @@ All gates closed. Phase 0.5 (harden-credential-storage) also complete.
 - All encryption MUST go through `src/main/lib/credential-store.ts`
 - Do NOT add `safeStorage.encryptString/decryptString` calls in any other file
 - PreToolUse hook blocks violations; regression guard catches in CI
+
+## If Editing Enterprise Auth / Token Injection Code
+- Claude CLI 2.1.96 does NOT support `ANTHROPIC_AUTH_TOKEN_FILE` — use `ANTHROPIC_AUTH_TOKEN` env var
+- `ANTHROPIC_AUTH_TOKEN` must be in `STRIPPED_ENV_KEYS_BASE` (prevents shell-inherited leaks)
+- Do NOT enable `clientCapabilities: ["CP1"]` — LiteLLM is not CAE-enabled (28h unrevocable tokens)
+- `buildClaudeEnv()` has 1 call site (`claude.ts:1142`) — NOT 5 as auth-strategy doc claims
+- `acquireTokenSilent()` before each spawn — no custom setTimeout timer
+- Read `docs/enterprise/auth-strategy.md` §4.9 and §5.4 but cross-reference against agent team findings in `project_phase1_prep.md`

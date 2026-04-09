@@ -9,13 +9,13 @@ scripts/       — Build, release, and utility scripts
 build/         — Electron-builder config
 docs/          — Canonical documentation site (xyd-js, 25 pages, 5 tabs)
 openspec/      — OpenSpec change proposal system
-  specs/       — Durable capability specs (6: brand-identity, feature-flags, claude-code-auth-import, documentation-site, credential-storage, renderer-data-access)
+  specs/       — Durable capability specs (7: brand-identity, feature-flags, claude-code-auth-import, documentation-site, credential-storage, renderer-data-access, enterprise-auth)
   changes/     — Active change proposals
   changes/archive/ — Archived completed changes
 .scratchpad/   — Ephemeral local-only working notes (gitignored). Canonical docs live in docs/
 .full-review/  — Comprehensive review artifacts (gitignored)
 .serena/       — Serena project memories
-tests/regression/ — bun:test regression guards (10 files, 36 tests as of 2026-04-09)
+tests/regression/ — bun:test regression guards (11 files, 45 tests as of 2026-04-09)
 ```
 
 ## Main Process (`src/main/`)
@@ -36,6 +36,9 @@ lib/
     schema/index.ts   — Drizzle table definitions (source of truth, 7 tables)
     utils.ts          — ID generation (nanoid)
   credential-store.ts — Unified 3-tier credential encryption (Tier 1: OS keystore, Tier 2: basic_text warn, Tier 3: refuse)
+  enterprise-auth.ts  — MSAL Node Entra token acquisition (Phase 1 — isolated, not yet wired; CP1 removed per agent review)
+  enterprise-store.ts — MSAL token cache persistence (tier-aware via credential-store.ts + msal-node-extensions)
+  enterprise-types.ts — Shared types: EnterpriseAuthConfig, EnterpriseUser (oid-keyed), EnterpriseAuthResult
   feature-flags.ts    — Type-safe feature flag API backed by feature_flag_overrides table (5 flags incl. credentialStorageRequireEncryption)
   trpc/
     index.ts          — tRPC router/procedure factory
@@ -117,6 +120,7 @@ Ten guards as of 2026-04-09:
 - `no-upstream-sandbox-oauth.test.ts` — Gate #8
 - `mock-api-no-snake-timestamps.test.ts` — mock-api translator retirement (Phase 1)
 - `credential-storage-tier.test.ts` — credential-store centralization (9 assertions)
+- `enterprise-auth-module.test.ts` — MSAL module exports, CP1 config, isolation boundary (9 assertions)
 
 ## .claude/ Automations Inventory
 - **Agents**: `db-schema-auditor`, `security-reviewer`, `trpc-router-auditor`, `ui-reviewer`, `upstream-dependency-auditor`
