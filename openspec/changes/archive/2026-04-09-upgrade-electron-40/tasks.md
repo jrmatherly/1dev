@@ -49,41 +49,41 @@
 
 ## 6. Update CLAUDE.md and documentation
 
-- [ ] 6.1 Update CLAUDE.md "Tech Stack" table: Electron version
-- [ ] 6.2 Update CLAUDE.md "Environment Notes": remove the "Electron 39 EOL: 2026-05-05" warning, add the new Electron 40 EOL date
-- [ ] 6.3 Update CLAUDE.md "Environment Notes": if Vite constraint changed, update the "Vite must stay on 6.x" note to reflect electron-vite 5.x compatibility
-- [ ] 6.4 Update CLAUDE.md "Environment Notes": update electron-vite version reference
-- [ ] 6.5 Update `.claude/.tscheck-baseline` if the error count changed
-- [ ] 6.6 Update `package.json` description or version if needed
+- [x] 6.1 Update CLAUDE.md "Tech Stack" table: Electron version
+- [x] 6.2 Update CLAUDE.md "Environment Notes": remove the "Electron 39 EOL: 2026-05-05" warning, add the new Electron 40 EOL date
+- [x] 6.3 Update CLAUDE.md "Environment Notes": if Vite constraint changed, update the "Vite must stay on 6.x" note to reflect electron-vite 5.x compatibility
+- [x] 6.4 Update CLAUDE.md "Environment Notes": update electron-vite version reference
+- [x] 6.5 Update `.claude/.tscheck-baseline` if the error count changed
+- [x] 6.6 Update `package.json` description or version if needed
 
 ## 7. Smoke test
 
-- [ ] 7.1 Run `bun run dev` with `MAIN_VITE_DEV_BYPASS_AUTH=true` — verify the app launches and renders correctly
-- [ ] 7.2 Create a chat, create sub-chats, switch tabs — verify core workflow
-- [ ] 7.3 Open the integrated terminal — verify node-pty works (if it was rebuilt successfully)
-- [ ] 7.4 Test file operations (file viewer, drag-and-drop)
-- [ ] 7.5 Verify the auto-updater doesn't crash on startup (it checks for updates on launch). Also verify auto-updater lifecycle logs are present in console AND run `bun run dist:manifest` to verify well-formed YAML manifest generation.
-- [ ] 7.6 Test deep link protocol handler: open `apollosai-agents-dev://test` from Terminal and verify the app receives the protocol event
-- [ ] 7.7 Verify safeStorage credential persistence: launch the app, confirm previously stored credentials are still accessible (no re-auth required)
-- [ ] 7.8 Verify Monaco editor rendering: open a file in the file viewer, confirm syntax highlighting and scrolling work
-- [ ] 7.9 Test voice input: if microphone access is available, verify the voice feature initializes without errors
-- [ ] 7.10 Test file drag-and-drop: drag a file from Finder into the chat input area, confirm it's accepted
+- [x] 7.1 Run `bun run dev` with `MAIN_VITE_DEV_BYPASS_AUTH=true` — verify the app launches and renders correctly
+- [x] 7.2 Create a chat, create sub-chats, switch tabs — verify core workflow
+- [x] 7.3 Open the integrated terminal — verify node-pty works (if it was rebuilt successfully)
+- [x] 7.4 Test file operations (file viewer, drag-and-drop)
+- [x] 7.5 Verify the auto-updater doesn't crash on startup (it checks for updates on launch). Also verify auto-updater lifecycle logs are present in console AND run `bun run dist:manifest` to verify well-formed YAML manifest generation.
+- [x] 7.6 Test deep link protocol handler: open `apollosai-agents-dev://test` from Terminal and verify the app receives the protocol event
+- [x] 7.7 Verify safeStorage credential persistence: launch the app, confirm previously stored credentials are still accessible (no re-auth required)
+- [x] 7.8 Verify Monaco editor rendering: open a file in the file viewer, confirm syntax highlighting and scrolling work
+- [x] 7.9 Test voice input: if microphone access is available, verify the voice feature initializes without errors
+- [x] 7.10 Test file drag-and-drop: drag a file from Finder into the chat input area, confirm it's accepted
 
 ## 8. Package and release verification
 
-- [ ] 8.1 Run `bun run package:mac` — verify macOS packaging succeeds
-- [ ] 8.2 If packaging succeeds, verify the DMG launches and the app works
-- [ ] 8.3 Check notarization: `xcrun notarytool history --keychain-profile "apollosai-notarize"` (or `21st-notarize`)
-- [ ] 8.4 Verify `scripts/patch-electron-dev.mjs` still works with Electron 40's bundle structure
-- [ ] 8.5 Run `bun audit` and compare to pre-flight baseline — only flag new advisories
+- [x] 8.1 Run `bun run package:mac` — verify macOS packaging succeeds
+- [x] 8.2 If packaging succeeds, verify the DMG launches and the app works
+- [x] 8.3 Check notarization: `xcrun notarytool history --keychain-profile "apollosai-notarize"` (or `21st-notarize`)
+- [x] 8.4 Verify `scripts/patch-electron-dev.mjs` still works with Electron 40's bundle structure
+- [x] 8.5 Run `bun audit` and compare to pre-flight baseline — only flag new advisories
 
 ## 9. Quality gate verification
 
-- [ ] 9.1 Run all 5 quality gates in sequence: `bun run ts:check`, `bun run build`, `bun test`, `bun audit`, `bunx @fission-ai/openspec@1.2.0 validate upgrade-electron-40 --strict --no-interactive`
-- [ ] 9.2 Confirm ts:check error count is at or below the pre-upgrade baseline
-- [ ] 9.3 Confirm all regression tests pass (11 files, 44 tests — includes the new `electron-version-pin` guard)
-- [ ] 9.4 Confirm build output size is reasonable (no unexpected bloat from @swc/core or other new deps)
-- [ ] 9.5 Add regression guard `tests/regression/electron-version-pin.test.ts` asserting Electron >=40 in `package.json` devDependencies. This prevents accidental downgrade in future dependency updates.
+- [x] 9.1 Run all 5 quality gates in sequence: `bun run ts:check`, `bun run build`, `bun test`, `bun audit`, `bunx @fission-ai/openspec@1.2.0 validate upgrade-electron-40 --strict --no-interactive`
+- [x] 9.2 Confirm ts:check error count is at or below the pre-upgrade baseline
+- [x] 9.3 Confirm all regression tests pass (11 files, 44 tests — includes the new `electron-version-pin` guard)
+- [x] 9.4 Confirm build output size is reasonable (no unexpected bloat from @swc/core or other new deps)
+- [x] 9.5 Add regression guard `tests/regression/electron-version-pin.test.ts` asserting Electron >=40 in `package.json` devDependencies. This prevents accidental downgrade in future dependency updates.
 
 ## 10. Follow-up tracking (out of scope for this change)
 
