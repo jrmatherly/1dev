@@ -1,8 +1,30 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import * as pty from "node-pty";
 import { buildTerminalEnv, FALLBACK_SHELL, getDefaultShell } from "./env";
+
+// Lazy-load node-pty to prevent main process crash if the native module
+// fails to compile (e.g., Node 24 ABI incompatibility). The rest of the
+// app works without terminal support.
+let pty: typeof import("node-pty") | null = null;
+let ptyLoadError: Error | null = null;
+
+export function isPtyAvailable(): boolean {
+  return pty !== null;
+}
+
+async function ensurePty(): Promise<typeof import("node-pty")> {
+  if (pty) return pty;
+  if (ptyLoadError) throw ptyLoadError;
+  try {
+    pty = await import("node-pty");
+    return pty;
+  } catch (err) {
+    ptyLoadError = err instanceof Error ? err : new Error(String(err));
+    console.error("[Terminal] Failed to load node-pty:", ptyLoadError.message);
+    throw ptyLoadError;
+  }
+}
 import type { InternalCreateSessionParams, TerminalSession } from "./types";
 
 const DEFAULT_COLS = 80;
@@ -90,20 +112,21 @@ function resolveShellPath(shell: string): string {
   return shell;
 }
 
-function spawnPty(params: {
+async function spawnPty(params: {
   shell: string;
   cols: number;
   rows: number;
   cwd: string;
   env: Record<string, string>;
-}): pty.IPty {
+}): Promise<import("node-pty").IPty> {
+  const ptyModule = await ensurePty();
   const { shell, cols, rows, cwd, env } = params;
   const shellArgs = getShellArgs(shell);
   const resolvedCwd = validateAndResolveCwd(cwd);
   const resolvedShell = resolveShellPath(shell);
 
   try {
-    return pty.spawn(resolvedShell, shellArgs, {
+    return ptyModule.spawn(resolvedShell, shellArgs, {
       name: "xterm-256color",
       cols,
       rows,
@@ -117,7 +140,7 @@ function spawnPty(params: {
     );
     // Try with fallback shell
     console.log(`[Terminal] Retrying with fallback shell: ${FALLBACK_SHELL}`);
-    return pty.spawn(FALLBACK_SHELL, [], {
+    return ptyModule.spawn(FALLBACK_SHELL, [], {
       name: "xterm-256color",
       cols,
       rows,
@@ -159,7 +182,7 @@ export async function createSession(
     rootPath,
   });
 
-  const ptyProcess = spawnPty({
+  const ptyProcess = await spawnPty({
     shell,
     cols: terminalCols,
     rows: terminalRows,

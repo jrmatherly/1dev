@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
 import { FALLBACK_SHELL, SHELL_CRASH_THRESHOLD_MS } from "./env";
 import { portManager } from "./port-manager";
-import { createSession, setupInitialCommands } from "./session";
+import { createSession, isPtyAvailable, setupInitialCommands } from "./session";
 import type {
   CreateSessionParams,
   SessionResult,

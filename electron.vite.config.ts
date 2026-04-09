@@ -1,4 +1,4 @@
-import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+import { defineConfig } from "electron-vite";
 import { resolve } from "path";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "tailwindcss";
@@ -8,13 +8,10 @@ const isDev = process.env.NODE_ENV !== "production";
 
 export default defineConfig({
   main: {
-    plugins: [
-      externalizeDepsPlugin({
-        // Don't externalize these - bundle them instead
-        exclude: ["superjson", "trpc-electron", "gray-matter", "async-mutex"],
-      }),
-    ],
     build: {
+      externalizeDeps: {
+        exclude: ["superjson", "trpc-electron", "gray-matter", "async-mutex"],
+      },
       lib: {
         entry: resolve(__dirname, "src/main/index.ts"),
       },
@@ -32,12 +29,10 @@ export default defineConfig({
     },
   },
   preload: {
-    plugins: [
-      externalizeDepsPlugin({
-        exclude: ["trpc-electron"],
-      }),
-    ],
     build: {
+      externalizeDeps: {
+        exclude: ["trpc-electron"],
+      },
       lib: {
         entry: resolve(__dirname, "src/preload/index.ts"),
       },

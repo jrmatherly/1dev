@@ -1,51 +1,51 @@
 ## 1. Pre-flight verification
 
-- [ ] 1.1 Record the current baseline: `bun run ts:check` error count, `bun run build` success, `bun test` pass count, `bun audit` advisory count. Save to a local file for comparison.
-- [ ] 1.2 Verify electron-vite 5.0.0 API compatibility: `npm view electron-vite@5.0.0` — confirm `externalizeDepsPlugin` is deprecated (replaced by `build.externalizeDeps` config option) and `defineConfig` is still exported. Read the 5.0.0 changelog or source if needed.
-- [ ] 1.3 Verify node-pty latest version and Node 24 support: `npm view node-pty versions --json` — check if any version ≥1.1.0 explicitly supports Node 24. Check GitHub issues for Node 24 compatibility reports.
-- [ ] 1.4 Verify @sentry/electron Electron 40 compatibility: `npm view @sentry/electron` — check peerDeps and changelog for Electron 40 support.
-- [ ] 1.5 Verify electron-builder 26.x availability and Electron 40 support: `npm view electron-builder@latest` — check version and changelog.
-- [ ] 1.6 Check if `scripts/patch-electron-dev.mjs` makes assumptions about Electron's macOS bundle structure (read the script, identify hardcoded paths like `Electron.app/Contents/Info.plist`).
-- [ ] 1.7 Verify `navigator.clipboard` (Web Clipboard API) works under Chromium 144: grep for usage sites (`grep -rn "navigator.clipboard" src/renderer/` — 39 files), confirm no behavioral changes in Chromium 144 release notes. The Electron `clipboard` module deprecation in renderer is a non-issue (we don't import it).
-- [ ] 1.8 Investigate trpc-electron sandbox compatibility: can `sandbox: true` work with trpc-electron now? Test `webPreferences: { sandbox: true }` in `src/main/windows/main.ts` — if it works, this closes a long-standing security gap.
-- [ ] 1.9 Review Chromium 143/144 security-relevant changes: check for CSP, Permissions Policy, CORS, or mixed content enforcement changes that could affect the renderer. Focus on `fetch()`, WebSocket, and `postMessage` usage patterns.
-- [ ] 1.10 **Pre-work (BEFORE Electron bump):** Refactor `src/main/lib/terminal/session.ts` to use dynamic `import()` for node-pty wrapped in try/catch, exposing a `ptyAvailable` flag. Make `chats.ts` terminalManager calls nil-safe (check `ptyAvailable` before invoking terminal methods). This prevents a failed node-pty native module load from crashing the entire main process at startup, enabling graceful degradation behind the `terminalEnabled` feature flag.
+- [x] 1.1 Record the current baseline: `bun run ts:check` error count, `bun run build` success, `bun test` pass count, `bun audit` advisory count. Save to a local file for comparison.
+- [x] 1.2 Verify electron-vite 5.0.0 API compatibility: `npm view electron-vite@5.0.0` — confirm `externalizeDepsPlugin` is deprecated (replaced by `build.externalizeDeps` config option) and `defineConfig` is still exported. Read the 5.0.0 changelog or source if needed.
+- [x] 1.3 Verify node-pty latest version and Node 24 support: `npm view node-pty versions --json` — check if any version ≥1.1.0 explicitly supports Node 24. Check GitHub issues for Node 24 compatibility reports.
+- [x] 1.4 Verify @sentry/electron Electron 40 compatibility: `npm view @sentry/electron` — check peerDeps and changelog for Electron 40 support.
+- [x] 1.5 Verify electron-builder 26.x availability and Electron 40 support: `npm view electron-builder@latest` — check version and changelog.
+- [x] 1.6 Check if `scripts/patch-electron-dev.mjs` makes assumptions about Electron's macOS bundle structure (read the script, identify hardcoded paths like `Electron.app/Contents/Info.plist`).
+- [x] 1.7 Verify `navigator.clipboard` (Web Clipboard API) works under Chromium 144: grep for usage sites (`grep -rn "navigator.clipboard" src/renderer/` — 39 files), confirm no behavioral changes in Chromium 144 release notes. The Electron `clipboard` module deprecation in renderer is a non-issue (we don't import it).
+- [x] 1.8 Investigate trpc-electron sandbox compatibility: can `sandbox: true` work with trpc-electron now? Test `webPreferences: { sandbox: true }` in `src/main/windows/main.ts` — if it works, this closes a long-standing security gap.
+- [x] 1.9 Review Chromium 143/144 security-relevant changes: check for CSP, Permissions Policy, CORS, or mixed content enforcement changes that could affect the renderer. Focus on `fetch()`, WebSocket, and `postMessage` usage patterns.
+- [x] 1.10 **Pre-work (BEFORE Electron bump):** Refactor `src/main/lib/terminal/session.ts` to use dynamic `import()` for node-pty wrapped in try/catch, exposing a `ptyAvailable` flag. Make `chats.ts` terminalManager calls nil-safe (check `ptyAvailable` before invoking terminal methods). This prevents a failed node-pty native module load from crashing the entire main process at startup, enabling graceful degradation behind the `terminalEnabled` feature flag.
 
 ## 2. Install @swc/core peer dependency
 
-- [ ] 2.1 Install @swc/core: `bun add -d @swc/core` — required peer dep for electron-vite 5.x
-- [ ] 2.2 Verify @swc/core installs without errors (it has platform-specific native binaries)
-- [ ] 2.3 Run `bun run build` to confirm no breakage from just adding the dep
+- [x] 2.1 Install @swc/core: `bun add -d @swc/core` — required peer dep for electron-vite 5.x
+- [x] 2.2 Verify @swc/core installs without errors (it has platform-specific native binaries)
+- [x] 2.3 Run `bun run build` to confirm no breakage from just adding the dep
 
 ## 3. Upgrade electron-vite 3.1.0 → 5.0.0
 
-- [ ] 3.1 Upgrade: `bun add -d electron-vite@5.0.0`
-- [ ] 3.2 Migrate `electron.vite.config.ts`: `externalizeDepsPlugin` is **deprecated** in 5.0 — remove the `externalizeDepsPlugin()` import and plugin call, replace with the `build.externalizeDeps` config option (e.g., `build: { externalizeDeps: true }` in main/preload configs). Verify `defineConfig` import is unchanged.
-- [ ] 3.3 If the API changed, update `electron.vite.config.ts` to match the new API surface
-- [ ] 3.4 Run `bun run build` to verify the build works with electron-vite 5.0.0
-- [ ] 3.5 Run `bun run ts:check` to verify no new TS errors
-- [ ] 3.6 If build fails, read the electron-vite 5.x migration guide and fix
+- [x] 3.1 Upgrade: `bun add -d electron-vite@5.0.0`
+- [x] 3.2 Migrate `electron.vite.config.ts`: `externalizeDepsPlugin` is **deprecated** in 5.0 — remove the `externalizeDepsPlugin()` import and plugin call, replace with the `build.externalizeDeps` config option (e.g., `build: { externalizeDeps: true }` in main/preload configs). Verify `defineConfig` import is unchanged.
+- [x] 3.3 If the API changed, update `electron.vite.config.ts` to match the new API surface
+- [x] 3.4 Run `bun run build` to verify the build works with electron-vite 5.0.0
+- [x] 3.5 Run `bun run ts:check` to verify no new TS errors
+- [x] 3.6 If build fails, read the electron-vite 5.x migration guide and fix
 
 ## 4. Upgrade electron-builder 25.1.8 → 26.x
 
-- [ ] 4.1 Upgrade: `bun add -d electron-builder@latest` (targets 26.x)
-- [ ] 4.1b If electron-builder 26.x packaging fails (task 8.1), fall back to `bun add -d electron-builder@25` (latest 25.x patch). 26.x has reported stability regressions — 25.x latest may still work with Electron 40.
-- [ ] 4.2 Check for breaking changes in the electron-builder 26.x changelog that affect our `package.json` build config
-- [ ] 4.3 Run `bun run build` to verify
-- [ ] 4.4 If build config needs updating, adjust `package.json` build section
+- [x] 4.1 Upgrade: `bun add -d electron-builder@latest` (targets 26.x)
+- [x] 4.1b If electron-builder 26.x packaging fails (task 8.1), fall back to `bun add -d electron-builder@25` (latest 25.x patch). 26.x has reported stability regressions — 25.x latest may still work with Electron 40.
+- [x] 4.2 Check for breaking changes in the electron-builder 26.x changelog that affect our `package.json` build config
+- [x] 4.3 Run `bun run build` to verify
+- [x] 4.4 If build config needs updating, adjust `package.json` build section
 
 ## 5. Upgrade Electron 39.8.7 → 40.x
 
-- [ ] 5.1 Upgrade: `bun add -d electron@~40.8.0` (target Electron 40.8.0)
-- [ ] 5.2 Run `bun run postinstall` to rebuild native modules (better-sqlite3, node-pty) against Node 24
-- [ ] 5.3 If node-pty rebuild fails: try `bun add node-pty@latest` for a newer version, then re-run postinstall
-- [ ] 5.4 If node-pty still fails: document the failure, add a TODO, and consider gating terminal behind feature flag `terminalEnabled` (the core AI chat workflow doesn't require it)
-- [ ] 5.5 Run `bun run build` — this is the critical gate. If it passes, the Electron 40 upgrade is viable.
-- [ ] 5.6 Run `bun run ts:check` and compare error count to pre-flight baseline. Only investigate new errors.
-- [ ] 5.7 Run `bun test` — all regression guards must pass
-- [ ] 5.8 Upgrade `@types/node` to `^24`: `bun add -d @types/node@^24` — Node 24 type definitions align with the Electron 40-bundled Node version
-- [ ] 5.9 Verify `bun.lock` reflects all changes: `bun install`, stage `bun.lock` for commit, then test `bun install --frozen-lockfile` to confirm reproducibility
-- [ ] 5.10 Verify safeStorage backward compatibility: encrypt a test string using `safeStorage.encryptString()` under Electron 39, upgrade to Electron 40, verify `safeStorage.decryptString()` returns the original string. This confirms existing OAuth tokens in `anthropic_accounts` and `claude_code_credentials` survive the upgrade.
+- [x] 5.1 Upgrade: `bun add -d electron@~40.8.0` (target Electron 40.8.0)
+- [x] 5.2 Run `bun run postinstall` to rebuild native modules (better-sqlite3, node-pty) against Node 24
+- [x] 5.3 If node-pty rebuild fails: try `bun add node-pty@latest` for a newer version, then re-run postinstall
+- [x] 5.4 If node-pty still fails: document the failure, add a TODO, and consider gating terminal behind feature flag `terminalEnabled` (the core AI chat workflow doesn't require it)
+- [x] 5.5 Run `bun run build` — this is the critical gate. If it passes, the Electron 40 upgrade is viable.
+- [x] 5.6 Run `bun run ts:check` and compare error count to pre-flight baseline. Only investigate new errors.
+- [x] 5.7 Run `bun test` — all regression guards must pass
+- [x] 5.8 Upgrade `@types/node` to `^24`: `bun add -d @types/node@^24` — Node 24 type definitions align with the Electron 40-bundled Node version
+- [x] 5.9 Verify `bun.lock` reflects all changes: `bun install`, stage `bun.lock` for commit, then test `bun install --frozen-lockfile` to confirm reproducibility
+- [x] 5.10 Verify safeStorage backward compatibility: encrypt a test string using `safeStorage.encryptString()` under Electron 39, upgrade to Electron 40, verify `safeStorage.decryptString()` returns the original string. This confirms existing OAuth tokens in `anthropic_accounts` and `claude_code_credentials` survive the upgrade.
 
 ## 6. Update CLAUDE.md and documentation
 
