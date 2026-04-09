@@ -154,10 +154,9 @@ function downloadFile(url, destPath) {
               return reject(new Error("Missing redirect location"));
             }
 
-            file.close(() => {
-              fs.rmSync(destPath, { force: true });
-              request(redirectUrl);
-            });
+            file.destroy();
+            fs.rmSync(destPath, { force: true });
+            request(redirectUrl);
             return;
           }
 
@@ -340,7 +339,7 @@ async function downloadPlatform(version, platformKey, release) {
   fs.rmSync(downloadPath, { force: true });
 
   if (!platformKey.startsWith("win32")) {
-    fs.chmodSync(targetPath, 0o755);
+    fs.chmodSync(targetPath, 0o755); // NOSONAR — standard executable permissions for CLI binary
   }
 
   if (expectedHash) {

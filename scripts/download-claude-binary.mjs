@@ -237,7 +237,7 @@ async function verifyManifestSignature(version, manifestBytes) {
   // Confirm gpg is available before we waste cycles fetching anything.
   try {
     execFileSync("gpg", ["--version"], { stdio: "pipe" });
-  } catch (_err) {
+  } catch {
     throw new Error(
       "gpg is not installed or not on PATH. Install GnuPG (https://gnupg.org/) and retry. " +
         "On macOS: 'brew install gnupg'. On Debian/Ubuntu: 'sudo apt install gnupg'.",
@@ -433,7 +433,7 @@ async function downloadPlatform(version, platformKey, manifest) {
 
   // Make executable (Unix)
   if (process.platform !== "win32") {
-    fs.chmodSync(targetPath, 0o755);
+    fs.chmodSync(targetPath, 0o755); // NOSONAR — standard executable permissions for CLI binary
   }
 
   console.log(`  Saved to: ${targetPath}`);
