@@ -14,9 +14,9 @@ This is a **hard rule** for any auth code that touches Claude or Codex subproces
 
 ## Rule
 
-- **DO NOT** set `ANTHROPIC_AUTH_TOKEN=<bearer>` or any other bearer-token-carrying env var when spawning Claude CLI, Codex CLI, or any subprocess.
-- **DO** use the mandated pattern: `applyEnterpriseAuth()` writes a `0600` tmpfile and passes `ANTHROPIC_AUTH_TOKEN_FILE=/path/to/tmpfile` to the subprocess.
-- **DO** verify `ANTHROPIC_AUTH_TOKEN_FILE` support against the pinned Claude CLI version (currently 2.1.96) before designing against it.
+- **DO NOT** manually set `ANTHROPIC_AUTH_TOKEN` in env — use `applyEnterpriseAuth()` in `src/main/lib/claude/env.ts`, which acquires a fresh token via `acquireTokenSilent()` and sets it authoritatively after the `STRIPPED_ENV_KEYS` pass.
+- **DO** keep `ANTHROPIC_AUTH_TOKEN` and `ANTHROPIC_AUTH_TOKEN_FILE` in `STRIPPED_ENV_KEYS_BASE` to prevent shell-inherited values from leaking.
+- **DO NOT** use `ANTHROPIC_AUTH_TOKEN_FILE` — Claude CLI 2.1.96 does not support it. The FD-based `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` is the documented upgrade path when the CLI pin is bumped.
 
 ## Why
 
@@ -25,20 +25,20 @@ Co-resident processes on the same machine can read another process's environment
 - **macOS**: `ps eww`
 - **Windows**: `NtQueryInformationProcess`
 
-A bearer token in `ANTHROPIC_AUTH_TOKEN` is therefore equivalent to plaintext-on-disk for any attacker with local process listing. The `ANTHROPIC_AUTH_TOKEN_FILE` pattern forces the attacker to additionally compromise a `0600`-protected tmpfile owned by our process.
+Mitigations for env-var token exposure:
+1. `ANTHROPIC_AUTH_TOKEN` is in `STRIPPED_ENV_KEYS_BASE` — only `applyEnterpriseAuth()` sets it
+2. Entra access tokens expire in 60-90 minutes, limiting the exposure window
+3. Token is acquired fresh via `acquireTokenSilent()` before each spawn — no long-lived cached value
+4. Future: `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` (FD-based) eliminates env-var exposure entirely
 
-## The full pattern
+## The pattern
 
 ```typescript
-import { applyEnterpriseAuth } from "src/main/lib/enterprise-auth"
-
-const env = await applyEnterpriseAuth({
-  token: bearerToken,
-  baseEnv: process.env,
-})
-// env now has ANTHROPIC_AUTH_TOKEN_FILE=/tmp/..., NOT ANTHROPIC_AUTH_TOKEN
-
-spawn(claudeBinary, args, { env })
+// In src/main/lib/claude/env.ts — called at the end of buildClaudeEnv()
+export async function applyEnterpriseAuth(
+  env: Record<string, string>,
+): Promise<Record<string, string>>
+// Sets env.ANTHROPIC_AUTH_TOKEN and env.ANTHROPIC_BASE_URL when enterprise flag is on
 ```
 
 ## Related cluster prerequisite

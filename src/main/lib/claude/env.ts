@@ -5,6 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { stripVTControlCharacters } from "node:util";
 import { getDefaultShell, isWindows, platform } from "../platform";
+import { getFlag } from "../feature-flags";
+import { getAuthManager } from "../../auth-manager";
 
 // Cache the shell environment
 let cachedShellEnv: Record<string, string> | null = null;
@@ -20,6 +22,14 @@ const STRIPPED_ENV_KEYS_BASE = [
   "OPENAI_API_KEY",
   "CLAUDE_CODE_USE_BEDROCK",
   "CLAUDE_CODE_USE_VERTEX",
+  // Prevent shell-inherited tokens from leaking into spawned processes.
+  // applyEnterpriseAuth() sets ANTHROPIC_AUTH_TOKEN authoritatively AFTER
+  // the strip pass, so only the freshly-acquired token survives.
+  "ANTHROPIC_AUTH_TOKEN",
+  // ANTHROPIC_AUTH_TOKEN_FILE is NOT a real Claude CLI env var (CLI 2.1.96
+  // does not support it). Stripped defensively in case a user sets it in
+  // their shell — we never want stale token file paths reaching subprocesses.
+  "ANTHROPIC_AUTH_TOKEN_FILE",
 ];
 
 // In dev mode, also strip ANTHROPIC_API_KEY so OAuth token is used instead
@@ -201,14 +211,52 @@ export function getClaudeShellEnvironment(): Record<string, string> {
 }
 
 /**
+ * Inject enterprise auth token into the spawn environment.
+ * Called at the end of buildClaudeEnv() after STRIPPED_ENV_KEYS pass.
+ * When enterprise auth is disabled, returns env unchanged.
+ */
+export async function applyEnterpriseAuth(
+  env: Record<string, string>,
+): Promise<Record<string, string>> {
+  if (!getFlag("enterpriseAuthEnabled")) return env;
+
+  const authManager = getAuthManager();
+  if (!authManager) {
+    console.warn("[claude-env] Enterprise auth enabled but AuthManager not initialized");
+    return env;
+  }
+
+  const token = await authManager.getValidToken();
+  if (!token) {
+    console.warn("[claude-env] Enterprise auth enabled but no valid token available");
+    return env;
+  }
+
+  if (env.ANTHROPIC_AUTH_TOKEN) {
+    console.warn("[claude-env] Overwriting existing ANTHROPIC_AUTH_TOKEN with enterprise token");
+  }
+  env.ANTHROPIC_AUTH_TOKEN = token;
+
+  // Set ANTHROPIC_BASE_URL to LiteLLM proxy if configured via env
+  const proxyUrl = process.env.LITELLM_PROXY_URL ?? process.env.ANTHROPIC_BASE_URL;
+  if (proxyUrl) {
+    env.ANTHROPIC_BASE_URL = proxyUrl;
+  }
+
+  console.log("[claude-env] Enterprise auth token injected via ANTHROPIC_AUTH_TOKEN");
+  return env;
+}
+
+/**
  * Build the complete environment for Claude SDK.
  * Merges shell environment, process.env, and custom overrides.
+ * Async because applyEnterpriseAuth() may acquire a token via MSAL.
  */
-export function buildClaudeEnv(options?: {
+export async function buildClaudeEnv(options?: {
   ghToken?: string;
   customEnv?: Record<string, string>;
   enableTasks?: boolean;
-}): Record<string, string> {
+}): Promise<Record<string, string>> {
   const env: Record<string, string> = {};
 
   // 1. Start with shell environment (has HOME, full PATH, etc.)
@@ -272,6 +320,9 @@ export function buildClaudeEnv(options?: {
   // Enable/disable task management tools based on user preference (default: enabled)
   env.CLAUDE_CODE_ENABLE_TASKS =
     options?.enableTasks !== false ? "true" : "false";
+
+  // 6. Enterprise auth: inject fresh MSAL token (after strip pass)
+  await applyEnterpriseAuth(env);
 
   return env;
 }

@@ -15,7 +15,7 @@ A regression test at `tests/regression/enterprise-auth-module.test.ts` SHALL ver
 - **WHEN** `bun test tests/regression/enterprise-auth-module.test.ts` runs
 - **THEN** all assertions pass
 
-#### Scenario: ~~Regression guard catches premature wiring~~ REMOVED
+#### Scenario: Wiring is validated by the new enterprise-auth-wiring guard
 
-**Reason**: The isolation boundary was a temporary gate for change #1. Change #2 intentionally wires the modules together.
-**Migration**: The `enterprise-auth-wiring.test.ts` guard now validates the wiring is correct.
+- **WHEN** `bun test tests/regression/enterprise-auth-wiring.test.ts` runs
+- **THEN** all wiring assertions pass (replaces the former isolation guard removed in change #2)

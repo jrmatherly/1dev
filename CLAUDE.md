@@ -18,7 +18,7 @@ Canonical references:
 
 These are the rules most likely to cause incidents if violated. Detailed rules live in [`.claude/rules/`](.claude/rules/) and load automatically when you work on matching files.
 
-1. **HARD RULE — auth env vars:** Never inject bearer tokens via `ANTHROPIC_AUTH_TOKEN=<bearer>` or similar. Use the `applyEnterpriseAuth()` tmpfile pattern. Read [`docs/enterprise/auth-strategy.md`](docs/enterprise/auth-strategy.md) §4.9 and §5.4 **before** touching any auth code. See [`.claude/rules/auth-env-vars.md`](.claude/rules/auth-env-vars.md).
+1. **HARD RULE — auth env vars:** Never manually set `ANTHROPIC_AUTH_TOKEN` — use `applyEnterpriseAuth()` in `env.ts` which acquires a fresh token and sets it after the `STRIPPED_ENV_KEYS` pass. Read [`.claude/rules/auth-env-vars.md`](.claude/rules/auth-env-vars.md) **before** touching any auth code.
 2. **All credential encryption through `credential-store.ts`** — no direct `safeStorage.*` calls elsewhere. Enforced by `tests/regression/credential-storage-tier.test.ts`. See [`.claude/rules/credential-storage.md`](.claude/rules/credential-storage.md).
 3. **TDD red-state rule:** A test that fails with `ReferenceError`/`TypeError`/`Cannot find module` is NOT a valid red — fix the harness first. See [`.claude/rules/testing.md`](.claude/rules/testing.md).
 4. **Phase 0 gate scope rule:** Gate text in `docs/enterprise/auth-strategy.md` §6 is **exact scope**, not a minimum. Additional work needs its own OpenSpec proposal. See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
@@ -30,7 +30,7 @@ These are the rules most likely to cause incidents if violated. Detailed rules l
 
 Canonical status: [`docs/enterprise/phase-0-gates.md`](docs/enterprise/phase-0-gates.md).
 
-Phase 1 enterprise auth (Entra SSO via MSAL + LiteLLM gateway) is deferred to future OpenSpec proposals. The Phase 1 enterprise auth module (`src/main/lib/enterprise-auth.ts`) is implemented but **isolated — not yet wired** into the auth flow.
+Phase 1 enterprise auth wiring is complete: `auth-manager.ts` uses a Strangler Fig adapter gated by `enterpriseAuthEnabled` flag, `applyEnterpriseAuth()` injects tokens into the Claude spawn env, and the `enterpriseAuth` tRPC router exposes sign-in/out to the renderer. Settings UI (change #3) and cluster config (change #4) are deferred to future OpenSpec proposals.
 
 ## Commands
 
@@ -70,7 +70,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 
 - **[Codebase layout](docs/architecture/codebase-layout.md)** — full tree of `src/main/`, `src/preload/`, `src/renderer/`
 - **[Database (Drizzle + SQLite)](docs/architecture/database.md)** — 7 tables at `{userData}/data/agents.db`, auto-migration
-- **[tRPC routers](docs/architecture/trpc-routers.md)** — 21 routers in `createAppRouter` (20 feature routers + 1 git router)
+- **[tRPC routers](docs/architecture/trpc-routers.md)** — 22 routers in `createAppRouter` (21 feature routers + 1 git router)
 - **[Tech stack](docs/architecture/tech-stack.md)** — Electron 40 / React 19 / TypeScript 5 / Tailwind 3 / Bun
 - **[Upstream boundary](docs/architecture/upstream-boundary.md)** — `remoteTrpc.*` call sites and F-entry coverage
 
@@ -78,7 +78,8 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - `src/main/lib/db/schema/index.ts` — Drizzle schema (source of truth)
 - `src/main/lib/trpc/routers/index.ts` — `createAppRouter` composition
 - `src/main/lib/credential-store.ts` — unified 3-tier credential encryption
-- `src/main/lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (Phase 1, isolated)
+- `src/main/lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (wired into auth-manager via `enterpriseAuthEnabled` flag)
+- `src/main/lib/trpc/routers/enterprise-auth.ts` — Enterprise auth tRPC router (signIn/signOut/getStatus/refreshToken)
 - `src/renderer/features/agents/main/active-chat.tsx` — main chat component
 - `src/renderer/lib/remote-trpc.ts` — upstream tRPC client (F-entry scope)
 - `electron.vite.config.ts` — build config (main/preload/renderer entries)
@@ -91,7 +92,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **`.claude/agents/`** — Claude Code subagents (task-specific: `db-schema-auditor`, `trpc-router-auditor`, `upstream-dependency-auditor`, `security-reviewer`, `ui-reviewer`).
 - **`.serena/memories/`** — Serena project memories. Read via `mcp__serena__read_memory` **after** activating the project with `mcp__serena__activate_project` (project: `ai-coding-cli`).
 - **`openspec/`** — OpenSpec 1.2.0 change proposals and capability specs. See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
-- **`tests/regression/`** — 12 bun:test regression guards. See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
+- **`tests/regression/`** — 13 bun:test regression guards. See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
 - **`.scratchpad/`** — Ephemeral local-only notes (gitignored). Never referenced from tracked files.
 
 **Deployment target cluster repo:** `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos K8s, Envoy Gateway, LiteLLM, OIDC stack). Coordinate cross-repo for auth/backend work. See [`docs/operations/cluster-access.md`](docs/operations/cluster-access.md).
@@ -106,7 +107,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 
 ## Shipped features (v0.0.72+)
 
-Multi-backend AI (Claude, Codex, Ollama) · Drizzle ORM with 7 tables + auto-migration · 21 tRPC routers · Integrated terminal (node-pty) · Plugin and skills system · File viewer, kanban, automations · Voice, @-mentions, search · Encrypted credential storage · Auto-update with notarization.
+Multi-backend AI (Claude, Codex, Ollama) · Drizzle ORM with 7 tables + auto-migration · 22 tRPC routers · Integrated terminal (node-pty) · Plugin and skills system · File viewer, kanban, automations · Voice, @-mentions, search · Encrypted credential storage · Enterprise Entra ID auth (MSAL) · Auto-update with notarization.
 
 ## Documentation maintenance
 

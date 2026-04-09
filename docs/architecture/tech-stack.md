@@ -26,7 +26,7 @@ icon: layers
 | **Claude CLI** | Claude Code binary | pinned `2.1.96` | SHA-256 + GPG signature verification on download. See [Pinned Dependencies](../conventions/pinned-deps.md). |
 | **Syntax highlighting** | Shiki | `3.x` | Pinned — `@pierre/diffs` requires `^3.0.0`. |
 | **Package manager** | Bun | — | `bun.lock` tracked for reproducible builds. |
-| **Testing** | bun:test | — | 12 regression guards, 48 tests. See [Regression Guards](../conventions/regression-guards.md). |
+| **Testing** | bun:test | — | 13 regression guards, 53 tests. See [Regression Guards](../conventions/regression-guards.md). |
 | **Documentation** | xyd-js | pinned `0.0.0-build-...` | Lockstep pre-release builds. See [Pinned Dependencies](../conventions/pinned-deps.md). |
 | **Analytics** | PostHog, Sentry | — | Disabled by default in OSS builds. Activated via `.env.local`. |
 

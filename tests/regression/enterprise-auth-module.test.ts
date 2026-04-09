@@ -1,12 +1,12 @@
 /**
- * Regression guard: Enterprise auth module exports and isolation
+ * Regression guard: Enterprise auth module exports
  *
  * Ensures enterprise-auth.ts, enterprise-store.ts, and enterprise-types.ts
- * exist with correct exports, and that the module is NOT wired into
- * auth-manager.ts (isolation boundary per auth-strategy §5.3.1 Step A).
+ * exist with correct exports and that required dependencies are present.
  *
- * This guard is intentionally REMOVED in change #2 (wire-enterprise-auth)
- * when the modules are wired into the auth flow.
+ * The isolation boundary assertion was removed in change #2
+ * (wire-enterprise-auth) — the modules are now wired into auth-manager.ts.
+ * Wiring invariants are tested by enterprise-auth-wiring.test.ts.
  *
  * Part of the add-enterprise-auth-module OpenSpec change.
  */

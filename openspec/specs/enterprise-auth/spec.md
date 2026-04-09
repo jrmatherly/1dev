@@ -19,7 +19,7 @@ The project SHALL include `@azure/msal-node` (v5.x), `@azure/msal-node-extension
 
 ### Requirement: Enterprise auth module with MSAL PublicClientApplication
 
-The system SHALL provide `src/main/lib/enterprise-auth.ts` exporting functions for Entra ID token acquisition using MSAL Node's `PublicClientApplication`. The module SHALL NOT be imported by `auth-manager.ts` or any tRPC router until change #2 (`wire-enterprise-auth`) explicitly wires it in.
+The system SHALL provide `src/main/lib/enterprise-auth.ts` exporting functions for Entra ID token acquisition using MSAL Node's `PublicClientApplication`. The module is wired into `auth-manager.ts` via a Strangler Fig adapter gated by `enterpriseAuthEnabled` (change #2, wire-enterprise-auth).
 
 The module SHALL export:
 
@@ -57,10 +57,11 @@ The MSAL configuration SHALL include:
 - **THEN** MSAL Node performs a silent token refresh via the Entra token endpoint
 - **AND** the function returns an `EnterpriseAuthResult` with the new token
 
-#### Scenario: Module isolation — not wired into auth-manager
+#### Scenario: Module is wired into auth-manager via Strangler Fig adapter
 
 - **WHEN** `src/main/auth-manager.ts` is scanned
-- **THEN** it does NOT contain any import from `./lib/enterprise-auth` or `../lib/enterprise-auth`
+- **THEN** it imports from `./lib/enterprise-auth`
+- **AND** all public methods branch on `enterpriseAuthEnabled` feature flag
 
 ### Requirement: Enterprise auth types
 
@@ -109,22 +110,23 @@ When `credentialStorageRequireEncryption` is `true` and the tier is 2, the behav
 - **AND** the system is Tier 2 (basic_text)
 - **THEN** the MSAL cache plugin uses in-memory storage only (same as Tier 3)
 
-### Requirement: Regression guard for module isolation and exports
+### Requirement: Regression guard for module exports
 
 A regression test at `tests/regression/enterprise-auth-module.test.ts` SHALL verify:
 
 1. `enterprise-auth.ts` exists and exports `createEnterpriseAuth`
 2. `enterprise-store.ts` exists and exports the cache plugin factory
 3. `enterprise-types.ts` exists and exports `EnterpriseAuthConfig`, `EnterpriseUser`, `EnterpriseAuthResult`
-4. `auth-manager.ts` does NOT import from `enterprise-auth` (isolation boundary)
-5. `package.json` includes `@azure/msal-node`, `@azure/msal-node-extensions`, and `jose`
+4. `package.json` includes `@azure/msal-node`, `@azure/msal-node-extensions`, and `jose`
+
+Note: The isolation boundary assertion (auth-manager does NOT import enterprise-auth) was removed in change #2 (wire-enterprise-auth). Wiring invariants are validated by `enterprise-auth-wiring.test.ts`.
 
 #### Scenario: Regression guard passes on compliant codebase
 
 - **WHEN** `bun test tests/regression/enterprise-auth-module.test.ts` runs
 - **THEN** all assertions pass
 
-#### Scenario: Regression guard catches premature wiring
+#### Scenario: Wiring is validated by the enterprise-auth-wiring guard
 
-- **WHEN** a developer adds `import ... from "./lib/enterprise-auth"` to `auth-manager.ts`
-- **THEN** the regression guard fails with a message: "enterprise-auth.ts must not be wired into auth-manager.ts until change #2 (wire-enterprise-auth)"
+- **WHEN** `bun test tests/regression/enterprise-auth-wiring.test.ts` runs
+- **THEN** all wiring assertions pass

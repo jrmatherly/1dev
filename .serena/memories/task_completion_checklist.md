@@ -3,7 +3,7 @@
 ## Required — All Quality Gates
 1. `bun run ts:check` — baseline ~87 errors (`.claude/.tscheck-baseline`), only fail if count increases
 2. `bun run build` — electron-vite build
-3. `bun test` — 12 guards, 48 tests under `tests/regression/`
+3. `bun test` — 13 guards, 53 tests under `tests/regression/`
 4. `bun audit` — focus on NEW advisories only
 5. CI also runs `cd docs && bun run build` — recommended locally too
 
@@ -61,9 +61,10 @@ All gates closed. Phase 0.5 (harden-credential-storage) also complete.
 
 ## If Editing Enterprise Auth / Token Injection Code
 - Claude CLI 2.1.96 does NOT support `ANTHROPIC_AUTH_TOKEN_FILE` — use `ANTHROPIC_AUTH_TOKEN` env var
-- `ANTHROPIC_AUTH_TOKEN` must be in `STRIPPED_ENV_KEYS_BASE` (prevents shell-inherited leaks)
+- `ANTHROPIC_AUTH_TOKEN` and `ANTHROPIC_AUTH_TOKEN_FILE` are in `STRIPPED_ENV_KEYS_BASE`
+- `applyEnterpriseAuth()` in `env.ts` injects fresh token AFTER the strip pass
+- `buildClaudeEnv()` is now **async** (`Promise<Record<string, string>>`) — 1 call site at `claude.ts:1142`
+- `auth-manager.ts` uses Strangler Fig pattern — `enterpriseAuthEnabled` flag branches all methods
+- `ensureReady()` must be awaited at startup before checking auth state
 - Do NOT enable `clientCapabilities: ["CP1"]` — LiteLLM is not CAE-enabled (28h unrevocable tokens)
-- `buildClaudeEnv()` has 1 call site (`claude.ts:1142`) — NOT 5 as auth-strategy doc claims
-- `acquireTokenSilent()` before each spawn — no custom setTimeout timer
-- Read `docs/enterprise/auth-strategy.md` §4.9 and §5.4 but cross-reference against agent team findings in `project_phase1_prep.md`
 - Full rule: [`.claude/rules/auth-env-vars.md`](../../.claude/rules/auth-env-vars.md)

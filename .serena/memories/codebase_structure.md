@@ -8,17 +8,18 @@ openspec/      — OpenSpec change proposals + 8 capability specs
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, etc.)
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
-tests/regression/ — 12 bun:test regression guards, 48 tests
+tests/regression/ — 13 bun:test regression guards, 53 tests
 drizzle/       — 9 database migration files
 ```
 
 ## Main Process (`src/main/`)
-- `auth-manager.ts` — OAuth flow + dev auth bypass (`isDevAuthBypassed()`)
+- `auth-manager.ts` — Strangler Fig adapter: branches on `enterpriseAuthEnabled` flag, delegates to EnterpriseAuth (MSAL) or legacy AuthStore. `ensureReady()` for lazy async MSAL init.
 - `lib/credential-store.ts` — Unified 3-tier credential encryption
-- `lib/enterprise-auth.ts` — MSAL Node (Phase 1, isolated — not wired yet)
+- `lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (wired into auth-manager)
 - `lib/terminal/session.ts` — **Lazy import** for node-pty (prevents crash if native module fails)
 - `lib/db/schema/index.ts` — Drizzle schema (7 tables)
-- `lib/trpc/routers/index.ts` — 21 routers in `createAppRouter`
+- `lib/trpc/routers/index.ts` — 22 routers in `createAppRouter` (incl. enterprise-auth)
+- `lib/trpc/routers/enterprise-auth.ts` — Enterprise auth tRPC router (signIn/signOut/getStatus/refreshToken)
 - `lib/feature-flags.ts` — Type-safe feature flags backed by DB table
 - `electron.vite.config.ts` — Uses `build.externalizeDeps` (electron-vite 5.0 API)
 
@@ -41,4 +42,4 @@ credential-storage, renderer-data-access, enterprise-auth, electron-runtime
 auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted,
 gpg-verification-present, feature-flags-shape, brand-sweep-complete,
 no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamps,
-credential-storage-tier, enterprise-auth-module, electron-version-pin
+credential-storage-tier, enterprise-auth-module, enterprise-auth-wiring, electron-version-pin

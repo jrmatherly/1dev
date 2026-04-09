@@ -3,16 +3,18 @@
  *
  * This module provides token acquisition for the Envoy Gateway dual-auth
  * pattern (docs/enterprise/auth-strategy.md v2.1). CLI subprocesses
- * (Claude Code, Codex) receive the acquired Bearer token via a 0600
- * tmpfile (ANTHROPIC_AUTH_TOKEN_FILE), NOT as an env var.
+ * (Claude Code, Codex) receive the acquired Bearer token via the
+ * ANTHROPIC_AUTH_TOKEN env var (the only mechanism CLI 2.1.96 supports).
+ * Future: CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR (FD-based) when CLI
+ * pin is bumped.
  *
- * Phase 1 change #1: This module is ISOLATED — not yet wired into
- * auth-manager.ts. Wiring happens in change #2 (wire-enterprise-auth).
+ * Phase 1 change #2 (wire-enterprise-auth) wired this module into
+ * auth-manager.ts via a Strangler Fig adapter gated by the
+ * `enterpriseAuthEnabled` feature flag.
  *
  * Auth strategy references:
  *   §5.1 — PublicClientApplication (token acquisition only)
  *   §5.3 — Module structure
- *   §5.3.1 Step A — Isolated module, not wired
  *   §7.1.1 — Linux keystore fallback (delegated to enterprise-store.ts)
  */
 

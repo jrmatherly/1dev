@@ -9,7 +9,7 @@ icon: route
 
 ## TODO
 
-- 21 routers in `createAppRouter` (20 feature + 1 git)
+- 22 routers in `createAppRouter` (21 feature + 1 git)
 - Router registration pattern (`src/main/lib/trpc/routers/index.ts`)
 - How to add a new router (the `new-router` skill)
 - `agent-utils.ts` is a helper, NOT a router

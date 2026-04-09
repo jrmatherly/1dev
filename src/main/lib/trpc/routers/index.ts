@@ -19,6 +19,7 @@ import { commandsRouter } from "./commands";
 import { voiceRouter } from "./voice";
 import { pluginsRouter } from "./plugins";
 import { featureFlagsRouter } from "./feature-flags";
+import { enterpriseAuthRouter } from "./enterprise-auth";
 import { createGitRouter } from "../../git";
 import { BrowserWindow } from "electron";
 
@@ -48,6 +49,7 @@ export function createAppRouter(getWindow: () => BrowserWindow | null) {
     voice: voiceRouter,
     plugins: pluginsRouter,
     featureFlags: featureFlagsRouter,
+    enterpriseAuth: enterpriseAuthRouter,
     // Git operations - named "changes" to match Superset API
     changes: createGitRouter(),
   });

@@ -1139,7 +1139,7 @@ export const claudeRouter = router({
             }
 
             // Build full environment for Claude SDK (includes HOME, PATH, etc.)
-            const claudeEnv = buildClaudeEnv({
+            const claudeEnv = await buildClaudeEnv({
               ...(finalCustomConfig && {
                 customEnv: {
                   ANTHROPIC_AUTH_TOKEN: finalCustomConfig.token,

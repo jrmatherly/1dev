@@ -933,6 +933,7 @@ if (gotTheLock) {
 
     // Initialize auth manager (uses singleton from auth-manager module)
     authManager = initAuthManager(!!process.env.ELECTRON_RENDERER_URL);
+    await authManager.ensureReady(); // No-op when enterprise flag is off
     console.log("[App] Auth manager initialized");
 
     // Initialize analytics after auth manager so we can identify user

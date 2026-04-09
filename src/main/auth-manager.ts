@@ -1,6 +1,12 @@
 import { AuthStore, AuthData, AuthUser } from "./auth-store";
 import { app, BrowserWindow } from "electron";
 import { AUTH_SERVER_PORT } from "./constants";
+import { getFlag } from "./lib/feature-flags";
+import {
+  EnterpriseAuth,
+  getEnterpriseAuthConfig,
+} from "./lib/enterprise-auth";
+import type { EnterpriseUser } from "./lib/enterprise-types";
 
 // Get API URL - in packaged app always use production, in dev allow override
 function getApiBaseUrl(): string {
@@ -25,20 +31,79 @@ const DEV_BYPASS_USER: AuthUser = {
   username: "dev-bypass",
 };
 
+// Dev bypass user with synthetic Entra fields for enterprise mode
+const DEV_BYPASS_USER_ENTERPRISE: AuthUser = {
+  id: "00000000-0000-0000-0000-000000000000",
+  email: "dev@localhost",
+  name: "Dev Bypass User (Enterprise)",
+  imageUrl: null,
+  username: "dev-bypass",
+};
+
+/**
+ * Adapt EnterpriseUser (Entra claims) to AuthUser (app-wide shape).
+ * This is the single boundary where the shape translation happens.
+ */
+function adaptEnterpriseUser(eu: EnterpriseUser): AuthUser {
+  return {
+    id: eu.oid,
+    email: eu.email ?? "unknown@enterprise",
+    name: eu.displayName,
+    imageUrl: null,
+    username: eu.email,
+  };
+}
+
 export class AuthManager {
-  private store: AuthStore;
+  private store: AuthStore | null;
   private refreshTimer?: NodeJS.Timeout;
   private isDev: boolean;
   private onTokenRefresh?: (authData: AuthData) => void;
+  private enterpriseAuth: EnterpriseAuth | null = null;
+  private readyPromise: Promise<void>;
+  private readonly isEnterprise: boolean;
 
   constructor(isDev: boolean = false) {
-    this.store = new AuthStore(app.getPath("userData"));
     this.isDev = isDev;
+    this.isEnterprise = getFlag("enterpriseAuthEnabled");
 
-    // Schedule refresh if already authenticated
-    if (this.store.isAuthenticated()) {
-      this.scheduleRefresh();
+    if (this.isEnterprise) {
+      // Enterprise mode: skip AuthStore (MSAL cache plugin handles persistence)
+      this.store = null;
+      this.readyPromise = this.initEnterprise();
+    } else {
+      // Legacy mode: use AuthStore as before
+      this.store = new AuthStore(app.getPath("userData"));
+      this.readyPromise = Promise.resolve();
+
+      // Schedule refresh if already authenticated
+      if (this.store.isAuthenticated()) {
+        this.scheduleRefresh();
+      }
     }
+  }
+
+  /**
+   * Initialize MSAL PublicClientApplication asynchronously.
+   * Called from constructor, resolved via ensureReady().
+   */
+  private async initEnterprise(): Promise<void> {
+    try {
+      const config = getEnterpriseAuthConfig();
+      this.enterpriseAuth = await EnterpriseAuth.create(config);
+      console.log("[AuthManager] Enterprise auth (MSAL) initialized");
+    } catch (err) {
+      console.error("[AuthManager] Failed to initialize enterprise auth:", err);
+      // enterpriseAuth stays null — isAuthenticated() will return false
+    }
+  }
+
+  /**
+   * Wait for MSAL initialization to complete. No-op when enterprise flag
+   * is off. Must be awaited at app startup before checking auth state.
+   */
+  async ensureReady(): Promise<void> {
+    return this.readyPromise;
   }
 
   /**
@@ -58,6 +123,10 @@ export class AuthManager {
    * Called after receiving code via deep link
    */
   async exchangeCode(code: string): Promise<AuthData> {
+    if (this.isEnterprise) {
+      throw new Error("Not available in enterprise mode");
+    }
+
     const response = await fetch(
       `${this.getApiUrl()}/api/auth/desktop/exchange`,
       {
@@ -86,7 +155,7 @@ export class AuthManager {
       user: data.user,
     };
 
-    this.store.save(authData);
+    this.store!.save(authData);
     this.scheduleRefresh();
 
     return authData;
@@ -106,22 +175,42 @@ export class AuthManager {
    * Get a valid token, refreshing if necessary
    */
   async getValidToken(): Promise<string | null> {
-    if (!this.store.isAuthenticated()) {
+    if (this.isEnterprise) {
+      if (!this.enterpriseAuth) return null;
+      try {
+        const result = await this.enterpriseAuth.acquireTokenSilent();
+        return result.accessToken;
+      } catch {
+        return null;
+      }
+    }
+
+    if (!this.store!.isAuthenticated()) {
       return null;
     }
 
-    if (this.store.needsRefresh()) {
+    if (this.store!.needsRefresh()) {
       await this.refresh();
     }
 
-    return this.store.getToken();
+    return this.store!.getToken();
   }
 
   /**
    * Refresh the current session
    */
   async refresh(): Promise<boolean> {
-    const refreshToken = this.store.getRefreshToken();
+    if (this.isEnterprise) {
+      if (!this.enterpriseAuth) return false;
+      try {
+        await this.enterpriseAuth.acquireTokenSilent();
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    const refreshToken = this.store!.getRefreshToken();
     if (!refreshToken) {
       console.warn("No refresh token available");
       return false;
@@ -155,7 +244,7 @@ export class AuthManager {
         user: data.user,
       };
 
-      this.store.save(authData);
+      this.store!.save(authData);
       this.scheduleRefresh();
 
       // Notify callback about token refresh (so cookie can be updated)
@@ -171,14 +260,17 @@ export class AuthManager {
   }
 
   /**
-   * Schedule token refresh before expiration
+   * Schedule token refresh before expiration.
+   * No-op in enterprise mode — MSAL handles refresh on-demand via acquireTokenSilent().
    */
   private scheduleRefresh(): void {
+    if (this.isEnterprise) return;
+
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
     }
 
-    const authData = this.store.load();
+    const authData = this.store!.load();
     if (!authData) return;
 
     const expiresAt = new Date(authData.expiresAt).getTime();
@@ -201,39 +293,77 @@ export class AuthManager {
    */
   isAuthenticated(): boolean {
     if (isDevAuthBypassed()) return true;
-    return this.store.isAuthenticated();
+
+    if (this.isEnterprise) {
+      return this.enterpriseAuth?.isAuthenticated() ?? false;
+    }
+
+    return this.store!.isAuthenticated();
   }
 
   /**
    * Get current user
    */
   getUser(): AuthUser | null {
-    if (isDevAuthBypassed()) return DEV_BYPASS_USER;
-    return this.store.getUser();
+    if (isDevAuthBypassed()) {
+      return this.isEnterprise ? DEV_BYPASS_USER_ENTERPRISE : DEV_BYPASS_USER;
+    }
+
+    if (this.isEnterprise) {
+      const account = this.enterpriseAuth?.getAccount();
+      if (!account) return null;
+      return adaptEnterpriseUser(account);
+    }
+
+    return this.store!.getUser();
   }
 
   /**
    * Get current auth data
    */
   getAuth(): AuthData | null {
-    return this.store.load();
+    if (this.isEnterprise) {
+      // No AuthData equivalent in enterprise mode — return null.
+      // Callers that need a token should use getValidToken() instead.
+      return null;
+    }
+    return this.store!.load();
   }
 
   /**
    * Logout and clear stored credentials
    */
   logout(): void {
+    if (this.isEnterprise) {
+      this.enterpriseAuth?.signOut().catch((err) => {
+        console.error("[AuthManager] Enterprise sign-out failed:", err);
+      });
+      return;
+    }
+
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = undefined;
     }
-    this.store.clear();
+    this.store!.clear();
   }
 
   /**
    * Start auth flow by opening browser
    */
   startAuthFlow(mainWindow: BrowserWindow | null): void {
+    if (this.isEnterprise) {
+      if (!this.enterpriseAuth) {
+        console.error("[AuthManager] Enterprise auth not initialized");
+        return;
+      }
+      // Entra interactive sign-in (opens browser via MSAL)
+      this.enterpriseAuth.acquireTokenInteractive().catch((err) => {
+        console.error("[AuthManager] Interactive sign-in failed:", err);
+      });
+      return;
+    }
+
     const { shell } = require("electron");
 
     let authUrl = `${this.getApiUrl()}/auth/desktop?auto=true`;
@@ -253,6 +383,10 @@ export class AuthManager {
    * Update user profile on server and locally
    */
   async updateUser(updates: { name?: string }): Promise<AuthUser | null> {
+    if (this.isEnterprise) {
+      throw new Error("Not available in enterprise mode");
+    }
+
     const token = await this.getValidToken();
     if (!token) {
       throw new Error("Not authenticated");
@@ -278,7 +412,7 @@ export class AuthManager {
     }
 
     // Update locally
-    return this.store.updateUser({ name: updates.name ?? null });
+    return this.store!.updateUser({ name: updates.name ?? null });
   }
 
   /**
@@ -290,6 +424,8 @@ export class AuthManager {
     plan: string;
     status: string | null;
   } | null> {
+    if (this.isEnterprise) return null;
+
     const token = await this.getValidToken();
     if (!token) return null;
 

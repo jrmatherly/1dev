@@ -53,7 +53,7 @@
 
 New as of 2026-04-08 (Phase 0 hard gate #12). Type-safe flag API backed by `feature_flag_overrides` table. Initial flags wired for the auth migration. Tests in `tests/regression/feature-flags-shape.test.ts`. Spec lives in `openspec/changes/add-feature-flag-infrastructure/`.
 
-### tRPC Routers (`src/main/lib/trpc/routers/`) — 21 routers in `createAppRouter`
+### tRPC Routers (`src/main/lib/trpc/routers/`) — 22 routers in `createAppRouter`
 
 20 feature routers imported from `routers/` + 1 git router from `../../git` mounted as `changes`. The file `agent-utils.ts` in `routers/` is a **helper module, not a router**.
 
