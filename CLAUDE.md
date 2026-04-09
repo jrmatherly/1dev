@@ -53,7 +53,7 @@ bun run db:studio        # Open Drizzle Studio GUI
 # Quality gates (run all 5 before every PR — none is a superset)
 bun run ts:check         # tsgo (requires: npm install -g @typescript/native-preview)
 bun run build            # esbuild packaging validation
-bun test                 # bun:test regression guards (~150ms)
+bun test                 # bun:test regression guards (~3s)
 bun audit                # dependency advisories
 cd docs && bun run build # xyd-js docs site build
 

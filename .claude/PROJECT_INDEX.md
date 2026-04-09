@@ -1,7 +1,7 @@
 # 1Code Project Index
 
 > Auto-generated project knowledge base for AI-assisted development.
-> Last indexed: 2026-04-08 | Version: 0.0.72 | Files: 504 TS/TSX in `src/`
+> Last indexed: 2026-04-09 | Version: 0.0.72 | Files: 532 TS/TSX in `src/`
 
 **Fork posture:** Enterprise fork of upstream 1Code. Decoupling from `1code.dev` SaaS in favor of self-hosted infrastructure (LiteLLM + Microsoft Entra via Envoy Gateway). All upstream-dependent features (F1–F10) catalogued in `docs/enterprise/upstream-features.md`.
 
@@ -55,7 +55,7 @@ New as of 2026-04-08 (Phase 0 hard gate #12). Type-safe flag API backed by `feat
 
 ### tRPC Routers (`src/main/lib/trpc/routers/`) — 22 routers in `createAppRouter`
 
-20 feature routers imported from `routers/` + 1 git router from `../../git` mounted as `changes`. The file `agent-utils.ts` in `routers/` is a **helper module, not a router**.
+21 feature routers imported from `routers/` + 1 git router from `../../git` mounted as `changes`. The file `agent-utils.ts` in `routers/` is a **helper module, not a router**.
 
 | Router file | Mounted as | Purpose |
 |-------------|------------|---------|
@@ -68,6 +68,7 @@ New as of 2026-04-08 (Phase 0 hard gate #12). Type-safe flag API backed by `feat
 | `ollama.ts` | `ollama` | Ollama local model support, offline mode |
 | `codex.ts` | `codex` | OpenAI Codex via `@zed-industries/codex-acp` |
 | `terminal.ts` | `terminal` | PTY sessions, terminal I/O |
+| `enterprise-auth.ts` | `enterpriseAuth` | Enterprise Entra ID auth (signIn/signOut/getStatus/refreshToken) |
 | `external.ts` | `external` | Clipboard, shell, OS utilities + remote backend bridges |
 | `files.ts` | `files` | File read/write, directory listing |
 | `debug.ts` | `debug` | Debug data export, DB inspection |
@@ -153,7 +154,7 @@ Radix-based primitives: accordion, alert-dialog, badge, button, button-group, ca
 | `api-fetch.ts` | Fetch wrapper for API calls |
 | `analytics.ts` | PostHog analytics integration |
 | `jotai-store.ts` | Global Jotai store instance |
-| `mock-api.ts` | **DEPRECATED — still imported by 6 files in `features/agents/`. Migrate before deletion.** Retirement tracked in `openspec/changes/retire-mock-api-translator/` |
+| `mock-api.ts` | **DEPRECATED — still imported by 6 files.** Phase 2 migration tracked in `openspec/changes/migrate-mock-api-consumers/`. Phase 3 will delete. |
 | `window-storage.ts` | Window-scoped storage utilities |
 | `vscode-themes.ts` | VS Code theme support |
 | `editor-icons.ts` | File type icon mappings |
@@ -204,13 +205,13 @@ Phase 0 regression guards (no Jest/Vitest/Playwright). Run with `bun test`.
 | `gpg-verification-present.test.ts` | Removing GPG signature verification from Claude binary downloader (gate #7) |
 | `feature-flags-shape.test.ts` | Renaming feature flag keys without migration |
 
-**Quality gates (run all 4 before PR — none is a superset):**
+**Quality gates (run all 5 before PR — none is a superset):**
 1. `bun run ts:check` — tsgo TypeScript check
 2. `bun run build` — esbuild packaging validation
 3. `bun test` — regression guards
 4. `bun audit` — dependency advisories
 
-CI enforces the same 4 in `.github/workflows/ci.yml`.
+CI enforces the same 5 in `.github/workflows/ci.yml`.
 
 ---
 
@@ -239,7 +240,7 @@ Spec-driven change proposal workflow (OpenSpec 1.2.0).
 | `project.md` | Project-level spec context |
 | `config.yaml` | OpenSpec configuration |
 | `changes/add-feature-flag-infrastructure/` | Active proposal: Phase 0 gate #12 (24 tasks across 6 phases) |
-| `changes/retire-mock-api-translator/` | Active proposal: Retire 657-line untyped `mock-api.ts` facade |
+| `changes/migrate-mock-api-consumers/` | Active proposal: Phase 2 — port 6 consumers from mock-api to direct tRPC |
 
 Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `specs/<capability>/spec.md`.
 
@@ -296,7 +297,7 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 3. Create feature directory in `src/renderer/features/`
 4. Use Jotai atoms for UI state, tRPC queries for data
 5. Use Radix UI + `cn()` + CVA for components
-6. Run all 4 quality gates: `bun run ts:check && bun run build && bun test && bun audit`
+6. Run all 5 quality gates: `bun run ts:check && bun run build && bun test && bun audit && cd docs && bun run build`
 
 ### File Naming
 - Components: PascalCase (`ActiveChat.tsx`)
@@ -310,8 +311,8 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 
 | Layer | Tech | Pin |
 |-------|------|-----|
-| Desktop | Electron | ~39 (EOL 2026-05-05 — plan upgrade) |
-| Build | electron-vite 3, electron-builder | Vite **must stay 6.x** |
+| Desktop | Electron | ~40.8 (EOL 2026-06-30 — upgrade to 41 tracked in OpenSpec) |
+| Build | electron-vite 5.0.0, electron-builder | Vite 7 safe; Vite 8 needs electron-vite 6.0.0 (beta) |
 | UI | React 19, TypeScript 5, Tailwind | Tailwind **must stay 3.x** |
 | Components | Radix UI, Lucide, Motion, Sonner | — |
 | State | Jotai, Zustand, React Query | — |
@@ -339,7 +340,7 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 | 8 | Upstream sandbox OAuth extraction | ✅ Done (archived `remove-upstream-sandbox-oauth`) |
 | 9 | Minimum CI workflow | ✅ Done (`.github/workflows/ci.yml`) |
 | 10 | Dependabot config | ✅ Done |
-| 11 | Test framework + regression guards | ✅ Done (bun:test, 12 guards / 48 tests) |
+| 11 | Test framework + regression guards | ✅ Done (bun:test, 13 guards / 53 tests) |
 | 12 | Feature flag infrastructure + Drizzle schema | ✅ Done |
 | 13 | OpenSpec 1.2.0 migration | ✅ Done |
 | 14 | Electron upgrade (39 → 40) | ✅ Done (archived `upgrade-electron-40`) |
