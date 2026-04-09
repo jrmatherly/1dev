@@ -71,7 +71,8 @@ function createWindowScopedStorage<T>() {
             localStorage.setItem(windowKey, migratedValue);
           } catch (e) {
             console.warn(
-              `[WindowStorage] Failed to save migrated value for ${windowKey}:`,
+              "[WindowStorage] Failed to save migrated value for",
+              windowKey,
               e,
             );
           }
@@ -84,10 +85,11 @@ function createWindowScopedStorage<T>() {
           if (legacyValue !== null) {
             try {
               localStorage.setItem(windowKey, legacyValue);
-              console.log(`[WindowStorage] Migrated ${key} to ${windowKey}`);
+              console.log("[WindowStorage] Migrated", key, "to", windowKey);
             } catch (e) {
               console.warn(
-                `[WindowStorage] Failed to save migrated value for ${windowKey}:`,
+                "[WindowStorage] Failed to save migrated value for",
+                windowKey,
                 e,
               );
             }
@@ -106,7 +108,7 @@ function createWindowScopedStorage<T>() {
         localStorage.setItem(windowKey, value);
       } catch (e) {
         // Handle QuotaExceededError gracefully
-        console.error(`[WindowStorage] Failed to save ${windowKey}:`, e);
+        console.error("[WindowStorage] Failed to save", windowKey, e);
       }
     },
     removeItem: (key: string) => {
