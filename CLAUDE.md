@@ -13,10 +13,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Chosen enterprise auth strategy (2026-04-08):** `.scratchpad/auth-strategy-envoy-gateway.md` **v2.1** (Envoy Gateway dual-auth, **empirically validated** via live smoke test against the Talos AI cluster — see `.full-review/envoy-gateway-review/05-final-report.md`). Fallback: `.scratchpad/enterprise-auth-integration-strategy.md` v5 (MSAL-in-Electron).
 
-**Phase 0 progress (2026-04-08):** 12 of 15 hard gates complete.
+**Phase 0 progress (2026-04-09): 15 of 15 hard gates complete ✅**
 - ✅ **#1-6** — dead `auth:get-token` IPC handler deletion + token log sanitization
 - ✅ **#7** — Claude binary SHA-256 + GPG signature verification, Codex SHA-256 verification
-- ⏳ **#8** — upstream sandbox OAuth extraction from `claude-code.ts` (grep the Claude Code router for `sandbox_id`; current implementation uses an upstream sandbox as the OAuth redirect host — must be replaced with a localhost-loopback redirect like `auth-manager.ts` already uses)
+- ✅ **#8** — upstream sandbox OAuth removed (see `openspec/changes/remove-upstream-sandbox-oauth/`)
 - ✅ **#9** — minimum CI workflow (`.github/workflows/ci.yml`)
 - ✅ **#10** — Dependabot config (secret scanning UI enable still pending)
 - ✅ **#11** — bun:test framework + regression guards (`tests/regression/`)
@@ -24,6 +24,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ **#13** — OpenSpec 1.2.0 migration
 - ✅ **#14** — Electron 39.8.6 → 39.8.7 patch
 - ✅ **#15** — F1-F10 restoration decisions (see `.scratchpad/upstream-features-inventory.md` v2)
+
+Phase 1 enterprise auth (Entra SSO via MSAL + LiteLLM gateway) is deferred to a future OpenSpec proposal with its own security and architecture requirements, including a dedicated credential-storage discussion.
 
 ## Commands
 
@@ -266,7 +268,6 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - **Electron 39 EOL: 2026-05-05** — plan upgrade to Electron 40+ before that date
 - **Envoy Gateway dual-auth pattern** (`passThroughAuthHeader: true` + `jwt.optional: true`) was **empirically validated on 2026-04-08** via live smoke test against the Talos AI cluster (Envoy Gateway v1.7.1, `default/echo` HTTPRoute, Outcome A — full pass). The CLI Bearer passes through to upstream character-for-character unchanged; `claimToHeaders` populates `x-user-oid`/`x-user-tid`/`x-user-azp`. Reproducible runbook: `.scratchpad/forwardaccesstoken-smoke-test.md`. Evidence: `.full-review/envoy-gateway-review/envoy-claims-validation.md` "Smoke Test Results" section. **Important caveats discovered during the test**: see the Entra gotchas below.
 - **`src/renderer/lib/mock-api.ts` is marked DEPRECATED but still imported by 6 files in `features/agents/`** — do not delete without migrating call sites first (verified via grep `2026-04-08`)
-- **Claude Code OAuth flow uses upstream sandboxes as a redirect host** (`src/main/lib/trpc/routers/claude-code.ts:178-220`) — this is a P0 hidden dependency inside what looks like a P3 background-agents feature. Must extract to a localhost-loopback redirect (like `auth-manager.ts` already uses) before retiring upstream backend.
 - **Entra `requestedAccessTokenVersion` defaults to `null` = v1, NOT v2** — new Entra app registrations issue v1.0 tokens by default EVEN when calling `/oauth2/v2.0/token`. Token format is determined by the **resource API's manifest**, not the endpoint. Explicitly set `"requestedAccessTokenVersion": 2` (integer, no quotes) in the app manifest via the Entra portal's Manifest tab — takes ~60s to propagate. Without this, `aud` is `api://<client>` (not the GUID) and `iss` is `sts.windows.net/<tenant>/` (no `/v2.0` suffix), breaking Envoy JWT validation. Discovered empirically 2026-04-08 — see `.full-review/envoy-gateway-review/05-final-report.md` §C8.
 - **Entra "Add optional claim" dialog does NOT show `oid`, `tid`, `azp`** — these are default v2.0 access token claims and always present. Only `email`, `upn`, `family_name`, `idtyp`, etc. appear in the dialog. Future sessions configuring Entra should only check `email` and `idtyp`; don't search for the default claims or assume they're missing.
 - **`preferred_username` MUST NOT be used for authorization** per Microsoft docs — tenant-admin-mutable, empty for service principals, synthetic for B2B guests. Use `oid` (+ `tid` for cross-tenant scoping) as the authoritative identity key in any LiteLLM `user_header_mappings` or JWT-claim-based auth.
@@ -386,7 +387,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; upgrading requires full config migration (134 files use `cn()`)
 - **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream releases compatible version
 - `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously). For `bun audit` / `bun outdated` see the Commands block above.
-- **`openspec` CLI is installed globally** but mise shims may not be on the Bash tool's PATH in non-login shells. Use `bunx @fission-ai/openspec@1.2.0` (matches the globally pinned version) instead of bare `openspec` in automation. Supports `new change`, `instructions <artifact>`, `validate --strict --no-interactive`, `list`, `status`, `archive`.
+- **`openspec` CLI is installed globally** but mise shims may not be on the Bash tool's PATH in non-login shells. Use `bunx @fission-ai/openspec@1.2.0` (matches the globally pinned version) instead of bare `openspec` in automation. Supports `new change`, `instructions <artifact>`, `validate --strict --no-interactive`, `list`, `status --change <id>`, `show <id>`, `archive`.
 - **OpenSpec `## MODIFIED Requirements` requires an archived baseline.** You can only use MODIFIED against a capability spec that lives under `openspec/specs/<capability>/spec.md`. Capabilities still inside unarchived `openspec/changes/<id>/specs/` directories are NOT baselines — use `## ADDED Requirements` on a new capability instead, or archive the source change first with `bunx @fission-ai/openspec@1.2.0 archive <id>`.
 - **TDD red-state verification rule:** A test that fails because of a missing import, undefined symbol, or TypeScript compile error is NOT a valid red. The red step must produce an assertion failure with a readable `expected X, got Y` message. If the red output mentions `ReferenceError`, `TypeError`, or `Cannot find module`, stop and fix the test harness before proceeding to green.
 - Claude Agent SDK version: see `@anthropic-ai/claude-agent-sdk` in `package.json`

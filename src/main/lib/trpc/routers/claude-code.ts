@@ -1,10 +1,9 @@
 import { eq, sql } from "drizzle-orm";
-import { safeStorage, shell } from "electron";
+import { safeStorage } from "electron";
 import { z } from "zod";
 import { getAuthManager } from "../../../index";
 import { getClaudeShellEnvironment } from "../../claude";
 import { getExistingClaudeToken } from "../../claude-token";
-import { getApiUrl } from "../../config";
 import {
   anthropicAccounts,
   anthropicSettings,
@@ -13,14 +12,6 @@ import {
 } from "../../db";
 import { createId } from "../../db/utils";
 import { publicProcedure, router } from "../index";
-
-/**
- * Get desktop auth token for server API calls
- */
-async function getDesktopToken(): Promise<string | null> {
-  const authManager = getAuthManager();
-  return authManager.getValidToken();
-}
 
 /**
  * Encrypt token using Electron's safeStorage
@@ -175,135 +166,6 @@ export const claudeCodeRouter = router({
   }),
 
   /**
-   * Start OAuth flow - calls server to create sandbox
-   */
-  startAuth: publicProcedure.mutation(async () => {
-    const token = await getDesktopToken();
-    if (!token) {
-      throw new Error("Not authenticated with apollosai.dev");
-    }
-
-    // Server creates sandbox (has CodeSandbox SDK)
-    const response = await fetch(`${getApiUrl()}/api/auth/claude-code/start`, {
-      method: "POST",
-      headers: { "x-desktop-token": token },
-    });
-
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: "Unknown error" }));
-      throw new Error(error.error || `Start auth failed: ${response.status}`);
-    }
-
-    return (await response.json()) as {
-      sandboxId: string;
-      sandboxUrl: string;
-      sessionId: string;
-    };
-  }),
-
-  /**
-   * Poll for OAuth URL - calls sandbox directly
-   */
-  pollStatus: publicProcedure
-    .input(
-      z.object({
-        sandboxUrl: z.string(),
-        sessionId: z.string(),
-      }),
-    )
-    .query(async ({ input }) => {
-      try {
-        const response = await fetch(
-          `${input.sandboxUrl}/api/auth/${input.sessionId}/status`,
-        );
-
-        if (!response.ok) {
-          return {
-            state: "error" as const,
-            oauthUrl: null,
-            error: "Failed to poll status",
-          };
-        }
-
-        const data = await response.json();
-        return {
-          state: data.state as string,
-          oauthUrl: data.oauthUrl ?? null,
-          error: data.error ?? null,
-        };
-      } catch (error) {
-        console.error("[ClaudeCode] Poll status error:", error);
-        return {
-          state: "error" as const,
-          oauthUrl: null,
-          error: "Connection failed",
-        };
-      }
-    }),
-
-  /**
-   * Submit OAuth code - calls sandbox directly, stores token locally
-   */
-  submitCode: publicProcedure
-    .input(
-      z.object({
-        sandboxUrl: z.string(),
-        sessionId: z.string(),
-        code: z.string().min(1),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      // Submit code to sandbox
-      const codeRes = await fetch(
-        `${input.sandboxUrl}/api/auth/${input.sessionId}/code`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: input.code }),
-        },
-      );
-
-      if (!codeRes.ok) {
-        throw new Error(`Code submission failed: ${codeRes.statusText}`);
-      }
-
-      // Poll for OAuth token (max 10 seconds)
-      let oauthToken: string | null = null;
-
-      for (let i = 0; i < 10; i++) {
-        await new Promise((r) => setTimeout(r, 1000));
-
-        const statusRes = await fetch(
-          `${input.sandboxUrl}/api/auth/${input.sessionId}/status`,
-        );
-
-        if (!statusRes.ok) continue;
-
-        const status = await statusRes.json();
-
-        if (status.state === "success" && status.oauthToken) {
-          oauthToken = status.oauthToken;
-          break;
-        }
-
-        if (status.state === "error") {
-          throw new Error(status.error || "Authentication failed");
-        }
-      }
-
-      if (!oauthToken) {
-        throw new Error("Timeout waiting for OAuth token");
-      }
-
-      storeOAuthToken(oauthToken);
-
-      console.log("[ClaudeCode] Token stored locally");
-      return { success: true };
-    }),
-
-  /**
    * Import an existing OAuth token from the local machine
    */
   importToken: publicProcedure
@@ -445,13 +307,4 @@ export const claudeCodeRouter = router({
     return { success: true };
   }),
 
-  /**
-   * Open OAuth URL in browser
-   */
-  openOAuthUrl: publicProcedure
-    .input(z.string())
-    .mutation(async ({ input: url }) => {
-      await shell.openExternal(url);
-      return { success: true };
-    }),
 });
