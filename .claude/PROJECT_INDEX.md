@@ -359,7 +359,7 @@ These files are **mirrors or pointers** to the canonical `docs/` pages — they 
 - `AGENTS.md` — AI agent quick reference
 - `.serena/memories/*.md` — Serena memories (6 files)
 - `.claude/PROJECT_INDEX.md` — this file
-- `.claude/rules/*.md` — Claude Code behavioral rules (7 rules + README)
+- `.claude/rules/*.md` — Claude Code behavioral rules (9 rules + README)
 - `openspec/project.md` — spec context
 - `openspec/config.yaml` — injected context + rules
 

@@ -55,24 +55,27 @@ This repo has 6 different version pins, each pinned for a *specific reason* docu
 - Run `bun run codex:download`
 - Manually test a Codex chat in dev mode
 
-### 3. Electron — pinned `~39.x` (currently 39.8.7)
+### 3. Electron — pinned `~40.8` (currently 40.8.5)
 
 **File**: `package.json` `devDependencies.electron`
 
 **Why pinned**: 
-- Electron 39 is the last version compatible with the current `node-pty`, `better-sqlite3`, and `electron-rebuild` toolchain configuration
-- Vite 6 (also pinned, see #4) depends on Electron 39+ for `splitVendorChunk`
+- Upgraded from 39.8.7 to 40.8.5 on 2026-04-09 (OpenSpec change `upgrade-electron-40`, capability spec `electron-runtime`)
+- Electron 40 ships Node 24 + Chromium 144
+- `electron-vite` upgraded to 5.0.0 in lockstep (`build.externalizeDeps` replaces `externalizeDepsPlugin`)
+- `node-pty` lazy-loaded in `src/main/lib/terminal/session.ts` to prevent crash if native module fails
 
-**Additional constraint**: **EOL is 2026-05-05.** Plan upgrade to Electron 40+ before that date. After EOL, security patches stop.
-
-**Before bumping** (within 39.x):
+**Before bumping** (within 40.x):
 1. Read the patch notes — patch versions should be safe
 2. Verify `electron-rebuild` still works for `better-sqlite3` and `node-pty`
+3. Run `bun run ts:check && bun run build && bun test` — the `electron-version-pin` regression guard validates the expected major version
 
-**Before bumping to 40.x or later**:
+**Before bumping to 41.x or later**:
 1. This is a coordinated upgrade — do not do it as a one-off pin bump
-2. Test all native modules rebuild
-3. Test protocol handlers register correctly (`apollosai-agents://` and `apollosai-agents-dev://`)
+2. Check the Dependabot PR (if one exists on `dependabot/bun/electron-*`) for breaking changes
+3. Test all native modules rebuild
+4. Test protocol handlers register correctly (`apollosai-agents://` and `apollosai-agents-dev://`)
+5. Update the `electron-version-pin.test.ts` guard with the new expected major version
 4. Test auto-update flow with a dev build
 5. Update CLAUDE.md EOL date
 

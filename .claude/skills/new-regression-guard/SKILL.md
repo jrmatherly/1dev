@@ -112,7 +112,7 @@ throw new Error(
 ## Don't forget
 
 - The guard must be **side-effect free** — it only reads files, never writes
-- The guard must complete in **<200ms** on a warm filesystem (the full regression suite currently runs in ~150ms for 14 tests)
+- The guard must complete in **<200ms** on a warm filesystem (the full regression suite currently runs in ~2.5s for 48 tests across 12 files)
 - The guard must NOT depend on `bun` being installed at a specific path — use only `bun:test` imports and `node:fs`/`node:path`
 - The guard must NOT require network access — all checks are local
 - Update the OpenSpec change's tasks.md to reference the new guard in the §14 "Regression guard" section if this guard is part of an active change
