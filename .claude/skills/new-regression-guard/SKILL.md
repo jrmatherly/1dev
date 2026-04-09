@@ -1,12 +1,18 @@
 ---
 name: new-regression-guard
-description: Scaffold a new bun:test regression guard under tests/regression/ following the existing 6-guard file-walking pattern. Ask the user for the guard name, scan scope, forbidden patterns or assertion type, allowlist files, and the motivating OpenSpec change or Phase 0 gate. User-only — explicit invocation, not a background task.
+description: Scaffold a new bun:test regression guard under tests/regression/ following the existing file-walking + forbidden-patterns + structured-error-report pattern. Ask the user for the guard name, scan scope, forbidden patterns or assertion type, allowlist files, and the motivating OpenSpec change or Phase 0 gate. User-only — explicit invocation, not a background task.
 disable-model-invocation: true
 ---
 
 ## Scaffold a New bun:test Regression Guard
 
-The repo has **6 regression guards** under `tests/regression/` as of the `rebrand-residual-sweep` change. They all share a common file-walking + forbidden-patterns + structured-error-report pattern. This skill scaffolds a new one without copy-pasting the ~80 lines of boilerplate.
+The repo has multiple regression guards under `tests/regression/`. The canonical list and purpose of each guard lives in `docs/conventions/regression-guards.md`. They all share a common file-walking + forbidden-patterns + structured-error-report pattern. This skill scaffolds a new one without copy-pasting the ~80 lines of boilerplate.
+
+**To see the current count and list:**
+```bash
+ls tests/regression/*.test.ts | wc -l
+ls tests/regression/*.test.ts
+```
 
 ## When to run this skill
 
@@ -22,7 +28,7 @@ The repo has **6 regression guards** under `tests/regression/` as of the `rebran
 
 ## Existing guards to read as patterns
 
-Read ONE of these as a template based on the style of invariant:
+Read ONE of these as a template based on the style of invariant. The canonical list and purpose of each guard is maintained in `docs/conventions/regression-guards.md` — refer to it for the full inventory.
 
 | Existing guard | Pattern type | Read when your guard is... |
 |---|---|---|
@@ -67,7 +73,12 @@ If not provided as arguments, ask:
    bun test
    ```
 
-5. **Update CLAUDE.md line 253** — the `tests/regression/` bullet lists all guard names. Add the new guard's name to the list and increment the count (currently 6 → 7 after this addition). This is a documented drift point.
+5. **Update documentation surfaces** — add the new guard to:
+   - `docs/conventions/regression-guards.md` (canonical list) — add the guard name, purpose, and a link to its motivating OpenSpec change or Phase 0 gate
+   - `CLAUDE.md` — if the critical-rules or pointers section cites a count or list, increment it
+   - `.claude/PROJECT_INDEX.md` — if it lists guards, update the count
+   - `.serena/memories/task_completion_checklist.md` — if it mentions the guard count, update it
+   The `docs-drift-check` skill will flag any missed surface.
 
 6. **Verify the guard FAILS in a controlled way** — temporarily reintroduce the forbidden pattern in a test file, run the guard, confirm the failure message is clear and actionable, then revert. The error message is what future contributors will see when their commit gets blocked — it must name the file, the line, the pattern, and provide a path forward (e.g., "add to ALLOWLIST_FILES with a justifying comment").
 
