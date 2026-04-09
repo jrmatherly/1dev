@@ -205,10 +205,11 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - Default base URL is `https://apollosai.dev`, overridable via `desktopApi.getApiBaseUrl()` (reads from main-process env)
 - Raw `fetch(\`${apiUrl}/...\`)` is the secondary upstream channel — used in `voice.ts`,`sandbox-import.ts`,`claude-code.ts` OAuth flow, `agents-help-popover.tsx` changelog
 - Refresh the inventory of upstream call sites with: `grep -rn "remoteTrpc\." src/renderer/`
+- **`archive-popover.tsx:351` (`updatedAt: chat.updated_at`) is an F1 boundary** — reads from `remoteArchivedChats` (upstream DTO), not local Drizzle. Do not migrate to camelCase; belongs to the F1 restoration roadmap alongside `agents-sidebar.tsx:2077-2078`
 
 ### State Management
 - **Jotai**: UI state (selected chat, sidebar open, preview settings)
-- **Zustand**: Sub-chat tabs and pinned state (persisted to localStorage)
+- **Zustand**: Sub-chat tabs and pinned state (persisted to localStorage). **Note:** `useAgentSubChatStore` does NOT use Zustand `persist()` middleware — `allSubChats` is rebuilt from DB on every `setChatId()`. No localStorage migration is needed when changing the `SubChatMeta` type shape. Per-chat tab/pin/split state uses raw `localStorage` via `saveToLS`/`loadFromLS` helpers.
 - **React Query**: Server state via tRPC (auto-caching, refetch)
 
 ### AI Backend Integration
@@ -383,6 +384,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 
 - `postinstall` runs `electron-rebuild` for `better-sqlite3` and `node-pty` — if native modules fail, run `bun run postinstall` manually
 - `tsgo` (Go-based TS checker) is used instead of `tsc` for `ts:check` — much faster but may have subtle differences (requires: `npm install -g @typescript/native-preview`)
+- **Dev auth bypass:** Set `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` to skip the login screen in dev mode. Only works when `!app.isPackaged`. Required because the upstream `apollosai.dev` OAuth backend is dead and the enterprise Envoy Gateway auth is not yet deployed. Creates a synthetic `dev@localhost` user. See `src/main/auth-manager.ts:isDevAuthBypassed()`.
 - Dev builds require Claude and Codex binaries downloaded locally (`bun run claude:download && bun run codex:download`)
 - **Claude CLI binary pinned to `2.1.96`** — see `claude:download` script in `package.json`. Bumping the pin requires re-testing session resume and streaming. This version supports signed-manifest GPG verification (introduced 2.1.89); the download script enforces it at `scripts/download-claude-binary.mjs`.
 - **Codex CLI binary pinned to `0.118.0`** — see `codex:download` script in `package.json`. Bumping the pin requires re-testing the `@zed-industries/codex-acp` bridge. This version natively supports dynamic short-lived bearer token refresh for custom model providers, which enables the Phase 1 Envoy Gateway rotation pattern without a custom shim.
