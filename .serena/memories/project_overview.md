@@ -33,11 +33,13 @@ v0.0.72+
 
 ## Active Workstreams (as of 2026-04-09)
 - **Phase 0 hard gates: 15 of 15 complete ✅**. Phase 0.5 (harden-credential-storage) also complete — unified credential encryption in `credential-store.ts`.
+- **mock-api.ts Phase 1 retirement complete** — timestamp fossil (`created_at`/`updated_at` translation) removed by `retire-mock-api-translator` change (archived 2026-04-09). Phases 2-3 tracked as separate proposals.
+- **Dev auth bypass available** — `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` skips login screen in dev mode (upstream OAuth backend is dead, Envoy Gateway not yet deployed).
 - **Chosen enterprise auth strategy:** `docs/enterprise/auth-strategy.md` **v2.1** (Envoy Gateway dual-auth, **empirically validated** via live smoke test against the Talos cluster on 2026-04-08). Reproducible runbook in `docs/enterprise/envoy-smoke-test.md`.
 - **Fallback strategy:** `docs/enterprise/auth-fallback.md` v5 (MSAL-in-Electron) — retained but not chosen.
-- **Documentation site:** `docs/` bootstrapped 2026-04-09 as a tracked xyd-js site with 25 pages (13 authored + 12 stubs) across 5 tabs. CI runs `docs-build` as a 6th parallel job. The `documentation-site` capability spec codifies the rules including the no-scratchpad-references contract.
-- **Active OpenSpec proposals:** `retire-mock-api-translator` (in progress).
-- **Archived OpenSpec changes:** `rebrand-residual-sweep`, `bootstrap-documentation-site`, `remove-upstream-sandbox-oauth`, `harden-credential-storage` (all 2026-04-09).
+- **Documentation site:** `docs/` bootstrapped 2026-04-09 as a tracked xyd-js site with 25 pages (13 authored + 12 stubs) across 5 tabs. CI runs `docs-build` as a 6th parallel job.
+- **No active OpenSpec proposals.** All completed changes archived.
+- **Archived OpenSpec changes:** `rebrand-residual-sweep`, `bootstrap-documentation-site`, `remove-upstream-sandbox-oauth`, `harden-credential-storage`, `retire-mock-api-translator` (all 2026-04-09).
 - Target deployment: Talos Kubernetes cluster at `/Users/jason/dev/ai-k8s/talos-ai-cluster/` with LiteLLM + Envoy Gateway.
 
 ## Source-of-Truth Docs
@@ -47,4 +49,4 @@ v0.0.72+
 - `README.md` — user-facing pitch (positions repo as enterprise fork)
 - `CONTRIBUTING.md` — contributor setup, four quality gates, fork posture
 - `AGENTS.md` — AI quick-reference
-- `openspec/specs/` — 5 capability specs: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`
+- `openspec/specs/` — 6 capability specs: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`

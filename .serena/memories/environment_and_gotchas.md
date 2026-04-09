@@ -8,6 +8,7 @@
 - Dev protocol: `apollosai-agents-dev://`, Production: `apollosai-agents://`
 - Dev userData: `~/Library/Application Support/Agents Dev/`
 - Separate paths prevent conflicts between dev and production installs
+- **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` skips login screen. Required because upstream `apollosai.dev` OAuth is dead and Envoy Gateway auth is not yet deployed. Creates synthetic `dev@localhost` user. Only works when `!app.isPackaged`. See `src/main/auth-manager.ts:isDevAuthBypassed()`.
 
 ## User Data Filesystem Paths
 - Worktrees: `~/.1code/worktrees/` (formerly `.21st/worktrees/`)
@@ -52,8 +53,14 @@
 ## Upstream Backend Boundary
 - `remoteTrpc.*` (`src/renderer/lib/remote-trpc.ts`) is the typed tRPC client for the legacy upstream
 - Default base URL: `https://apollosai.dev`
+- `archive-popover.tsx:351` (`updatedAt: chat.updated_at`) is an **F1 boundary** — reads from `remoteArchivedChats`, not local Drizzle
 - See `docs/enterprise/upstream-features.md` for the full F1-F10 catalog
 - See `docs/architecture/upstream-boundary.md` for the rules
+
+## Zustand Sub-Chat Store
+- `useAgentSubChatStore` does **NOT** use Zustand `persist()` middleware
+- `allSubChats` is rebuilt from DB on every `setChatId()` — no localStorage migration needed when changing `SubChatMeta` type
+- Per-chat tab/pin/split state uses raw `localStorage` via `saveToLS`/`loadFromLS` helpers
 
 ## Entra / Auth Gotchas
 - `requestedAccessTokenVersion` defaults to null = v1, NOT v2 in Entra app registrations
@@ -69,7 +76,8 @@
 - kubectl: `cd /Users/jason/dev/ai-k8s/talos-ai-cluster && KUBECONFIG=./kubeconfig kubectl ...`
 
 ## Tool-Specific Gotchas
-- **`claude-mem` Read deflection:** First Read() returns only line 1 + timeline. Fall back to `sed -n 'M,Np' <file>` via Bash.
+- **`claude-mem` Read deflection:** First Read() returns only line 1 + timeline. Fall back to `cat -n` via Bash or `sed -n 'M,Np' <file>`.
 - **Serena MCP requires activation** — `mcp__serena__activate_project` with `project: "ai-coding-cli"` before `list_memories`/`read_memory`
 - **macOS base64url JWT decoding** — BSD `base64 -d` silently truncates. Use the `tr`/`awk`/`base64` pipeline in CLAUDE.md.
 - **`bun audit` exit code** — pre-existing advisories mean non-zero is normal; focus on NEW advisories
+- **code-review-graph `graph.db` transaction errors** — If `build_or_update_graph_tool` fails with "cannot start a transaction within a transaction", delete `graph.db` and rebuild: `rm .code-review-graph/graph.db && /build-graph`. Root cause: Python sqlite3 implicit transactions conflict with the plugin's explicit `BEGIN IMMEDIATE` — a bug in the plugin's connection setup (missing `isolation_level=None`).

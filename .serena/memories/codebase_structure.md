@@ -9,7 +9,7 @@ scripts/       — Build, release, and utility scripts
 build/         — Electron-builder config
 docs/          — Canonical documentation site (xyd-js, 25 pages, 5 tabs)
 openspec/      — OpenSpec change proposal system
-  specs/       — Durable capability specs (5: brand-identity, feature-flags, claude-code-auth-import, documentation-site, credential-storage)
+  specs/       — Durable capability specs (6: brand-identity, feature-flags, claude-code-auth-import, documentation-site, credential-storage, renderer-data-access)
   changes/     — Active change proposals
   changes/archive/ — Archived completed changes
 .scratchpad/   — Ephemeral local-only working notes (gitignored). Canonical docs live in docs/
@@ -20,11 +20,11 @@ tests/regression/ — bun:test regression guards (10 files, 36 tests as of 2026-
 
 ## Main Process (`src/main/`)
 ```
-index.ts              — App entry, window lifecycle
-auth-manager.ts       — OAuth flow, token refresh
+index.ts              — App entry, window lifecycle, local auth callback HTTP server (port 21322 dev / 21321 prod)
+auth-manager.ts       — OAuth flow, token refresh, dev auth bypass (MAIN_VITE_DEV_BYPASS_AUTH)
 auth-store.ts         — Encrypted credential storage (delegates to credential-store.ts)
-constants.ts          — App constants
-windows/main.ts       — Window creation, IPC handlers
+constants.ts          — App constants (IS_DEV, AUTH_SERVER_PORT)
+windows/main.ts       — Window creation, IPC handlers, auth gate (isAuthenticated → login.html or app)
 lib/
   auto-updater.ts     — electron-updater config; CDN_BASE = https://cdn.apollosai.dev/releases/desktop
   cli.ts              — CLI launcher (line 6 has upstream PR attribution — Tier C, preserved)
@@ -48,8 +48,10 @@ lib/
 ## Renderer (`src/renderer/`)
 ```
 App.tsx               — Root with providers
+login.html            — Pre-auth sign-in screen (static HTML, no React)
 features/
   agents/             — Main chat interface (core feature)
+    stores/sub-chat-store.ts — Zustand store for sub-chat tabs/splits (NO persist middleware; allSubChats rebuilt from DB)
   sidebar/            — Chat list, navigation
   terminal/           — Integrated terminal (node-pty + xterm)
   kanban/             — Kanban board view
@@ -57,7 +59,7 @@ features/
   hooks/              — Automation hooks
   automations/        — Automations & inbox (FULLY upstream-dependent via remoteTrpc.*)
   settings/           — App settings UI
-  onboarding/         — First-run experience
+  onboarding/         — First-run experience (billing-method-page has API key option)
   changes/            — Change tracking (git)
   details-sidebar/    — Detail panel
   mentions/           — Global @-mention
@@ -67,8 +69,8 @@ lib/
   trpc.ts             — Local tRPC client
   remote-trpc.ts      — Remote tRPC client (TYPED — upstream backend boundary marker)
   remote-app-router.ts — Typed AppRouter stub (TRPCBuiltRouter pattern)
-  remote-types.ts     — Shared types for remote tRPC
-  mock-api.ts         — DEPRECATED but still imported by 6 files in features/agents/
+  remote-types.ts     — Shared types for remote tRPC (snake_case — dead upstream contract, do not rename)
+  mock-api.ts         — DEPRECATED — Phase 1 timestamp fossil retired (2026-04-09); still imported by 6 files for other adapters. Phases 2-3 tracked separately.
 ```
 
 ## Documentation Site (`docs/`)
@@ -113,7 +115,7 @@ Ten guards as of 2026-04-09:
 - `brand-sweep-complete.test.ts` — rebrand-residual-sweep
 - `no-scratchpad-references.test.ts` — documentation-site capability
 - `no-upstream-sandbox-oauth.test.ts` — Gate #8
-- `mock-api-no-snake-timestamps.test.ts` — mock-api translator retirement
+- `mock-api-no-snake-timestamps.test.ts` — mock-api translator retirement (Phase 1)
 - `credential-storage-tier.test.ts` — credential-store centralization (9 assertions)
 
 ## .claude/ Automations Inventory
