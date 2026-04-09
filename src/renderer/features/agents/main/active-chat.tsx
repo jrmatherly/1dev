@@ -78,7 +78,7 @@ import {
 import { useRemoteChat } from "../../../lib/hooks/use-remote-chats";
 import { useResolvedHotkeyDisplay } from "../../../lib/hotkeys";
 import { appStore } from "../../../lib/jotai-store";
-import { api } from "../../../lib/mock-api";
+import { parseAndNormalizeChat } from "../../../lib/message-parser";
 import { trpc, trpcClient } from "../../../lib/trpc";
 import { cn } from "../../../lib/utils";
 import { isDesktopApp } from "../../../lib/utils/platform";
@@ -2340,7 +2340,7 @@ const ChatViewInner = memo(function ChatViewInner({
   }, []);
 
   // tRPC utils for cache invalidation
-  const utils = api.useUtils();
+  const utils = trpc.useUtils();
 
   // Get sub-chat name from store
   const subChatName = useAgentSubChatStore(
@@ -2348,7 +2348,7 @@ const ChatViewInner = memo(function ChatViewInner({
   );
 
   // Mutation for renaming sub-chat
-  const renameSubChatMutation = api.agents.renameSubChat.useMutation({
+  const renameSubChatMutation = trpc.chats.renameSubChat.useMutation({
     onError: (error) => {
       if (error.data?.code === "NOT_FOUND") {
         toast.error("Send a message first before renaming this chat");
@@ -2373,7 +2373,7 @@ const ChatViewInner = memo(function ChatViewInner({
       // Save to database
       try {
         await renameSubChatMutationRef.current.mutateAsync({
-          subChatId,
+          id: subChatId,
           name: newName,
         });
       } catch {
@@ -2392,10 +2392,10 @@ const ChatViewInner = memo(function ChatViewInner({
   );
 
   // Mutation for updating sub-chat mode in database
-  const updateSubChatModeMutation = api.agents.updateSubChatMode.useMutation({
+  const updateSubChatModeMutation = trpc.chats.updateSubChatMode.useMutation({
     onSuccess: () => {
       // Invalidate to refetch with new mode from DB
-      utils.agents.getAgentChat.invalidate({ chatId: parentChatId });
+      utils.chats.get.invalidate({ id: parentChatId });
     },
     onError: (error, variables) => {
       // Don't revert if sub-chat not found in DB - it may not be persisted yet
@@ -2412,7 +2412,7 @@ const ChatViewInner = memo(function ChatViewInner({
       // Also update store for consistency
       useAgentSubChatStore
         .getState()
-        .updateSubChatMode(variables.subChatId, revertedMode);
+        .updateSubChatMode(variables.id, revertedMode);
       console.error("Failed to update sub-chat mode:", error.message);
     },
   });
@@ -2494,7 +2494,7 @@ const ChatViewInner = memo(function ChatViewInner({
 
       // Save to database (skip temp IDs that haven't been persisted yet)
       if (!subChatId.startsWith("temp-")) {
-        updateSubChatModeMutation.mutate({ subChatId, mode: newMode });
+        updateSubChatModeMutation.mutate({ id: subChatId, mode: newMode });
       }
     },
     [subChatId, setSubChatMode, updateSubChatModeMutation],
@@ -3398,7 +3398,7 @@ const ChatViewInner = memo(function ChatViewInner({
 
     // Sync mode to database for sidebar indicator (getPendingPlanApprovals)
     if (!subChatId.startsWith("temp-")) {
-      updateSubChatModeMutation.mutate({ subChatId, mode: "agent" });
+      updateSubChatModeMutation.mutate({ id: subChatId, mode: "agent" });
     }
 
     // Update atomFamily state (for UI) - this also syncs to store via effect
@@ -3474,7 +3474,7 @@ const ChatViewInner = memo(function ChatViewInner({
           .mutate({ chatId: parentChatId, prUrl, prNumber })
           .then(() => {
             // Invalidate the agentChat query to refetch with new PR info
-            utils.agents.getAgentChat.invalidate({ chatId: parentChatId });
+            utils.chats.get.invalidate({ id: parentChatId });
           });
 
         break; // Only process first PR URL found
@@ -3758,7 +3758,7 @@ const ChatViewInner = memo(function ChatViewInner({
         const newMode = (newSubChat.mode as "plan" | "agent") || "agent";
 
         // Invalidate + await ensures agentSubChats has the fork before we switch tabs
-        await utils.agents.getAgentChat.invalidate({ chatId: parentChatId });
+        await utils.chats.get.invalidate({ id: parentChatId });
 
         // Update Zustand sub-chat store
         const store = useAgentSubChatStore.getState();
@@ -4314,13 +4314,19 @@ const ChatViewInner = memo(function ChatViewInner({
     // Optimistic update: immediately update chat's updatedAt and resort array for instant sidebar resorting
     if (teamId) {
       const now = new Date();
-      utils.agents.getAgentChats.setData({ teamId }, (old: any) => {
+      // Note: `trpc.chats.list` takes `{ projectId?: string }`. The old mock-api wrapper
+      // silently dropped the `teamId` argument and passed `{}` to tRPC, so the cache key
+      // is `{}` not `{ teamId }`. Preserve that to keep the cache entry addressable.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      utils.chats.list.setData({}, (old: any) => {
         if (!old) return old;
         // Update the timestamp and sort by updatedAt descending
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updated = old.map((c: any) =>
           c.id === parentChatId ? { ...c, updatedAt: now } : c,
         );
         return updated.sort(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (a: any, b: any) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
         );
@@ -5727,13 +5733,13 @@ export function ChatView({
   }, [activeSubChatId, setSubChatUnseenChanges]);
 
   // tRPC utils for optimistic cache updates
-  const utils = api.useUtils();
+  const utils = trpc.useUtils();
 
   // tRPC mutations for renaming
-  const renameSubChatMutation = api.agents.renameSubChat.useMutation();
-  const renameChatMutation = api.agents.renameChat.useMutation();
+  const renameSubChatMutation = trpc.chats.renameSubChat.useMutation();
+  const renameChatMutation = trpc.chats.rename.useMutation();
   const generateSubChatNameMutation =
-    api.agents.generateSubChatName.useMutation();
+    trpc.chats.generateSubChatName.useMutation();
 
   // PR creation loading state - using atom to allow ChatViewInner to reset it
   const [isCreatingPr, setIsCreatingPr] = useAtom(isCreatingPrAtom);
@@ -5747,11 +5753,19 @@ export function ChatView({
   const chatSourceMode = useAtomValue(chatSourceModeAtom);
 
   // Fetch chat data from local or remote based on mode
-  const { data: localAgentChat, isLoading: isLocalLoading } =
-    api.agents.getAgentChat.useQuery(
-      { chatId },
+  const { data: rawLocalAgentChat, isLoading: isLocalLoading } =
+    trpc.chats.get.useQuery(
+      { id: chatId },
       { enabled: !!chatId && chatSourceMode === "local" },
     );
+  // Apply message parsing + synthetic `sandbox_id: null` / `meta: null` /
+  // `stream_id: null` injection to match the old mock-api shape. These
+  // synthetic fields are F9 (Live Preview) gate checks that always evaluate
+  // to false on desktop.
+  const localAgentChat = useMemo(
+    () => parseAndNormalizeChat(rawLocalAgentChat),
+    [rawLocalAgentChat],
+  );
 
   const { data: remoteAgentChat, isLoading: isRemoteLoading } = useRemoteChat(
     chatSourceMode === "sandbox" ? chatId : null,
@@ -6077,7 +6091,7 @@ export function ChatView({
       trpcUtils.chats.list.invalidate();
       trpcUtils.chats.listArchived.invalidate();
       // Invalidate this chat's data to update isArchived state
-      utils.agents.getAgentChat.invalidate({ chatId });
+      utils.chats.get.invalidate({ id: chatId });
     },
   });
 
@@ -6087,9 +6101,6 @@ export function ChatView({
 
   // Check if this workspace is archived
   const isArchived = !!agentChat?.archivedAt;
-
-  // Get user usage data for credit checks
-  const { data: usageData } = api.usage.getUserUsage.useQuery();
 
   // Desktop: use worktreePath instead of sandbox
   const worktreePath = agentChat?.worktreePath as string | null;
@@ -7033,7 +7044,7 @@ Make sure to preserve all functionality from both branches when resolving confli
       if (!Array.isArray(latestMessages)) return;
       const latestMessagesJson = JSON.stringify(latestMessages);
 
-      utils.agents.getAgentChat.setData({ chatId }, (old: any) => {
+      utils.chats.get.setData({ id: chatId }, (old: any) => {
         if (!old?.subChats || !Array.isArray(old.subChats)) return old;
 
         let found = false;
@@ -7379,12 +7390,13 @@ Make sure to preserve all functionality from both branches when resolving confli
         mode: newSubChatMode,
       });
       newId = newSubChat.id;
-      utils.agents.getAgentChat.invalidate({ chatId });
+      utils.chats.get.invalidate({ id: chatId });
 
       // Optimistic update: add new sub-chat to React Query cache immediately
       // This is CRITICAL for workspace isolation - without this, the new sub-chat
-      // won't be in validSubChatIds and will be filtered out by tabsToRender
-      utils.agents.getAgentChat.setData({ chatId }, (old) => {
+      // won't be in validSubChatIds and will be filtered out by tabsToRender.
+      // Matches the Drizzle subChats schema shape (camelCase, Date timestamps).
+      utils.chats.get.setData({ id: chatId }, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -7394,10 +7406,12 @@ Make sure to preserve all functionality from both branches when resolving confli
               id: newId,
               name: "New Chat",
               mode: newSubChatMode,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              messages: null,
-              stream_id: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              messages: "[]",
+              streamId: null,
+              sessionId: null,
+              chatId,
             },
           ],
         };
@@ -7905,13 +7919,14 @@ Make sure to preserve all functionality from both branches when resolving confli
             .getState()
             .updateSubChatName(subChatIdToUpdate, name);
           // Also update query cache so init effect doesn't overwrite
-          utils.agents.getAgentChat.setData({ chatId }, (old) => {
+          utils.chats.get.setData({ id: chatId }, (old) => {
             if (!old) return old;
             const existsInCache = old.subChats.some(
               (sc) => sc.id === subChatIdToUpdate,
             );
             if (!existsInCache) {
-              // Sub-chat not in cache yet (DB save still in flight) - add it
+              // Sub-chat not in cache yet (DB save still in flight) - add it.
+              // Matches the Drizzle subChats schema shape (camelCase).
               return {
                 ...old,
                 subChats: [
@@ -7923,8 +7938,9 @@ Make sure to preserve all functionality from both branches when resolving confli
                     updatedAt: new Date(),
                     messages: "[]",
                     mode: "agent",
-                    stream_id: null,
-                    chat_id: chatId,
+                    streamId: null,
+                    sessionId: null,
+                    chatId,
                   },
                 ],
               };
@@ -7939,24 +7955,19 @@ Make sure to preserve all functionality from both branches when resolving confli
         },
         updateChatName: (chatIdToUpdate, name) => {
           // Optimistic update for sidebar (list query)
-          // On desktop, selectedTeamId is always null, so we update unconditionally
-          utils.agents.getAgentChats.setData(
-            { teamId: selectedTeamId },
-            (old) => {
-              if (!old) return old;
-              return old.map((c) =>
-                c.id === chatIdToUpdate ? { ...c, name } : c,
-              );
-            },
-          );
+          // Note: `trpc.chats.list` takes `{ projectId? }`. The old mock-api wrapper
+          // dropped the `teamId` argument — using `{}` matches the `useQuery({})` key.
+          utils.chats.list.setData({}, (old) => {
+            if (!old) return old;
+            return old.map((c) =>
+              c.id === chatIdToUpdate ? { ...c, name } : c,
+            );
+          });
           // Optimistic update for header (single chat query)
-          utils.agents.getAgentChat.setData(
-            { chatId: chatIdToUpdate },
-            (old) => {
-              if (!old) return old;
-              return { ...old, name };
-            },
-          );
+          utils.chats.get.setData({ id: chatIdToUpdate }, (old) => {
+            if (!old) return old;
+            return { ...old, name };
+          });
         },
       });
     },
@@ -7968,8 +7979,8 @@ Make sure to preserve all functionality from both branches when resolving confli
       renameChatMutation,
       selectedTeamId,
       selectedOllamaModel,
-      utils.agents.getAgentChats,
-      utils.agents.getAgentChat,
+      utils.chats.list,
+      utils.chats.get,
     ],
   );
 

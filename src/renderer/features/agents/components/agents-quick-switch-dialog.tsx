@@ -11,11 +11,10 @@ interface AgentsQuickSwitchDialogProps {
   isOpen: boolean;
   chats: Array<{
     id: string;
-    name: string;
-    meta: any;
-    sandbox_id: string | null;
+    name: string | null;
     updatedAt: Date | null;
     projectId: string;
+    branch?: string | null;
   }>;
   selectedIndex: number;
   projectsMap: Map<

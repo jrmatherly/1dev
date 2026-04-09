@@ -59,15 +59,15 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ## P2 -- Medium Priority
 
-### [Ready] mock-api.ts Phase 2 -- consumer migration
+### [Deferred] mock-api.ts Phase 3 -- delete remaining F-entry stubs
 
 **Added:** 2026-04-09
-**Scope:** Port 6 consumer files from `api.agents.*` (mock-api facade) to `trpc.chats.*` direct. Extract JSON message-parsing pipeline (including `normalizeCodexToolPart` adapter) into `src/renderer/lib/message-parser.ts`. F1/F2 boundary sites preserved. Phase 3 (delete mock-api.ts) follows after F1-F10 stubs are replaced.
-**Effort:** Medium-Large
-**Prereqs:** Phase 1 complete (done)
-**Canonical reference:** `openspec/changes/migrate-mock-api-consumers/proposal.md`
+**Scope:** After F1-F10 restoration is complete, delete `mock-api.ts` entirely. Currently retained as dead stubs for `teams`, `stripe`, `user`, `github`, `claudeCode`, `agentInvites`, `repositorySandboxes` namespaces that will be replaced by real self-hosted backends during F-entry restoration.
+**Effort:** Trivial (delete file)
+**Prereqs:** F1-F10 restoration work
+**Canonical reference:** `docs/enterprise/upstream-features.md` (F1-F10 catalog)
 
-### [Cleanup] ts:check baseline remediation (86 remaining)
+### [Cleanup] ts:check baseline remediation (80 remaining)
 
 **Added:** 2026-04-09
 **Scope:** Reduce the TypeScript error baseline from 86 to 0. Root causes R1 (dead code) and R4 (snake/camelCase) are resolved. Remaining: R2 (upstream sandbox DTO, 16 errors), R3 (teams stub, ~8 errors), R5 (Claude SDK drift, 9 errors), R6 (long-tail, ~52 errors).
@@ -157,6 +157,7 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 | 2026-04-09 | login.html brand refresh (21ST to 1Code logo) | `7c8d884` |
 | 2026-04-09 | Electron 39.8.7 to 40.8.5 upgrade | `upgrade-electron-40` archived |
 | 2026-04-09 | mock-api.ts Phase 1 timestamp fossil retirement | `retire-mock-api-translator` archived |
+| 2026-04-09 | mock-api.ts Phase 2 consumer migration (6 files, 13 useUtils sites, message-parser.ts helper) | `migrate-mock-api-consumers` (ready to archive) |
 | 2026-04-09 | Enterprise auth module (MSAL Node) | `add-enterprise-auth-module` archived |
 | 2026-04-09 | Credential storage hardening (3-tier) | `harden-credential-storage` archived |
 | 2026-04-09 | Dev auth bypass (`MAIN_VITE_DEV_BYPASS_AUTH`) | `10be3d7` |

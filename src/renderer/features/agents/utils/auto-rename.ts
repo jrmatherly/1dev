@@ -7,8 +7,10 @@ interface AutoRenameParams {
   userMessage: string;
   isFirstSubChat: boolean;
   generateName: (userMessage: string) => Promise<{ name: string }>;
-  renameSubChat: (input: { subChatId: string; name: string }) => Promise<void>;
-  renameChat: (input: { chatId: string; name: string }) => Promise<void>;
+  // Note: closures receive `{ id, name }` to match tRPC schema
+  // (trpc.chats.renameSubChat and trpc.chats.rename both take `{ id, name }`).
+  renameSubChat: (input: { id: string; name: string }) => Promise<void>;
+  renameChat: (input: { id: string; name: string }) => Promise<void>;
   updateSubChatName: (subChatId: string, name: string) => void;
   updateChatName: (chatId: string, name: string) => void;
 }
@@ -57,12 +59,12 @@ export async function autoRenameAgentChat({
 
       try {
         // Rename sub-chat
-        await renameSubChat({ subChatId, name });
+        await renameSubChat({ id: subChatId, name });
         updateSubChatName(subChatId, name);
 
         // Also rename parent chat if this is the first sub-chat
         if (isFirstSubChat) {
-          await renameChat({ chatId: parentChatId, name });
+          await renameChat({ id: parentChatId, name });
           updateChatName(parentChatId, name);
         }
 

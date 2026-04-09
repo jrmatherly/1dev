@@ -46,7 +46,7 @@ import {
   InboxView,
 } from "../../automations";
 import { ChatView } from "../main/active-chat";
-import { api } from "../../../lib/mock-api";
+import { parseAndNormalizeChat } from "../../../lib/message-parser";
 import { trpc } from "../../../lib/trpc";
 import { useIsMobile } from "../../../lib/hooks/use-mobile";
 import { AgentsSidebar } from "../../sidebar/agents-sidebar";
@@ -188,11 +188,11 @@ export function AgentsContent() {
     }
   }, [activeSubChatName]);
 
-  // Fetch teams for header
-  const { data: teams } = api.teams.getUserTeams.useQuery(undefined, {
-    enabled: !!selectedTeamId,
-  });
-  const selectedTeam = teams?.find((t: any) => t.id === selectedTeamId) as any;
+  // Teams stub: upstream F-entry feature, not yet restored. Dead in desktop fork.
+  // When teams is restored, replace with trpc.teams.list.useQuery() or equivalent.
+  const teams: { id: string; [key: string]: unknown }[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectedTeam = teams.find((t) => t.id === selectedTeamId) as any;
 
   // Auto-activate automations & inbox if user has any automations configured
   // One-shot check on app startup — no refetches, no polling
@@ -218,8 +218,9 @@ export function AgentsContent() {
   }, [betaAutomationsEnabled, automationsData, setBetaAutomationsEnabled]);
 
   // Fetch agent chats for keyboard navigation and mobile view
-  const { data: agentChats } = api.agents.getAgentChats.useQuery(
-    { teamId: selectedTeamId! },
+  // Note: `trpc.chats.list` takes `{ projectId?: string }`. Old `teamId` was silently dropped.
+  const { data: agentChats } = trpc.chats.list.useQuery(
+    {},
     { enabled: !!selectedTeamId },
   );
 
@@ -233,9 +234,13 @@ export function AgentsContent() {
   }, [projects]);
 
   // Fetch current chat data for preview info
-  const { data: chatData } = api.agents.getAgentChat.useQuery(
-    { chatId: selectedChatId! },
+  const { data: rawChatData } = trpc.chats.get.useQuery(
+    { id: selectedChatId! },
     { enabled: !!selectedChatId },
+  );
+  const chatData = useMemo(
+    () => parseAndNormalizeChat(rawChatData),
+    [rawChatData],
   );
 
   // Track previous chat ID for navigation after archive

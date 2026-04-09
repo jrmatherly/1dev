@@ -87,7 +87,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
-import { api } from "../../lib/mock-api";
 import { trpcClient } from "../../lib/trpc";
 import { toast } from "sonner";
 import { AgentsRenameSubChatDialog } from "../agents/components/agents-rename-subchat-dialog";
@@ -254,8 +253,11 @@ export function AgentsSubChatsSidebar({
   const previousChatId = useAtomValue(previousAgentChatIdAtom);
 
   // Fetch agent chats for navigation after archive
-  const { data: agentChats } = api.agents.getAgentChats.useQuery(
-    { teamId: selectedTeamId! },
+  // Note: `trpc.chats.list` takes `{ projectId?: string }`. The old `teamId`
+  // argument was silently dropped by mock-api. Passing `{}` preserves that
+  // behavior; migrating to project-scoped filtering is a separate concern.
+  const { data: agentChats } = trpc.chats.list.useQuery(
+    {},
     { enabled: !!selectedTeamId },
   );
 
@@ -708,7 +710,7 @@ export function AgentsSubChatsSidebar({
     [parentChatId, setUndoStack],
   );
 
-  const renameMutation = api.agents.renameSubChat.useMutation({
+  const renameMutation = trpc.chats.renameSubChat.useMutation({
     // Note: store is updated optimistically in handleRenameSave, no need for onSuccess
     onError: (error) => {
       if (error.data?.code === "NOT_FOUND") {
@@ -748,7 +750,7 @@ export function AgentsSubChatsSidebar({
 
       try {
         await renameMutation.mutateAsync({
-          subChatId,
+          id: subChatId,
           name: newName,
         });
       } catch {

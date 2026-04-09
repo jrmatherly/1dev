@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "../../../lib/utils";
-import { api } from "../../../lib/mock-api";
 import { trpc } from "../../../lib/trpc";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
@@ -806,18 +805,19 @@ export const AgentsFileMention = memo(function AgentsFileMention({
     isLoading,
     isFetching,
     error,
-  } = api.github.searchFiles.useQuery(
+  } = trpc.files.search.useQuery(
     {
-      teamId: teamId!,
-      repository: repository!,
+      // Desktop-only: local project file search. The mock-api wrapper
+      // previously dropped teamId/repository/sandboxId/branch/GitHub fields;
+      // those were web-only and have no desktop equivalent.
+      projectPath: projectPath || "",
       query: apiSearchQuery,
       limit: 50,
-      sandboxId: sandboxId,
-      branch: branch, // Pass branch for GitHub API fetch
-      projectPath: projectPath, // For local project file search (desktop)
     },
     {
-      // Enable if we have projectPath (desktop) OR teamId with repository/sandboxId/branch (web)
+      // Desktop: enabled when we have a projectPath.
+      // Web legacy: also enabled with teamId+repository/sandboxId/branch,
+      // but since the backend only uses projectPath, web-mode is effectively a no-op.
       enabled:
         isOpen &&
         (!!projectPath ||
