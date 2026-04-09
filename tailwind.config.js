@@ -55,5 +55,9 @@ module.exports = {
       },
     },
   },
-  plugins: [require("@tailwindcss/typography"), require("tailwindcss-animate"), require("@tailwindcss/container-queries")],
-}
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("tailwindcss-animate"),
+    require("@tailwindcss/container-queries"),
+  ],
+};
