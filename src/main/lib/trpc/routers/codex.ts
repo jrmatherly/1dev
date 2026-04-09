@@ -1167,6 +1167,10 @@ function preprocessCodexModelName(params: {
   return params.modelId;
 }
 
+// SHA-256 is appropriate here — this is a cache-key fingerprint, not password
+// storage. The hash detects when the API key changes so cached provider instances
+// can be invalidated. It is never compared for authentication. (CodeQL alert
+// js/insufficient-password-hash is a false positive for this use case.)
 function getAuthFingerprint(authConfig?: { apiKey: string }): string | null {
   const apiKey = authConfig?.apiKey?.trim();
   if (!apiKey) return null;

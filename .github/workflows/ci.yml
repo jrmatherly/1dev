@@ -26,6 +26,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -147,6 +150,7 @@ jobs:
   status:
     name: "✅ CI Status"
     runs-on: ubuntu-latest
+    permissions: {}
     needs: [ts-check, build, test, audit, docs-build]
     if: always()
     env:

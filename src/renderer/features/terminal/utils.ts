@@ -41,7 +41,7 @@ export function shellEscapePaths(paths: string[]): string {
       // If path contains spaces, special chars, or is empty, quote it
       if (!p || /[\s'"\\$`!]/.test(p)) {
         // Escape any existing double quotes and wrap in double quotes
-        return `"${p.replace(/"/g, '\\"')}"`;
+        return `"${p.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
       }
       return p;
     })
