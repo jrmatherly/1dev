@@ -138,6 +138,11 @@ For each drift point, the **ground truth** is the code or config file. All mirro
 **Grep:** `grep -rn "CLAUDE\.md line [0-9]\|CLAUDE\.md \"[^\"]" .claude/ .serena/memories/ docs/ 2>/dev/null`
 **Check:** Any hardcoded line numbers or section quotes must still match the current CLAUDE.md structure. If CLAUDE.md no longer has the cited section, the reference should point at the corresponding `docs/` page or `.claude/rules/` file.
 
+### 15. Roadmap completeness
+**Ground truth:** Active OpenSpec changes (`bunx @fission-ai/openspec@1.2.0 list --json`), upstream features status (`docs/enterprise/upstream-features.md`), ts:check baseline (`.claude/.tscheck-baseline`)
+**Canonical doc:** `docs/operations/roadmap.md`
+**Check:** Every active OpenSpec change should appear as "In Progress" on the roadmap. Every F-entry with a "Not Started" restore decision should have a corresponding roadmap entry. The ts:check error count in the roadmap should match the current baseline file.
+
 ## Output format
 
 Produce a structured report:

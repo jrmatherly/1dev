@@ -24,6 +24,7 @@ This directory contains Claude Code **rule files** — markdown files loaded aut
 
 ### Global (loaded every session)
 - [`scratchpad.md`](./scratchpad.md) — Never reference `.scratchpad/` from tracked files
+- [`roadmap.md`](./roadmap.md) — Deferred work goes in `docs/operations/roadmap.md` (single source of truth)
 
 ### Path-scoped (loaded only when matching files are being worked on)
 - [`auth-env-vars.md`](./auth-env-vars.md) — **HARD RULE**: Never inject bearer tokens via env vars. Scope: `src/main/**/*auth*`, `*claude*`, `*codex*`, `*enterprise*`

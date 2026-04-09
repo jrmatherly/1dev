@@ -24,6 +24,7 @@ These are the rules most likely to cause incidents if violated. Detailed rules l
 4. **Phase 0 gate scope rule:** Gate text in `docs/enterprise/auth-strategy.md` §6 is **exact scope**, not a minimum. Additional work needs its own OpenSpec proposal. See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
 5. **Documentation:** `docs/` is the canonical home. CLAUDE.md, README, memories link to docs — they do NOT duplicate content. Enforced by `openspec/specs/documentation-site/spec.md`.
 6. **Never reference `.scratchpad/`** from tracked files. See [`.claude/rules/scratchpad.md`](.claude/rules/scratchpad.md).
+7. **Deferred work goes in the roadmap:** [`docs/operations/roadmap.md`](docs/operations/roadmap.md) is the single source of truth for outstanding work. See [`.claude/rules/roadmap.md`](.claude/rules/roadmap.md).
 
 ## Phase 0 progress: 15/15 hard gates complete ✅
 
