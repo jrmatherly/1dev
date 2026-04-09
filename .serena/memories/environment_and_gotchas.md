@@ -1,9 +1,9 @@
 # Environment Notes and Gotchas
 
 ## Quality Gates — ALL REQUIRED
-- `bun run ts:check` — tsgo (baseline: 86 errors in `.claude/.tscheck-baseline`)
+- `bun run ts:check` — tsgo (baseline: 80 errors in `.claude/.tscheck-baseline`, improved from 86 after mock-api Phase 2 migration)
 - `bun run build` — electron-vite 5 build
-- `bun test` — 13 regression guards, 53 tests, ~2.5s
+- `bun test` — 14 regression guards, 58 tests, ~2.5s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
 

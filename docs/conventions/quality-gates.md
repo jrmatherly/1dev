@@ -34,7 +34,7 @@ See also: [TypeScript Check Baseline](./tscheck-baseline.md).
 
 **What:** `bun:test` regression guards under `tests/regression/`.
 
-**Current count:** 13 guards, 53 tests, ~119 expect calls, ~2.5s total wall time.
+**Current count:** 14 guards, 58 tests, ~130 expect calls, ~2.5s total wall time.
 
 **What it catches:** Re-introduction of deleted dead code, token leaks, brand violations, credential manager resurrection, GPG verification removal, feature flag shape changes, upstream sandbox OAuth, `.scratchpad/` reference leaks, mock-api snake_case timestamps, credential storage tier policy, enterprise auth module shape, and Electron version pin drift.
 

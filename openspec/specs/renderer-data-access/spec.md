@@ -3,9 +3,7 @@
 ## Purpose
 
 CamelCase timestamp fields end-to-end for chat and sub-chat data across all TypeScript layers.
-
 ## Requirements
-
 ### Requirement: Camelcase timestamp fields end-to-end for chat and sub-chat data
 
 The system SHALL use camelCase TypeScript field names (`createdAt`, `updatedAt`) for chat and sub-chat timestamp values in every layer that runs in TypeScript: the Drizzle row type, the tRPC router responses, the renderer-side translation shim (`mock-api.ts`), the Zustand sub-chat store, and every renderer consumer file. The underlying SQLite column names (`created_at`, `updated_at`) MAY remain snake_case because they are constrained by Drizzle's `integer("created_at", ...)` declaration syntax and represent the SQL convention rather than the TypeScript surface.
@@ -79,30 +77,57 @@ The guard MUST NOT extend its scope beyond the timestamp fields. Other snake_cas
 
 ### Requirement: Phase 1 explicitly does not retire `mock-api.ts`
 
-The `mock-api.ts` file SHALL continue to exist after this change is implemented. This requirement exists to make the Phase 1 vs Phase 2 boundary explicit and prevent overreach during implementation.
+The `mock-api.ts` file SHALL continue to exist after this change is implemented, but its responsibilities are reduced to F-entry-dependent stubs only. Phase 2 has removed the `api.agents.*` wrapper layer, the `api.useUtils` cache helper, the `api.usage` stub, and the message-parsing pipeline. Consumers now call `trpc.chats.*` directly and use `src/renderer/lib/message-parser.ts` for message parsing.
 
-The file's responsibilities after Phase 1 are reduced to:
+The file's responsibilities after Phase 2 are reduced to:
 
-- Wrapping `trpc.chats.*` calls with `useMemo`-based transformation for the `normalizeCodexToolPart`, JSON message parsing, and `tool-invocation` migration logic that lives inside `getAgentChat`
-- Stubbing upstream-only procedures (`getUserTeams`, `getUserBalance`, `createBillingPortalSession`, `getRepositoriesWithStatus`, `getOrCreateInviteCode`, etc.) for renderer consumers that have not yet been ported
-- Preserving the `sandbox_id: null`, `stream_id: null`, `meta: null` fossil fields on the chat-shape objects (these are F1 / upstream-feature fossils tracked separately and not part of this change)
+- Stubbing upstream-only procedures for F-entry-dependent features (`teams`, `stripe`, `user`, `github`, `claudeCode`, `agentInvites`, `repositorySandboxes`) that have no self-hosted equivalent yet
+- Nothing else — all other responsibilities have been migrated out
 
-The file's responsibilities that are REMOVED by this change:
+The file's responsibilities that are REMOVED by this change (Phase 2):
 
-- Translating `createdAt` → `created_at` and `updatedAt` → `updated_at` for chat and sub-chat objects
+- The entire `api.agents.*` namespace (getAgentChats, getAgentChat, getArchivedChats, archiveChat, restoreChat, renameChat, renameSubChat, generateSubChatName, updateSubChatMode, archiveBatch)
+- The `api.useUtils` method with its `agents`, `github`, `user`, `stripe` cache adapters
+- The `api.usage.getUserUsage` stub (was unused)
+- The `api.github.searchFiles` tRPC bridge (now called via `trpc.files.search` directly)
+- The JSON message-parsing pipeline (moved to `src/renderer/lib/message-parser.ts`)
+- The `normalizeCodexToolPart` import (now imported by `message-parser.ts`)
 
-#### Scenario: A consumer file is ported to use `trpc.chats.*` directly
+#### Scenario: A consumer reads chat data via tRPC directly
 
-- **WHEN** a future Phase 2 proposal ports a consumer file from `import { api } from ".../mock-api"` to `import { trpc } from ".../trpc"` directly
-- **THEN** the consumer's existing `chat.createdAt` / `chat.updatedAt` reads continue to work without modification
-- **AND** no further fossil-removal is needed in `mock-api.ts` for that consumer
+- **GIVEN** a renderer component needs chat or sub-chat data
+- **WHEN** it queries for the data
+- **THEN** it calls `trpc.chats.*` procedures directly
+- **AND** it does NOT import `api` from `mock-api.ts`
 
-#### Scenario: Phase 2 has not yet been implemented
+#### Scenario: A consumer performs cache manipulation via tRPC directly
 
-- **WHEN** a developer reviews `mock-api.ts` after Phase 1 ships but before Phase 2 begins
-- **THEN** the file is still 657 LOC (minus the 2 deleted timestamp-mapping lines)
-- **AND** the file still contains the upstream-feature stubs and the `normalizeCodexToolPart` adapter logic
-- **AND** the CLAUDE.md "Known Security Gaps & Footguns" deprecation warning still applies, with a note pointing at the Phase 2 proposal as the next step
+- **GIVEN** a renderer component needs to invalidate or setData on chat queries
+- **WHEN** it manipulates the cache
+- **THEN** it calls `trpc.useUtils().chats.*` directly
+- **AND** it uses `{ id }` as the key (not the legacy `{ chatId }` or `{ subChatId }`)
+
+#### Scenario: Message parsing uses the typed helper
+
+- **GIVEN** a consumer reads sub-chat messages from `trpc.chats.get`
+- **WHEN** it needs to normalize tool parts
+- **THEN** it calls `parseAndNormalizeChat()` from `src/renderer/lib/message-parser.ts`
+- **AND** the helper handles all 5 normalization stages (JSON parse, tool-invocation migration, MCP wrapper, ACP title-based extraction, generic state normalization)
+
+#### Scenario: mock-api.ts retains only F-entry stubs
+
+- **GIVEN** Phase 2 is complete
+- **WHEN** a developer reads `mock-api.ts`
+- **THEN** the file contains ONLY stubs for F-entry-dependent features (teams, stripe, user, github, claudeCode, agentInvites, repositorySandboxes)
+- **AND** the file is ~144 lines (down from 655 lines pre-Phase-2)
+- **AND** no production consumer imports from `mock-api.ts`
+
+#### Scenario: F1 / F2 boundary sites remain unchanged
+
+- **GIVEN** Phase 2 is complete
+- **WHEN** reviewing F1 boundary code (`active-chat.tsx` sandbox mode, `agents-sidebar.tsx` remoteChats)
+- **THEN** those sites still read upstream DTO snake_case fields
+- **AND** Phase 2 has not altered the F1/F2 boundary contract
 
 ### Requirement: F1 / F2 boundary translation sites are preserved unchanged
 
@@ -136,3 +161,4 @@ The protection is by-name (file paths and surrounding identifier patterns) rathe
 - **THEN** they understand this is intentional (F2 fossil per the upstream features inventory) and not an oversight
 - **AND** the regression guard test at `tests/regression/mock-api-no-snake-timestamps.test.ts` includes `automations-detail-view.tsx` in its allowlist of files exempted from the consumer-side snake_case scan
 - **AND** any future F2 restoration proposal will include its own consumer migration tasks for this site
+

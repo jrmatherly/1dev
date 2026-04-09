@@ -9,7 +9,7 @@ openspec/      — OpenSpec change proposals + 9 capability specs
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, etc.)
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
-tests/regression/ — 13 bun:test regression guards, 53 tests
+tests/regression/ — 14 bun:test regression guards, 58 tests
 drizzle/       — 9 database migration files
 ```
 
@@ -26,7 +26,8 @@ drizzle/       — 9 database migration files
 
 ## Renderer (`src/renderer/`)
 - `login.html` — Pre-auth sign-in screen (1Code logo, static HTML)
-- `lib/mock-api.ts` — DEPRECATED (Phase 1 timestamp fossil retired; Phase 2 migration planned: 6 real consumers, 13 useUtils cache sites; `message-parser.ts` will be created during migration)
+- `lib/mock-api.ts` — Phase 2 complete: 655 → 144 lines, F-entry stubs only (remaining upstream SaaS surface)
+- `lib/message-parser.ts` — 5-stage tool normalization pipeline extracted during mock-api Phase 2 migration
 - `lib/remote-trpc.ts` — Upstream tRPC client (F-entry boundary)
 - `features/agents/stores/sub-chat-store.ts` — No persist middleware; rebuilt from DB
 
@@ -39,12 +40,13 @@ drizzle/       — 9 database migration files
 brand-identity, feature-flags, claude-code-auth-import, documentation-site,
 credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime
 
-## Active OpenSpec Changes (5)
+## Active OpenSpec Changes (4)
 upgrade-electron-41, upgrade-typescript-6, upgrade-tailwind-4,
-upgrade-vite-8-build-stack, migrate-mock-api-consumers
+upgrade-vite-8-build-stack
 
-## Regression Tests (13 guards, 53 tests)
+## Regression Tests (14 guards, 58 tests across 14 files)
 auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted,
 gpg-verification-present, feature-flags-shape, brand-sweep-complete,
 no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamps,
-credential-storage-tier, enterprise-auth-module, enterprise-auth-wiring, electron-version-pin
+credential-storage-tier, enterprise-auth-module, enterprise-auth-wiring, electron-version-pin,
+mock-api-consumer-migration

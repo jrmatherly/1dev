@@ -1,9 +1,9 @@
 # Task Completion Checklist
 
 ## Required — All Quality Gates
-1. `bun run ts:check` — baseline ~86 errors (`.claude/.tscheck-baseline`), only fail if count increases
+1. `bun run ts:check` — baseline 80 errors (`.claude/.tscheck-baseline`, improved from 86 after mock-api Phase 2), only fail if count increases
 2. `bun run build` — electron-vite build
-3. `bun test` — 13 guards, 53 tests under `tests/regression/`
+3. `bun test` — 14 guards, 58 tests under `tests/regression/`
 4. `bun audit` — focus on NEW advisories only
 5. CI also runs `cd docs && bun run build` — recommended locally too
 
@@ -21,7 +21,7 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 - Use `new-regression-guard` skill to scaffold
 - Update [`docs/conventions/regression-guards.md`](../../docs/conventions/regression-guards.md) — the canonical guard list (authoritative count + purpose)
 - Update any other surface that cites a guard count (CLAUDE.md, PROJECT_INDEX.md, Serena memories that mention a count)
-- File-level allowlists, structured error messages, runs in &lt;200ms
+- File-level allowlists, structured error messages, runs in <200ms
 - See [`.claude/rules/testing.md`](../../.claude/rules/testing.md) for the full guard requirements
 
 ## If Introducing New Documentation

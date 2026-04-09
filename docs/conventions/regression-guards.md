@@ -7,7 +7,7 @@ icon: shield
 
 The fork maintains structural regression guards that protect invariants established by Phase 0 hard gates, the brand taxonomy, and the documentation-site capability. Each guard is a single-file `bun:test` test that walks the codebase and fails if a protected invariant is violated.
 
-## Current Inventory (13 guards, 53 tests)
+## Current Inventory (14 guards, 58 tests)
 
 | Guard file | Protects | Motivated by |
 |------------|----------|-------------|
@@ -24,6 +24,7 @@ The fork maintains structural regression guards that protect invariants establis
 | `enterprise-auth-module.test.ts` | MSAL enterprise auth module shape (exports, config, no CP1) | add-enterprise-auth-module |
 | `enterprise-auth-wiring.test.ts` | Enterprise auth wiring invariants (exports, STRIPPED_ENV_KEYS, imports, router, no TOKEN_FILE injection) | wire-enterprise-auth |
 | `electron-version-pin.test.ts` | Electron version pin matches expected major version | upgrade-electron-40 |
+| `mock-api-consumer-migration.test.ts` | No mock-api imports / api.agents.* / utils.agents.* in migrated consumers; message-parser.ts exports verified | migrate-mock-api-consumers |
 
 ## Adding a New Guard
 

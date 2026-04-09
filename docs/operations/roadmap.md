@@ -157,7 +157,7 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 | 2026-04-09 | login.html brand refresh (21ST to 1Code logo) | `7c8d884` |
 | 2026-04-09 | Electron 39.8.7 to 40.8.5 upgrade | `upgrade-electron-40` archived |
 | 2026-04-09 | mock-api.ts Phase 1 timestamp fossil retirement | `retire-mock-api-translator` archived |
-| 2026-04-09 | mock-api.ts Phase 2 consumer migration (6 files, 13 useUtils sites, message-parser.ts helper) | `migrate-mock-api-consumers` (ready to archive) |
+| 2026-04-09 | mock-api.ts Phase 2 consumer migration (6 files, 13 useUtils sites, message-parser.ts helper, TS baseline 86→80) | `migrate-mock-api-consumers` archived |
 | 2026-04-09 | Enterprise auth module (MSAL Node) | `add-enterprise-auth-module` archived |
 | 2026-04-09 | Credential storage hardening (3-tier) | `harden-credential-storage` archived |
 | 2026-04-09 | Dev auth bypass (`MAIN_VITE_DEV_BYPASS_AUTH`) | `10be3d7` |

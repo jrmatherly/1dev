@@ -7,7 +7,7 @@ context: |
   AI backends: Claude Agent SDK, Codex CLI, Ollama
   Fork posture: Decoupling from upstream 1code.dev — self-hosting via LiteLLM + Entra + Envoy Gateway
   Quality gates: bun run ts:check + build + test + audit + docs build (5 gates)
-  TS baseline: ~86 pre-existing errors (only new errors matter)
+  TS baseline: ~80 pre-existing errors (reduced from 86 during mock-api Phase 2; only new errors matter)
   Database: 7 tables in Drizzle schema (incl. feature_flag_overrides), auto-migrates on startup
   tRPC routers: 22 in createAppRouter (21 feature + 1 git), incl. enterpriseAuth
   Upstream boundary: remoteTrpc.* and fetch(${apiUrl}/) calls hit 1code.dev — must be replaced

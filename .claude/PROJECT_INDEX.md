@@ -154,7 +154,8 @@ Radix-based primitives: accordion, alert-dialog, badge, button, button-group, ca
 | `api-fetch.ts` | Fetch wrapper for API calls |
 | `analytics.ts` | PostHog analytics integration |
 | `jotai-store.ts` | Global Jotai store instance |
-| `mock-api.ts` | **DEPRECATED — still imported by 6 files.** Phase 2 migration tracked in `openspec/changes/migrate-mock-api-consumers/`. Phase 3 will delete. |
+| `mock-api.ts` | **Phase 2 complete (2026-04-09)** — 144 lines of F-entry stubs only. Zero production consumers. Phase 3 will delete entirely after F1-F10 restoration. |
+| `message-parser.ts` | **NEW (Phase 2)** — typed helpers for sub-chat JSON parsing + tool part normalization (5 stages). Extracted from mock-api. |
 | `window-storage.ts` | Window-scoped storage utilities |
 | `vscode-themes.ts` | VS Code theme support |
 | `editor-icons.ts` | File type icon mappings |
@@ -240,7 +241,7 @@ Spec-driven change proposal workflow (OpenSpec 1.2.0).
 | `project.md` | Project-level spec context |
 | `config.yaml` | OpenSpec configuration |
 | `changes/add-feature-flag-infrastructure/` | Active proposal: Phase 0 gate #12 (24 tasks across 6 phases) |
-| `changes/migrate-mock-api-consumers/` | Active proposal: Phase 2 — port 6 consumers from mock-api to direct tRPC |
+| `archive/2026-04-09-migrate-mock-api-consumers/` | Phase 2 mock-api consumer migration — 6 files, 13 useUtils sites, message-parser.ts extraction (archived) |
 
 Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `specs/<capability>/spec.md`.
 
@@ -340,7 +341,7 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 | 8 | Upstream sandbox OAuth extraction | ✅ Done (archived `remove-upstream-sandbox-oauth`) |
 | 9 | Minimum CI workflow | ✅ Done (`.github/workflows/ci.yml`) |
 | 10 | Dependabot config | ✅ Done |
-| 11 | Test framework + regression guards | ✅ Done (bun:test, 13 guards / 53 tests) |
+| 11 | Test framework + regression guards | ✅ Done (bun:test, 14 guards / 58 tests) |
 | 12 | Feature flag infrastructure + Drizzle schema | ✅ Done |
 | 13 | OpenSpec 1.2.0 migration | ✅ Done |
 | 14 | Electron upgrade (39 → 40) | ✅ Done (archived `upgrade-electron-40`) |
