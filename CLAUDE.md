@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Phase 0 progress (2026-04-09): 15 of 15 hard gates complete ✅**
 - ✅ **#1-6** — dead `auth:get-token` IPC handler deletion + token log sanitization
 - ✅ **#7** — Claude binary SHA-256 + GPG signature verification, Codex SHA-256 verification
-- ✅ **#8** — upstream sandbox OAuth removed (see `openspec/changes/remove-upstream-sandbox-oauth/`)
+- ✅ **#8** — upstream sandbox OAuth removed (see `openspec/changes/archive/2026-04-09-remove-upstream-sandbox-oauth/`)
 - ✅ **#9** — minimum CI workflow (`.github/workflows/ci.yml`)
 - ✅ **#10** — Dependabot config (secret scanning UI enable still pending)
 - ✅ **#11** — bun:test framework + regression guards (`tests/regression/`)
@@ -96,7 +96,9 @@ src/
 │           ├── voice.ts             # Voice features
 │           ├── worktree-config.ts   # Worktree configuration
 │           ├── sandbox-import.ts    # Sandbox import flow
+│           ├── feature-flags.ts     # Feature flag override CRUD (Phase 0 gate #12)
 │           ├── debug.ts             # Debug utilities
+│           └── agent-utils.ts       # Shared helpers (not a router)
 │           └── agent-utils.ts       # Shared helpers (not a router)
 │
 ├── preload/                 # IPC bridge (context isolation)
@@ -169,8 +171,8 @@ anthropic_settings      → singleton row tracking activeAccountId
 
 // Feature flag infrastructure (Phase 0 hard gate #12, added 2026-04-08):
 feature_flag_overrides  → key (PK), value (JSON-encoded text), updatedAt
-                          // backs src/main/lib/feature-flags.ts, spec in
-                          // openspec/changes/add-feature-flag-infrastructure/
+                          // backs src/main/lib/feature-flags.ts
+                          // spec: openspec/specs/feature-flags/spec.md
 ```
 
 See the schema file for exact column types and defaults.
@@ -253,7 +255,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 - `.full-review/` — Output from `comprehensive-review:full-review` plugin (gitignored)
 - `.serena/memories/` — Serena project memories: `codebase_structure`, `environment_and_gotchas`, `project_overview`, `style_and_conventions`, `suggested_commands`, `task_completion_checklist`. Read via `mcp__serena__read_memory` *after* activating the project with `mcp__serena__activate_project`.
 - **`.github/workflows/ci.yml`** — minimum-viable CI runs `bun run ts:check` + `bun run build` + `bun test` + `bun audit` on every PR to `main`. Added 2026-04-08 (Phase 0 hard gate #9). Local quality gates are the same commands — run them before pushing.
-- **`tests/regression/`** — bun:test regression guards (7 guards, 24 tests: `auth-get-token-deleted`, `token-leak-logs-removed`, `credential-manager-deleted`, `gpg-verification-present`, `feature-flags-shape`, `brand-sweep-complete`, `no-upstream-sandbox-oauth`). Run with `bun test`. The `brand-sweep-complete` guard enforces the Tier A/B/C brand taxonomy from the `brand-identity` capability spec (`openspec/changes/rebrand-residual-sweep/specs/brand-identity/spec.md` until the change archives; then `openspec/specs/brand-identity/spec.md`).
+- **`tests/regression/`** — bun:test regression guards (8 guards, 25 tests: `auth-get-token-deleted`, `token-leak-logs-removed`, `credential-manager-deleted`, `gpg-verification-present`, `feature-flags-shape`, `brand-sweep-complete`, `no-upstream-sandbox-oauth`, `no-scratchpad-references`). Run with `bun test`. The `brand-sweep-complete` guard enforces the Tier A/B/C brand taxonomy from the `brand-identity` capability spec (`openspec/specs/brand-identity/spec.md`).
 - **Deployment target cluster repo:** `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos K8s, Envoy Gateway, LiteLLM, OIDC stack — coordinate cross-repo when working on auth/backend)
 - **Cluster access:** `cd /Users/jason/dev/ai-k8s/talos-ai-cluster && KUBECONFIG=./kubeconfig kubectl ...` (mise/direnv loads KUBECONFIG on cd; `~/.kube/config` is a separate unrelated config). The cluster is **Flux/GitOps managed** — never use direct `kubectl apply` for cluster resources; all changes go through `templates/config/**/*.j2` Jinja2 templates + `cluster.yaml` plaintext variables + SOPS encryption + git commit + Flux reconcile. Direct applies are reconciled away within 60s.
 - **Cluster facts (discovered 2026-04-08):** Envoy Gateway `v1.7.1` (image: `mirror.gcr.io/envoyproxy/gateway:v1.7.1`); Entra tenant ID `f505346f-75cf-458b-baeb-10708d41967d`; test echo server at `https://echo.aarons.com/` (`default/echo` HTTPRoute, runs `mendhak/http-https-echo:39`, returns `.headers.authorization` lowercase); existing working OIDC SecurityPolicy reference pattern at `kube-system/hubble-ui-oidc` (single-auth OIDC; dual-auth is NEW as of the 2026-04-08 smoke test).
@@ -381,7 +383,7 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - **Claude CLI binary pinned to `2.1.96`** — see `claude:download` script in `package.json`. Bumping the pin requires re-testing session resume and streaming. This version supports signed-manifest GPG verification (introduced 2.1.89); the download script enforces it at `scripts/download-claude-binary.mjs`.
 - **Codex CLI binary pinned to `0.118.0`** — see `codex:download` script in `package.json`. Bumping the pin requires re-testing the `@zed-industries/codex-acp` bridge. This version natively supports dynamic short-lived bearer token refresh for custom model providers, which enables the Phase 1 Envoy Gateway rotation pattern without a custom shim.
 - **Vite must stay on 6.x** — `electron-vite` 3.x depends on `splitVendorChunk` which was removed in Vite 7+. Use `^6.4.2` minimum.
-- **Minimal test suite** — `bun:test` (built in, no config) bootstrapped 2026-04-08 for Phase 0 regression guards under `tests/regression/`. No Jest/Vitest/Playwright — broader test adoption is Phase 0 hard gate #11. Quality gates: `bun run ts:check` (stricter, tsgo-based), `bun run build` (esbuild, validates packaging), `bun test` (regression guards, ~100ms for the current suite), `bun audit` (dependency advisories). **Run all four before submitting a PR** — none is a superset of the others, and the four together run in under 2 minutes on an M-series Mac. The same four are enforced in CI (`.github/workflows/ci.yml`).
+- **Minimal test suite** — `bun:test` (built in, no config) bootstrapped 2026-04-08 for Phase 0 regression guards under `tests/regression/`. No Jest/Vitest/Playwright — broader test adoption is Phase 0 hard gate #11. Quality gates: `bun run ts:check` (stricter, tsgo-based), `bun run build` (esbuild, validates packaging), `bun test` (regression guards, ~100ms for the current suite), `bun audit` (dependency advisories), `bunx @fission-ai/openspec@1.2.0 validate --all --strict --no-interactive` (spec validation). **Run all five before submitting a PR** — none is a superset of the others, and the four together run in under 2 minutes on an M-series Mac. The same four are enforced in CI (`.github/workflows/ci.yml`).
 - **TypeScript baseline is not clean** — `bun run ts:check` currently reports ~88 pre-existing errors on `main` (auth/mentions/layout hotspots, unrelated to active work). Before investigating any TS error, establish the baseline: `git stash && bun run ts:check 2>&1 | grep -c "error TS" && git stash pop`. Only worry about *new* errors your changes introduce. Cleaning the baseline is an open Phase 0 concern.
 - **Baseline file is load-bearing, not just a shortcut** — `.claude/.tscheck-baseline` contains the current numeric baseline (e.g., `88`). A `PostToolUse` hook in `.claude/settings.json` reads this file after every `.ts`/`.tsx` Edit or Write, re-runs `bun run ts:check`, and fails loudly if the count increased. If you legitimately reduce the baseline, update the file: `bun run ts:check 2>&1 | grep -c "error TS" > .claude/.tscheck-baseline`. If the file is missing, the hook treats the current count as the baseline for that run only.
 - **Hidden worktree directory is `~/.1code/worktrees/`, not `.21st/`** — the parent directory was renamed in the 2026-04-08 rebrand sweep (OpenSpec change `rebrand-residual-sweep`). Repo clones live under `~/.1code/repos/`. The per-worktree config file is `.1code/worktree.json` (unchanged). This is the canonical local storage location — do not create anything under `~/.21st/`. If an existing worktree detection path references `.21st/worktrees`, that is a regression and should fail the `brand-sweep-complete` regression guard.
@@ -389,7 +391,8 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; upgrading requires full config migration (134 files use `cn()`)
 - **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream releases compatible version
 - `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously). For `bun audit` / `bun outdated` see the Commands block above.
-- **`openspec` CLI is installed globally** but mise shims may not be on the Bash tool's PATH in non-login shells. Use `bunx @fission-ai/openspec@1.2.0` (matches the globally pinned version) instead of bare `openspec` in automation. Supports `new change`, `instructions <artifact>`, `validate --strict --no-interactive`, `list`, `status --change <id>`, `show <id>`, `archive`.
+- **`openspec` CLI is installed globally** but mise shims may not be on the Bash tool's PATH in non-login shells. Use `bunx @fission-ai/openspec@1.2.0` (matches the globally pinned version) instead of bare `openspec` in automation. Supports `new change`, `instructions <artifact>`, `validate --strict --no-interactive`, `list`, `status --change <id>`, `show <id>`, `archive`. The `/opsx:verify` workflow is also enabled — use it before archiving to check implementation completeness.
+- **`openspec/config.yaml` has active `context` + `rules` injection** — the `context` block is injected into every `/opsx:propose` and `/opsx:apply` artifact generation. Keep it concise and up-to-date when the tech stack or constraints change.
 - **OpenSpec capability specs inventory**: `openspec/specs/` contains 3 promoted capabilities: `brand-identity` (Tier A/B/C brand taxonomy), `feature-flags` (feature flag infrastructure shape), `claude-code-auth-import` (local-only Claude Code auth paths — importSystemToken + deletion contract). Use `## MODIFIED Requirements` against these baselines when changing their behavior.
 - **OpenSpec `## MODIFIED Requirements` requires an archived baseline.** You can only use MODIFIED against a capability spec that lives under `openspec/specs/<capability>/spec.md`. Capabilities still inside unarchived `openspec/changes/<id>/specs/` directories are NOT baselines — use `## ADDED Requirements` on a new capability instead, or archive the source change first with `bunx @fission-ai/openspec@1.2.0 archive <id>`.
 - **TDD red-state verification rule:** A test that fails because of a missing import, undefined symbol, or TypeScript compile error is NOT a valid red. The red step must produce an assertion failure with a readable `expected X, got Y` message. If the red output mentions `ReferenceError`, `TypeError`, or `Cannot find module`, stop and fix the test harness before proceeding to green.
@@ -415,6 +418,7 @@ Common drift points:
 - Renderer feature subdirectories (`src/renderer/features/agents/*`)
 - Quality-gate naming (always: both `ts:check` and `build`)
 - Hosted-vs-OSS feature claims in README/CONTRIBUTING (verify against actual code paths, not assumptions)
-- Regression guard count under `tests/regression/` — currently **7** (24 tests); grows whenever a new Phase 0 gate or brand guard lands
+- Regression guard count under `tests/regression/` — currently **8** (25 tests); grows whenever a new Phase 0 gate or brand guard lands
 - Brand taxonomy acceptance rules — authoritative source is `openspec/specs/brand-identity/spec.md` (the `brand-identity` capability, introduced by the `rebrand-residual-sweep` change). Do NOT duplicate the Tier A/B/C definitions in this file — point at the spec
+- Baseline spec count in `openspec/specs/` — currently **2** (`brand-identity`, `feature-flags`); grows when changes archive
 - Deleted-file references — when a script or module is deleted, grep `CLAUDE.md`, `.claude/PROJECT_INDEX.md`, `.serena/memories/*` for the filename before committing (the `docs-drift-check` skill covers this as drift point #10)
