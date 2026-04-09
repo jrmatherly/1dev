@@ -10,9 +10,10 @@ The project's `tsconfig.json` is **well-positioned** — most options are alread
 - **TypeScript 5.9.3 → 6.0.2** — 9 changed defaults, several removed options, deprecation bridge
 
 **tsconfig.json changes required:**
-- **ADD `"types": ["node"]`** — TS 6.0 defaults `types` to `[]` (was auto-discover all `@types/*`). Without this, builds break immediately as Node.js types vanish.
-- **ADD `"noUncheckedSideEffectImports": false`** — TS 6.0 enables this by default. CSS/style side-effect imports (`import "./styles.css"`) handled by the bundler will error unless opted out.
+- **ADD `"types": ["node", "better-sqlite3", "diff", "react", "react-dom"]`** — TS 6.0 defaults `types` to `[]` (was auto-discover all `@types/*`). The project has 5 explicit `@types/*` devDependencies plus 62 transitive `@types/*` packages. All explicitly declared packages must be listed or type resolution for those modules will break. (`skipLibCheck: true` only skips checking `.d.ts` files — it does NOT skip resolution.)
+- **ADD `"noUncheckedSideEffectImports": false`** — TS 6.0 enables this by default. 5 TS/TSX files have CSS side-effect imports: `main.tsx`, `terminal.tsx`, `automations-detail-view.tsx`, `automations-view.tsx`, `inbox-view.tsx`.
 - **REMOVE `"esModuleInterop": true`** — now unconditionally enabled; the option is ignored but setting it is harmless (can keep for clarity).
+- **CONSIDER REMOVING `"declaration": true` and `"declarationMap": true`** — these are contradicted by `"noEmit": true` (which suppresses all output) and are effectively no-ops. TS 6.0's "align defaults" philosophy may flag contradictory settings.
 
 **Changes with NO impact (already explicit in tsconfig):**
 - `strict` defaults to `true` — already set
@@ -20,6 +21,9 @@ The project's `tsconfig.json` is **well-positioned** — most options are alread
 - `target` defaults to `es2025` — already `"ES2022"`
 - `moduleResolution` defaults to `bundler` — already `"bundler"`
 - `rootDir` defaults to tsconfig directory — already `"./src"`
+- `resolveJsonModule` defaults to `true` — already set
+- `isolatedModules` defaults to `true` — already set
+- `forceConsistentCasingInFileNames` defaults to `true` — already set
 
 **Removed features (none affect us):**
 - `moduleResolution: "classic"` removed — we use `"bundler"`
@@ -29,8 +33,17 @@ The project's `tsconfig.json` is **well-positioned** — most options are alread
 
 **tsgo / @typescript/native-preview alignment:**
 - TS 6.0 introduces `--stableTypeOrdering` flag for tsgo parity (25% perf cost, use only for comparison)
-- Update `@typescript/native-preview` to a version aligned with TS 6.0 semantics
+- Update `@typescript/native-preview` to a version aligned with TS 6.0 semantics — **NOTE: tsgo is globally installed (`npm install -g @typescript/native-preview`), NOT a project dependency**
 - The `types: []` default must be honored by both `tsc` and `tsgo`
+
+**`/// <reference types>` directives (unaffected):**
+- `src/env.d.ts:1` — `/// <reference types="vite/client" />` (provides `ImportMetaEnv`)
+- `src/renderer/wdyr.ts:1` — `/// <reference types="@welldone-software/why-did-you-render" />`
+- These resolve via package types, NOT `@types/*`, so the `types` array change does not affect them. Verify post-upgrade.
+
+**`@ts-expect-error` baseline risk:**
+- 43 occurrences across 14 files (42 are for `webkitAppRegion` CSS property)
+- If TS 6.0 adds proper WebKit CSS property types, these could flip from suppressing a real error to being "unused @ts-expect-error" errors, increasing the baseline by up to 42
 
 **Error baseline impact:**
 - Current baseline: ~86 errors in `.claude/.tscheck-baseline`
@@ -62,12 +75,16 @@ None — no behavioral changes; type-checking only.
 - `bun run build` (esbuild via electron-vite) — no impact expected (esbuild strips types)
 
 **Risk surface:**
-- **High risk:** `types: []` default breaks ambient type resolution — mitigated by adding `"types": ["node"]`
-- **High risk:** Error baseline shift — requires re-measurement
-- **Medium risk:** `noUncheckedSideEffectImports` on CSS imports — mitigated by setting to `false`
-- **Medium risk:** tsgo version alignment — must update `@typescript/native-preview`
-- **Low risk:** Import assertions → attributes syntax change
+- **High risk:** `types: []` default breaks ambient type resolution — mitigated by listing all 5 `@types/*` packages
+- **High risk:** Error baseline shift — up to +42 from `@ts-expect-error` directives becoming unused
+- **High risk:** `noEmit` + `declaration` contradictory config — TS 6.0 may flag
+- **Medium risk:** `noUncheckedSideEffectImports` on CSS imports (5 files) — mitigated by setting to `false`
+- **Medium risk:** tsgo version alignment — must update global `@typescript/native-preview` install
+- **Low risk:** Import assertions → attributes syntax change (0 occurrences found)
 - **Low risk:** Third-party `@types/*` compatibility — mitigated by `skipLibCheck: true`
+
+**Docs site isolation:**
+- The `docs/` directory has its own `package.json` and `bun.lock` pinning TypeScript at 5.9.3 via `@xyd-js/sources`. The `cd docs && bun run build` quality gate does NOT validate TS 6 compatibility — it uses its own locked TS version. This is acceptable; the `@xyd-js/cli` pin cannot be changed (per `pinned-deps.md`). Also note `@react-router/dev@7.14.0` in docs has `peerDependencies: { "typescript": "^5.1.0" }`, blocking docs-side TS6 adoption until upstream updates.
 
 **No changes to:**
 - tRPC routers, database schema, Drizzle migrations

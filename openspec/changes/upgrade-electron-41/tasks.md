@@ -22,14 +22,21 @@
 - `cd docs && bun run build` — verify docs site build
 - **Update** `.claude/.tscheck-baseline` if error count changed
 
-### Task 4: Functional verification
+### Task 4: Verify Electron-coupled dependencies
+- Check `@sentry/electron` 7.x changelog for Electron 41 support — if a bump is needed, add to package.json
+- Verify `electron-updater` 6.8.x supports Electron 41 — test update check flow
+- Verify `trpc-electron` IPC bridge works with Electron 41
+- **Files:** `package.json` (if version bumps needed)
+
+### Task 5: Functional verification
 - Verify clipboard operations (copy in chat, file viewer, terminal)
 - Verify credential storage (store/retrieve across all 3 tiers)
-- Verify auto-updater check flow
-- Verify window management (multi-window, minimize, maximize, close)
+- Verify auto-updater check flow (download + install)
+- Verify window management (multi-window, minimize, maximize, close, `closed` handler cleanup)
 - Verify IPC channels (all 49+ handlers)
+- Verify Sentry error reporting initializes correctly
 
-### Task 5: Update documentation and pins
+### Task 6: Update documentation and pins
 - Update `docs/conventions/pinned-deps.md` — Electron pin to `~41.2`, EOL to 2026-08-25
 - Update `docs/architecture/tech-stack.md` — Electron, Chromium, Node.js, V8 versions
 - Update `openspec/config.yaml` context block — Electron version

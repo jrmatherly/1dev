@@ -103,13 +103,21 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None (upgrade tool available)
 **Canonical reference:** `openspec/changes/upgrade-tailwind-4/proposal.md`
 
-### [Blocked] Vite 6 → 8 + plugin-react 4 → 6 + Shiki 3 → 4
+### [Ready] Vite 7 — Phase A (unblocked stepping stone)
 
 **Added:** 2026-04-09
-**Scope:** Two-phase upgrade. Phase A (Vite 7, unblocked) validates CJS interop with electron-vite 5.0.0 stable. Phase B (Vite 8, blocked) requires electron-vite 6.0.0 stable — Rolldown replaces esbuild+Rollup. Shiki 3→4 blocked on `@pierre/diffs` releasing a shiki v4-compatible version.
+**Scope:** Bump Vite 6→7 + plugin-react 4→5 with electron-vite 5.0.0 (stable). Validates CJS interop and browser target changes. Should land BEFORE Tailwind 4 so `@tailwindcss/vite` is tested against its natural Vite version.
+**Effort:** Small-Medium
+**Prereqs:** TypeScript 6 should land first (sets `noUncheckedSideEffectImports`)
+**Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md` (Phase A tasks)
+
+### [Blocked] Vite 8 — Phase B + Shiki 4
+
+**Added:** 2026-04-09
+**Scope:** Vite 8 (Rolldown replaces esbuild+Rollup) + electron-vite 6.0 + plugin-react 6.0 + Shiki 3→4. Critical CJS validation needed: `__dirname`, `require()`, dynamic `import()`, `import.meta.env`. Shiki blocked on `@pierre/diffs` updating both `shiki` and `@shikijs/transformers` to `^4.0.0`.
 **Effort:** Medium-Large
-**Prereqs:** Phase B blocked on electron-vite 6.0.0 stable release; Shiki blocked on `@pierre/diffs` update
-**Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md`
+**Prereqs:** Tailwind 4 MUST complete first (avoids double-restructuring `electron.vite.config.ts`); Phase B blocked on electron-vite 6.0.0 stable; Shiki blocked on `@pierre/diffs`
+**Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md` (Phase B + Shiki tasks)
 
 ### [Ready] Electron Fuses enablement
 

@@ -16,10 +16,15 @@ The current tsconfig is well-positioned because most options are already set exp
 {
   "compilerOptions": {
     // ADD — TS 6.0 defaults types to [] (was auto-discover @types/*)
-    "types": ["node"],
+    // Must list ALL 5 explicitly declared @types/* packages
+    "types": ["node", "better-sqlite3", "diff", "react", "react-dom"],
     
-    // ADD — TS 6.0 enables this by default; CSS imports would error
+    // ADD — TS 6.0 enables this by default; 5 CSS side-effect imports would error
     "noUncheckedSideEffectImports": false,
+    
+    // CONSIDER REMOVING — contradicted by noEmit: true, effectively no-ops
+    // "declaration": true,     // remove
+    // "declarationMap": true,  // remove
     
     // KEEP (already explicit, unaffected by new defaults)
     "target": "ES2022",
@@ -31,6 +36,8 @@ The current tsconfig is well-positioned because most options are already set exp
   }
 }
 ```
+
+**Note:** `/// <reference types="vite/client" />` in `src/env.d.ts` and `/// <reference types="@welldone-software/why-did-you-render" />` in `src/renderer/wdyr.ts` resolve via package types (not `@types/*`) and are unaffected by the `types` array change.
 
 ### Error Baseline Strategy
 

@@ -15,11 +15,11 @@ The project SHALL use TypeScript 6.0.x for type checking. TS 6.0 is the "bridge 
 
 TypeScript 6.0 defaults `types` to `[]` instead of auto-discovering all `@types/*` packages. The tsconfig SHALL explicitly list required type packages.
 
-#### Scenario: Node.js types are available
+#### Scenario: All required type packages are available
 
 - **GIVEN** TypeScript 6.0 defaults `types` to `[]`
 - **WHEN** the project is type-checked
-- **THEN** `tsconfig.json` includes `"types": ["node"]`
+- **THEN** `tsconfig.json` includes `"types": ["node", "better-sqlite3", "diff", "react", "react-dom"]`
 
 ### Requirement: Side-effect CSS imports are allowed
 

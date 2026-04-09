@@ -17,17 +17,19 @@ This is the lowest-risk upgrade in the batch and should be done first to extend 
 
 **Electron 41 breaking changes (none affect us):**
 - PDFs now render within same WebContents (OOPIFs) — we don't interact with PDF WebContents
-- Cookie `'changed'` event has new granular causes — no cookie event listeners in codebase
-- `WebContentsView.webContents` undefined in `destroyed` handler — no destroyed handlers exist
+- Cookie `'changed'` event has new granular causes — codebase uses `cookies.set()`/`cookies.remove()` (4 sites in `index.ts` and `main.ts`) but does NOT listen on the `'changed'` event, so no impact
+- `WebContentsView.webContents` undefined in `destroyed` handler — codebase does not use `WebContentsView` (uses BrowserWindow with `close`/`closed` handlers in `window-manager.ts:43` and `main.ts:803,836`, which are unaffected)
 
 **safeStorage API: NO CHANGES.** All four methods used by `credential-store.ts` remain unchanged:
 - `safeStorage.isEncryptionAvailable()`, `safeStorage.getSelectedStorageBackend()`
 - `safeStorage.encryptString()`, `safeStorage.decryptString()`
 
-**Build tooling compatibility:**
+**Dependency compatibility verification:**
 - electron-vite 5.0.0 — already compatible, no version change needed
 - electron-builder 26.8.1 — already compatible, no version change needed
 - @electron/rebuild 4.0.3 — handles native module rebuilds via postinstall
+- **@sentry/electron ^7.11.0** — used in 5 files (`index.ts`, `preload/index.ts`, `main.tsx`, `ipc-chat-transport.ts`, `claude.ts`). Hooks deeply into Electron internals (crash reporting, IPC, breadcrumbs). Must verify compatibility with Electron 41 before upgrading.
+- **electron-updater ^6.8.3** — used in `auto-updater.ts` with 30+ references. Tightly coupled to Electron for code signing verification and download mechanics. Must verify v6.8.x supports Electron 41.
 
 **Documentation updates:**
 - `docs/conventions/pinned-deps.md` — update Electron pin from `~40.8.5` to `~41.2`
@@ -36,8 +38,8 @@ This is the lowest-risk upgrade in the batch and should be done first to extend 
 - `.claude/PROJECT_INDEX.md` — update if version references exist
 
 **Prepare-now items for Electron 42 (deferred to roadmap):**
-- Dialog methods default to Downloads directory (pass explicit `defaultPath`)
-- macOS notifications migration to `UNNotification` (apps must be code-signed — already done)
+- Dialog methods default to Downloads directory — 3 `showOpenDialog` call sites in `projects.ts` (lines 64, 379, 501) lack explicit `defaultPath`
+- macOS notifications migration to `UNNotification` — codebase uses Notification API (`main.ts:131-162`) including `notification.on("click")` handler. App is already code-signed; verify `UNNotification` behavioral compatibility.
 - Electron binary download moves from `postinstall` to on-demand (may affect CI)
 
 ## Capabilities
@@ -61,6 +63,8 @@ None — infrastructure upgrade only.
 
 **Risk surface:**
 - **Medium risk:** node-pty rebuild — must functionally test terminal
+- **Medium risk:** @sentry/electron compatibility — deeply coupled to Electron internals
+- **Medium risk:** electron-updater compatibility — auto-update flow must be verified
 - **Low risk:** better-sqlite3 rebuild — well-tested, prebuilt binaries available
 - **No risk:** All Electron APIs used are stable in v41
 

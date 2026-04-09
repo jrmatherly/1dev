@@ -1,10 +1,24 @@
 ## Tasks
 
+### Task 0: Spike — validate @tailwindcss/vite + electron-vite compatibility
+- Install `@tailwindcss/vite` as a devDependency
+- Add `tailwindcss()` to the renderer `plugins` array in `electron.vite.config.ts`
+- Run `bun run build` and `bun run dev` — verify CSS processing works
+- If incompatible, fall back to `@tailwindcss/postcss` approach
+- **Decision gate:** Option A (Vite plugin) or Option B (PostCSS) must be resolved before proceeding
+- **Files:** `electron.vite.config.ts` (test only, revert if needed)
+
 ### Task 1: Pre-flight audit
-- Catalog all `--tw-ring-*` internal variable references in `agents-styles.css` (lines 219-226)
-- Count `flex-shrink-*`, `outline-none`, `shadow-*`, `rounded-*` occurrences for comparison
-- Check `@tailwindcss/vite` compatibility with current Vite version and `electron-vite`
-- Identify any `@layer utilities` or `@layer components` blocks that need conversion to `@utility`
+- Catalog all `--tw-ring-*` internal variable references in `agents-styles.css` (lines 219-234, including dark mode)
+- Catalog escaped Tailwind class selectors in `agents-styles.css` (lines 191-195) — `.hover\:bg-foreground\/5:hover` etc.
+- Count bare `shadow` (3 files), `shadow-sm` (16/12 files), bare `rounded` (30+/20+ files), `rounded-sm` (28/21 files) — track separately for scale-shift verification
+- Count `flex-shrink-*` (340/83 files), `outline-none` (78/48 files), `backdrop-blur-sm` (7/4 files)
+- Count buttons WITHOUT explicit `cursor-pointer` — assess need for base cursor override
+- Verify `tw-animate-css` provides same class names as `tailwindcss-animate` (27 occurrences across 15 files)
+- Verify `ring-offset-background` custom utility (12 occurrences across 11 files) works with `@theme` color registration
+- Analyze custom `borderRadius` theme interaction with TW4 scale-shift renames
+- Identify `@layer utilities` / `@layer components` blocks that need conversion to `@utility`
+- Verify `@container` usage in file-viewer components (3 files) works with TW4 built-in
 - **Files:** Read-only analysis
 
 ### Task 2: Run the upgrade tool
@@ -31,10 +45,12 @@
 - Verify `@source` directive for streamdown is picked up correctly in v4
 - **Files:** `src/renderer/styles/globals.css`, `tailwind.config.js`
 
-### Task 5: Fix agents-styles.css internal variables
-- Rewrite lines 219-226 that reference `--tw-ring-offset-shadow`, `--tw-ring-shadow`, etc.
+### Task 5: Fix agents-styles.css internal variables and escaped selectors
+- Rewrite lines 219-234 that reference `--tw-ring-offset-shadow`, `--tw-ring-shadow`, `--tw-ring-color` (including dark mode override at line 234)
 - Use v4's ring utilities or verified v4 internal variable names
-- Test ring styling visually
+- Evaluate escaped hover selectors at lines 191-195 — TW4's native `@media (hover: hover)` wrapping may make these unnecessary. If still needed, verify class name format matches TW4 output.
+- Verify `.space-y-4` selectors at lines 259-346 (used as CSS selectors for Streamdown wrappers) still match TW4 class names
+- Test ring styling and hover overrides visually
 - **Files:** `src/renderer/styles/agents-styles.css`
 
 ### Task 6: Update dependencies
@@ -51,13 +67,16 @@
 - `cd docs && bun run build` — verify docs site build
 
 ### Task 8: Visual regression testing
-- Inspect default border styling (bare `border` class should still look correct)
-- Inspect ring styling on focus states
-- Inspect shadow/rounded scale shifts (visual appearance should be preserved by rename)
+- Inspect default border styling — `@apply border-border` in `@layer base` mitigates default color change, but verify `@apply` within `@layer base` works in TW4
+- Inspect ring styling on focus states — especially `ring-offset-background` (12 occurrences)
+- Inspect shadow/rounded scale shifts — verify bare `shadow` (3 files), `shadow-sm` (16 files), bare `rounded` (30+ files), `rounded-sm` (28 files) all renamed correctly
 - Inspect placeholder color changes
-- Inspect button cursor behavior
+- Inspect button cursor behavior — if buttons without `cursor-pointer` regressed, add base cursor override
 - Verify dark mode toggle works correctly
 - Verify `space-y-*` containers with hidden children
+- Verify `@container` responsive behavior in file-viewer sidebar, markdown viewer, image viewer (3 files)
+- Verify animation classes (dialog, tooltip, select, hover-card transitions)
+- Verify WDYR plugin ordering still works after Tailwind plugin addition to renderer plugins array
 
 ### Task 9: Update documentation and pins
 - Update `docs/conventions/pinned-deps.md` — remove Tailwind 3.x pin (no longer needed)
