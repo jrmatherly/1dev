@@ -7,7 +7,7 @@
     "@xyd-js/cli": "0.0.0-build-1202121-20260121231224"
   },
   "scripts": {
-    "build": "xyd build"
+    "build": "rm -rf .xyd/host/node_modules .xyd/build && xyd build"
   },
   "engines": {
     "node": ">=22"
