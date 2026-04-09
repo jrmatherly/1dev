@@ -14,7 +14,7 @@ icon: pin
 | Vite | 6.x | `electron-vite` 3.x depends on `splitVendorChunk` removed in Vite 7+ |
 | Tailwind CSS | 3.x | `tailwind-merge` v3 requires Tailwind v4; 134 files use `cn()` |
 | shiki | 3.x | `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream update |
-| Electron | ~39.8.7 | EOL 2026-05-05 — major upgrade needed before then |
+| Electron | ~40.8.5 | EOL 2026-06-30 — upgrade to 41 tracked in OpenSpec `upgrade-electron-41` |
 | Claude CLI binary | 2.1.96 | Session resume + streaming tested at this version |
 | Codex CLI binary | 0.118.0 | `@zed-industries/codex-acp` bridge tested at this version |
 | `@azure/msal-node` | 3.8.x | NOT v5.x (`@azure/msal-node-extensions` is the v5.x package) |

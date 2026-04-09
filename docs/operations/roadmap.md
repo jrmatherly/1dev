@@ -79,12 +79,37 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ## P3 -- Low Priority / Opportunistic
 
-### [Ready] Vite 6 to 7 upgrade
+### [Ready] Electron 40 → 41 upgrade
 
 **Added:** 2026-04-09
-**Scope:** Now unblocked by electron-vite 5.0.0 (which supports Vite 5/6/7). Assess Tailwind 3.x and shiki 3.x compatibility before upgrading.
-**Effort:** Medium
-**Prereqs:** Electron 40 upgrade (done)
+**Scope:** Bump Electron from 40.8.5 to 41.2.0 (Chromium 146, Node.js 24.14). No breaking API changes affect codebase. Native modules (better-sqlite3, node-pty) require rebuild. Electron 40 EOL is 2026-06-30; upgrade extends support to 2026-08-25.
+**Effort:** Small
+**Prereqs:** None
+**Canonical reference:** `openspec/changes/upgrade-electron-41/proposal.md`
+
+### [Ready] TypeScript 5 → 6 upgrade
+
+**Added:** 2026-04-09
+**Scope:** Upgrade TypeScript from 5.9.3 to 6.0.2 — the "bridge release" before TS 7.0 (Go rewrite). Add `"types": ["node"]` and `"noUncheckedSideEffectImports": false` to tsconfig. Re-baseline error count. Update tsgo alignment.
+**Effort:** Small-Medium
+**Prereqs:** None
+**Canonical reference:** `openspec/changes/upgrade-typescript-6/proposal.md`
+
+### [Ready] Tailwind CSS 3 → 4 + tailwind-merge 2 → 3
+
+**Added:** 2026-04-09
+**Scope:** Migrate to Tailwind v4 (Rust engine, CSS-first config). ~1,300+ class renames across 174 files (80% automated by `@tailwindcss/upgrade`). Migrate from PostCSS plugin to `@tailwindcss/vite`. Replace `tailwindcss-animate` with `tw-animate-css`. Fix `agents-styles.css` internal `--tw-ring-*` variable references. Must upgrade tailwind-merge to v3 simultaneously (drops TW3 support).
+**Effort:** Medium-Large
+**Prereqs:** None (upgrade tool available)
+**Canonical reference:** `openspec/changes/upgrade-tailwind-4/proposal.md`
+
+### [Blocked] Vite 6 → 8 + plugin-react 4 → 6 + Shiki 3 → 4
+
+**Added:** 2026-04-09
+**Scope:** Two-phase upgrade. Phase A (Vite 7, unblocked) validates CJS interop with electron-vite 5.0.0 stable. Phase B (Vite 8, blocked) requires electron-vite 6.0.0 stable — Rolldown replaces esbuild+Rollup. Shiki 3→4 blocked on `@pierre/diffs` releasing a shiki v4-compatible version.
+**Effort:** Medium-Large
+**Prereqs:** Phase B blocked on electron-vite 6.0.0 stable release; Shiki blocked on `@pierre/diffs` update
+**Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md`
 
 ### [Ready] Electron Fuses enablement
 
@@ -100,10 +125,18 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Effort:** Trivial
 **Prereqs:** None
 
-### [Ready] Dependabot comment refresh
+### [Deferred] Prepare for Electron 42 breaking changes
 
 **Added:** 2026-04-09
-**Scope:** Update `.github/dependabot.yml` comments and `.claude/skills/verify-pin/SKILL.md` to reflect that electron-vite 5.x removes the `splitVendorChunk` constraint. The Vite pin reason changed from "electron-vite 3.x depends on splitVendorChunk" to "Tailwind 3.x and shiki 3.x compatibility".
+**Scope:** Electron 42 will change dialog default directories (pass explicit `defaultPath`), migrate macOS notifications to `UNNotification`, and move Electron binary download from `postinstall` to on-demand. Prep work after Electron 41 upgrade lands.
+**Effort:** Small
+**Prereqs:** `upgrade-electron-41` complete
+**Canonical reference:** `openspec/changes/upgrade-electron-41/proposal.md` (Prepare-now section)
+
+### [Cleanup] Dependabot comment refresh
+
+**Added:** 2026-04-09
+**Scope:** Update `.github/dependabot.yml` comments and `.claude/skills/verify-pin/SKILL.md` to reflect current pin reasons. Will be largely superseded when the upgrade OpenSpec changes (`upgrade-electron-41`, `upgrade-typescript-6`, `upgrade-tailwind-4`, `upgrade-vite-8-build-stack`) are archived.
 **Effort:** Trivial
 **Prereqs:** None
 
@@ -119,4 +152,5 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 | 2026-04-09 | Enterprise auth module (MSAL Node) | `add-enterprise-auth-module` archived |
 | 2026-04-09 | Credential storage hardening (3-tier) | `harden-credential-storage` archived |
 | 2026-04-09 | Dev auth bypass (`MAIN_VITE_DEV_BYPASS_AUTH`) | `10be3d7` |
+| 2026-04-09 | Enterprise auth wiring (Strangler Fig adapter) | `wire-enterprise-auth` (ready to archive) |
 | 2026-04-08 | Phase 0 hard gates 15/15 complete | `docs/enterprise/phase-0-gates.md` |
