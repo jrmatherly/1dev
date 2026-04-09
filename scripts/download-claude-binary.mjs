@@ -78,15 +78,47 @@ function fetchJson(url) {
 }
 
 /**
+ * Pipe an HTTP response to a file with progress reporting.
+ */
+function handleResponse(res, file, destPath, resolve, reject) {
+  const totalSize = Number.parseInt(res.headers["content-length"], 10);
+  let downloaded = 0;
+  let lastPercent = 0;
+
+  res.on("data", (chunk) => {
+    downloaded += chunk.length;
+    const percent = Math.floor((downloaded / totalSize) * 100);
+    if (percent !== lastPercent && percent % 10 === 0) {
+      process.stdout.write(`\r  Progress: ${percent}%`);
+      lastPercent = percent;
+    }
+  });
+
+  res.pipe(file);
+
+  file.on("finish", () => {
+    file.close();
+    process.stdout.write("\r  Progress: 100%\n");
+    resolve();
+  });
+
+  res.on("error", (err) => {
+    file.close();
+    fs.unlinkSync(destPath);
+    reject(err);
+  });
+}
+
+/**
  * Download file with progress
  */
 function downloadFile(url, destPath) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(destPath);
 
-    const request = (url) => {
+    const request = (nextUrl) => {
       https
-        .get(url, (res) => {
+        .get(nextUrl, (res) => {
           if (res.statusCode === 301 || res.statusCode === 302) {
             file.close();
             fs.unlinkSync(destPath);
@@ -99,32 +131,7 @@ function downloadFile(url, destPath) {
             return reject(new Error(`HTTP ${res.statusCode}`));
           }
 
-          const totalSize = Number.parseInt(res.headers["content-length"], 10);
-          let downloaded = 0;
-          let lastPercent = 0;
-
-          res.on("data", (chunk) => {
-            downloaded += chunk.length;
-            const percent = Math.floor((downloaded / totalSize) * 100);
-            if (percent !== lastPercent && percent % 10 === 0) {
-              process.stdout.write(`\r  Progress: ${percent}%`);
-              lastPercent = percent;
-            }
-          });
-
-          res.pipe(file);
-
-          file.on("finish", () => {
-            file.close();
-            process.stdout.write("\r  Progress: 100%\n");
-            resolve();
-          });
-
-          res.on("error", (err) => {
-            file.close();
-            fs.unlinkSync(destPath);
-            reject(err);
-          });
+          handleResponse(res, file, destPath, resolve, reject);
         })
         .on("error", (err) => {
           file.close();
@@ -436,6 +443,28 @@ async function downloadPlatform(version, platformKey, manifest) {
 /**
  * Main entry point
  */
+function resolvePlatforms(downloadAll, specifiedPlatform) {
+  const supported = Object.keys(PLATFORMS);
+  if (downloadAll) {
+    return supported;
+  }
+  if (specifiedPlatform) {
+    if (!PLATFORMS[specifiedPlatform]) {
+      console.error(`Unsupported platform: ${specifiedPlatform}`);
+      console.log(`Supported platforms: ${supported.join(", ")}`);
+      process.exit(1);
+    }
+    return [specifiedPlatform];
+  }
+  const currentPlatform = `${process.platform}-${process.arch}`;
+  if (!PLATFORMS[currentPlatform]) {
+    console.error(`Unsupported platform: ${currentPlatform}`);
+    console.log(`Supported platforms: ${supported.join(", ")}`);
+    process.exit(1);
+  }
+  return [currentPlatform];
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const downloadAll = args.includes("--all");
@@ -483,28 +512,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Determine which platforms to download
-  let platformsToDownload;
-  if (downloadAll) {
-    platformsToDownload = Object.keys(PLATFORMS);
-  } else if (specifiedPlatform) {
-    // Specific platform requested via --platform
-    if (!PLATFORMS[specifiedPlatform]) {
-      console.error(`Unsupported platform: ${specifiedPlatform}`);
-      console.log(`Supported platforms: ${Object.keys(PLATFORMS).join(", ")}`);
-      process.exit(1);
-    }
-    platformsToDownload = [specifiedPlatform];
-  } else {
-    // Current platform only
-    const currentPlatform = `${process.platform}-${process.arch}`;
-    if (!PLATFORMS[currentPlatform]) {
-      console.error(`Unsupported platform: ${currentPlatform}`);
-      console.log(`Supported platforms: ${Object.keys(PLATFORMS).join(", ")}`);
-      process.exit(1);
-    }
-    platformsToDownload = [currentPlatform];
-  }
+  const platformsToDownload = resolvePlatforms(downloadAll, specifiedPlatform);
 
   console.log(`\nPlatforms to download: ${platformsToDownload.join(", ")}`);
 

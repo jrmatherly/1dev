@@ -100,6 +100,45 @@ function fetchJson(url) {
   });
 }
 
+/**
+ * Pipe an HTTP response to a file with progress reporting.
+ */
+function handleResponse(res, file, destPath, resolve, reject) {
+  const totalSize = Number.parseInt(
+    res.headers["content-length"] || "0",
+    10,
+  );
+  let downloaded = 0;
+  let lastPrintedPercent = -1;
+
+  res.on("data", (chunk) => {
+    downloaded += chunk.length;
+    if (totalSize <= 0) return;
+
+    const percent = Math.floor((downloaded / totalSize) * 100);
+    if (percent !== lastPrintedPercent && percent % 10 === 0) {
+      process.stdout.write(`\r  Progress: ${percent}%`);
+      lastPrintedPercent = percent;
+    }
+  });
+
+  res.pipe(file);
+
+  file.on("finish", () => {
+    file.close();
+    if (totalSize > 0) {
+      process.stdout.write("\r  Progress: 100%\n");
+    }
+    resolve();
+  });
+
+  res.on("error", (error) => {
+    file.close();
+    fs.rmSync(destPath, { force: true });
+    reject(error);
+  });
+}
+
 function downloadFile(url, destPath) {
   return new Promise((resolve, reject) => {
     const request = (nextUrl) => {
@@ -128,39 +167,7 @@ function downloadFile(url, destPath) {
             return reject(new Error(`HTTP ${res.statusCode}`));
           }
 
-          const totalSize = Number.parseInt(
-            res.headers["content-length"] || "0",
-            10,
-          );
-          let downloaded = 0;
-          let lastPrintedPercent = -1;
-
-          res.on("data", (chunk) => {
-            downloaded += chunk.length;
-            if (totalSize <= 0) return;
-
-            const percent = Math.floor((downloaded / totalSize) * 100);
-            if (percent !== lastPrintedPercent && percent % 10 === 0) {
-              process.stdout.write(`\r  Progress: ${percent}%`);
-              lastPrintedPercent = percent;
-            }
-          });
-
-          res.pipe(file);
-
-          file.on("finish", () => {
-            file.close();
-            if (totalSize > 0) {
-              process.stdout.write("\r  Progress: 100%\n");
-            }
-            resolve();
-          });
-
-          res.on("error", (error) => {
-            file.close();
-            fs.rmSync(destPath, { force: true });
-            reject(error);
-          });
+          handleResponse(res, file, destPath, resolve, reject);
         })
         .on("error", (error) => {
           file.close();
