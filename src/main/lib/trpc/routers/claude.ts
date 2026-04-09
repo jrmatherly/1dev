@@ -1021,7 +1021,7 @@ export const claudeRouter = router({
               // Has custom config = either API key or custom model
               const isDefaultAnthropicUrl =
                 !finalCustomConfig.baseUrl ||
-                (() => { try { return new URL(finalCustomConfig.baseUrl!).hostname.endsWith("anthropic.com"); } catch { return false; } })();
+                (() => { try { const h = new URL(finalCustomConfig.baseUrl!).hostname; return h === "anthropic.com" || h.endsWith(".anthropic.com"); } catch { return false; } })();
               connectionMethod = isDefaultAnthropicUrl
                 ? "api-key"
                 : "custom-model";
