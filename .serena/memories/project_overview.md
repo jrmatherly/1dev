@@ -1,38 +1,30 @@
 # 1Code (ai-coding-cli) — Enterprise Fork
 
 ## Purpose
-Local-first Electron desktop app for parallel AI-assisted development. Originally by the `21st-dev` GitHub organization; **this repo is the enterprise fork** under apollosai.dev branding, being decoupled from the upstream `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway).
+Local-first Electron desktop app for parallel AI-assisted development. Enterprise fork under apollosai.dev branding, being decoupled from upstream `1code.dev` backend.
 
 ## Tech Stack
+- Electron ~40.8.5 (Node 24, Chromium 144), electron-vite 5, electron-builder 26
+- React 19.2.5, TypeScript 5, Tailwind CSS 3, Bun
+- @anthropic-ai/claude-agent-sdk 0.2.97, Codex CLI 0.118.0, Ollama
+- 7 Drizzle tables, 21 tRPC routers, better-sqlite3, node-pty (lazy-loaded)
+- 12 regression guards, 48 tests
 
-| Layer | Tech |
-|-------|------|
-| Desktop | Electron ~40.8.5, electron-vite 5, electron-builder 26 |
-| UI | React 19.2.5, TypeScript 5, Tailwind CSS 3 |
-| State | Jotai (UI), Zustand (persisted), React Query (server via tRPC) |
-| Backend | tRPC (trpc-electron), Drizzle ORM, better-sqlite3 |
-| AI | @anthropic-ai/claude-agent-sdk (0.2.97), Codex CLI (pinned 0.118.0), Ollama |
-| Claude binary | pinned 2.1.96 |
-| Package Manager | bun |
-| Testing | bun:test — 12 guards, 48 tests as of 2026-04-09 |
-| Documentation | xyd-js under `docs/` |
+## Current State (2026-04-09)
+- **Phase 0:** 15/15 hard gates complete
+- **Electron 40:** Upgraded from 39.8.7 (Node 24, Chromium 144)
+- **mock-api.ts Phase 1:** Timestamp fossil retired; Phase 2 on roadmap
+- **Enterprise auth:** MSAL Node module implemented, isolated (not wired)
+- **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
+- **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth
+- **Branch protection:** main branch protected with required CI status check, admin bypass
+- **CodeQL:** 19 findings resolved (18 fixed, 1 dismissed as false positive)
+- **12 package upgrades landed** (all deps current as of 2026-04-09)
+- **No active OpenSpec proposals**
 
-## Current Version
-v0.0.72+
-
-## Active Workstreams (as of 2026-04-09)
-- **Phase 0 hard gates: 15 of 15 complete.** Phase 0.5 (credential hardening) also complete.
-- **Electron 40 upgrade complete** — 39.8.7→40.8.5 (Node 24, Chromium 144). node-pty lazy-loaded.
-- **mock-api.ts Phase 1 complete** — timestamp fossil retired. Phase 2 (consumer migration) on roadmap.
-- **Dev auth bypass available** — `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`.
-- **Enterprise auth module implemented** — MSAL Node in `enterprise-auth.ts`, isolated (not wired yet).
-- **Centralized roadmap** — `docs/operations/roadmap.md` is the single source of truth for outstanding work.
-- **No active OpenSpec proposals.**
-- **12 package upgrades landed** — including claude-agent-sdk 0.2.97, codex-acp 0.11.1, react 19.2.5.
-- Target deployment: Talos Kubernetes cluster with LiteLLM + Envoy Gateway.
-
-## Source-of-Truth Docs
-- `CLAUDE.md` — thin 125-line index (links to canonical docs, does NOT contain content)
-- `docs/` — canonical documentation site (Operations tab has roadmap)
-- `.claude/rules/` — 9 behavioral rules (7 path-scoped + 2 global)
-- `openspec/specs/` — 8 capability specs
+## Architecture (3-tier)
+- CLAUDE.md is a 125-line thin index (links, doesn't contain content)
+- `docs/` is the canonical source of truth (Operations tab has roadmap)
+- `.claude/rules/` has 9 behavioral rules (2 global + 7 path-scoped)
+- `openspec/specs/` has 8 baseline capability specs
+- Skills/agents read from canonical docs, not CLAUDE.md
