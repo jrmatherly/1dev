@@ -19,7 +19,7 @@
 #   - The only expression interpolation is on trusted needs.<job>.result in
 #     the status aggregator (via env vars, not inline).
 
-name: CI
+name: "🚀 CI"
 
 on:
   pull_request:
