@@ -14,10 +14,10 @@
  * - 100px transparent padding on all sides
  */
 
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { execSync } from "child_process";
+import { mkdirSync, rmSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
 import sharp from "sharp";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -218,7 +218,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error("❌ Fatal error:", error);
   process.exit(1);
-});
+}

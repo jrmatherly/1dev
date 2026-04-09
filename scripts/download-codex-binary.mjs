@@ -350,11 +350,12 @@ async function main() {
   const specifiedVersion = getVersionArg(args);
   const platformArgIdx = args.indexOf("--platform");
   const platformArgEq = args.find((a) => a.startsWith("--platform="));
-  const specifiedPlatform = platformArgEq
-    ? platformArgEq.split("=")[1]
-    : platformArgIdx >= 0
-      ? args[platformArgIdx + 1]
-      : null;
+  let specifiedPlatform = null;
+  if (platformArgEq) {
+    specifiedPlatform = platformArgEq.split("=")[1];
+  } else if (platformArgIdx >= 0) {
+    specifiedPlatform = args[platformArgIdx + 1];
+  }
 
   console.log("Codex Binary Downloader");
   console.log("=======================\n");
@@ -404,7 +405,9 @@ async function main() {
   console.log("\n✓ All downloads completed successfully!");
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error("Fatal error:", error);
   process.exit(1);
-});
+}

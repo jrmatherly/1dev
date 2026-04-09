@@ -99,7 +99,7 @@ function downloadFile(url, destPath) {
             return reject(new Error(`HTTP ${res.statusCode}`));
           }
 
-          const totalSize = parseInt(res.headers["content-length"], 10);
+          const totalSize = Number.parseInt(res.headers["content-length"], 10);
           let downloaded = 0;
           let lastPercent = 0;
 
@@ -262,9 +262,7 @@ async function verifyManifestSignature(version, manifestBytes) {
   }
 
   // Use a per-run ephemeral GPG home so we don't pollute the user's ~/.gnupg.
-  const gpgHome = fs.mkdtempSync(
-    path.join(os.tmpdir(), "claude-gpg-verify-"),
-  );
+  const gpgHome = fs.mkdtempSync(path.join(os.tmpdir(), "claude-gpg-verify-"));
   try {
     // Set strict permissions to silence "unsafe permissions" warnings.
     fs.chmodSync(gpgHome, 0o700);
@@ -321,9 +319,8 @@ async function verifyManifestSignature(version, manifestBytes) {
     // Verify the detached signature. gpg exits non-zero on any verification failure,
     // which execFileSync converts into a thrown exception — so a successful return
     // means the signature is valid.
-    let verifyOutput;
     try {
-      verifyOutput = execFileSync(
+      execFileSync(
         "gpg",
         ["--homedir", gpgHome, "--verify", sigPath, manifestPath],
         { stdio: "pipe" },
@@ -336,32 +333,6 @@ async function verifyManifestSignature(version, manifestBytes) {
           "This means the manifest may have been tampered with. Do NOT trust the binary.",
       );
     }
-
-    // Defense in depth: confirm gpg's stderr (where it logs the success line) mentions
-    // the expected signing identity. gpg writes its "Good signature from ..." line to
-    // stderr, not stdout, so we re-run with stderr captured for inspection.
-    const verifyStderr = (() => {
-      try {
-        execFileSync(
-          "gpg",
-          [
-            "--homedir",
-            gpgHome,
-            "--status-fd",
-            "1",
-            "--verify",
-            sigPath,
-            manifestPath,
-          ],
-          { stdio: ["ignore", "pipe", "pipe"] },
-        );
-        return "";
-      } catch {
-        return "";
-      }
-    })();
-    void verifyStderr;
-    void verifyOutput;
 
     console.log(
       `  ✓ Manifest signature verified (key ${ANTHROPIC_RELEASE_PUBKEY_FINGERPRINT.slice(-16)}, "${ANTHROPIC_RELEASE_SIGNING_UID}")`,
@@ -472,11 +443,12 @@ async function main() {
   const specifiedVersion = versionArg?.split("=")[1];
   const platformArgIdx = args.indexOf("--platform");
   const platformArgEq = args.find((a) => a.startsWith("--platform="));
-  const specifiedPlatform = platformArgEq
-    ? platformArgEq.split("=")[1]
-    : platformArgIdx >= 0
-      ? args[platformArgIdx + 1]
-      : null;
+  let specifiedPlatform = null;
+  if (platformArgEq) {
+    specifiedPlatform = platformArgEq.split("=")[1];
+  } else if (platformArgIdx >= 0) {
+    specifiedPlatform = args[platformArgIdx + 1];
+  }
 
   console.log("Claude Code Binary Downloader");
   console.log("=============================\n");
@@ -560,7 +532,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error("Fatal error:", error);
   process.exit(1);
-});
+}
