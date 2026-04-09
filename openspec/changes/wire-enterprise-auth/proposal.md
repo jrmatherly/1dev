@@ -5,11 +5,11 @@ Change #1 (`add-enterprise-auth-module`) installed MSAL Node and created `enterp
 ## What Changes
 
 - **Modify `src/main/auth-manager.ts`** — Strangler Fig adapter: when `enterpriseAuthEnabled` flag is `true`, constructor initializes `EnterpriseAuth` and all public methods delegate to it. When `false`, existing 21st.dev/apollosai.dev behavior is preserved unchanged. (auth-strategy §5.3.1 Step B)
-- **Add `applyEnterpriseAuth()` to `src/main/lib/claude/env.ts`** — called at the end of `buildClaudeEnv()` when enterprise auth is enabled. Writes token to 0600 tmpfile, injects `ANTHROPIC_AUTH_TOKEN_FILE` + `ANTHROPIC_BASE_URL` into the spawn env. Caller cleanup helper included. (auth-strategy §5.4)
+- **Add `applyEnterpriseAuth()` to `src/main/lib/claude/env.ts`** — called at the end of `buildClaudeEnv()` when enterprise auth is enabled. Injects `ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL` into the spawn env. NOTE: `ANTHROPIC_AUTH_TOKEN_FILE` is NOT supported by Claude CLI 2.1.96 (agent team review finding C1, 2026-04-09). `ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_AUTH_TOKEN_FILE` added to `STRIPPED_ENV_KEYS_BASE` to prevent shell leaks.
 - **New `src/main/lib/trpc/routers/enterprise-auth.ts` tRPC router** — sign in/out/status procedures for renderer-initiated auth flows, reading from `EnterpriseAuth` instance via `getAuthManager()`
 - **Remove isolation guard from `enterprise-auth-module.test.ts`** — the "auth-manager.ts must not import enterprise-auth" assertion is intentionally deleted since wiring is the whole point of this change
 - **Add regression guard `tests/regression/enterprise-auth-wiring.test.ts`** — verifies `applyEnterpriseAuth` exists in `env.ts`, token is passed via file (not env var by default), `ANTHROPIC_AUTH_TOKEN` is NOT set when `useTokenFile=true`, and the 0600 permission pattern is present
-- **Modify 5 `buildClaudeEnv()` call sites** in `claude.ts` and `claude-code.ts` to handle the new `tokenFile` cleanup field
+- **Modify the single `buildClaudeEnv()` call site** in `claude.ts:1142` to await the now-async function (agent team review found 1 call site, not 5 — `claude-code.ts` calls `getClaudeShellEnvironment()` directly)
 
 ## Capabilities
 

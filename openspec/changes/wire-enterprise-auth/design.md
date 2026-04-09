@@ -1,78 +1,104 @@
 ## Context
 
-The enterprise auth modules (`enterprise-auth.ts`, `enterprise-store.ts`, `enterprise-types.ts`) exist but are isolated — nothing calls them. The `enterpriseAuthEnabled` feature flag exists in `FLAG_DEFAULTS` (default `false`). `auth-manager.ts` currently hard-codes the 21st.dev/apollosai.dev OAuth flow (exchange code, refresh, sign out against the upstream backend).
+The enterprise auth modules exist but are isolated. This change wires them into the app. A 4-agent team review (2026-04-09) identified critical issues in the original design that are now addressed:
 
-The Envoy Gateway dual-auth pattern (empirically validated 2026-04-08) requires CLI subprocesses to pass a Bearer token via `ANTHROPIC_AUTH_TOKEN_FILE` (0600 tmpfile), NOT as an env var (auth-strategy §4.9 — local privilege escalation surface). The existing `buildClaudeEnv()` in `claude/env.ts` constructs the spawn environment and is called from 5 sites.
+1. **`ANTHROPIC_AUTH_TOKEN_FILE` does not exist** in Claude CLI 2.1.96. The CLI supports `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` (FD-based inheritance) instead.
+2. **`buildClaudeEnv()` has 1 call site** (not 5 as the auth strategy claimed). `claude-code.ts` calls `getClaudeShellEnvironment()` directly.
+3. **Auth strategy migration table has drifted** — actual methods are `getUser`/`logout` (not `getCurrentUser`/`dispose`).
+4. **CP1 removed** from `enterprise-auth.ts` — LiteLLM is not CAE-enabled.
 
 ## Goals / Non-Goals
 
 **Goals:**
-- Wire `EnterpriseAuth` into `auth-manager.ts` via Strangler Fig (feature-flagged branch)
-- Add `applyEnterpriseAuth()` to `claude/env.ts` for 0600 tmpfile token injection
-- Add `enterprise-auth` tRPC router for renderer sign-in/out/status
-- Modify the 5 `buildClaudeEnv()` call sites for tokenFile cleanup
-- Remove the isolation guard assertion from the change #1 regression test
-- Add a new regression guard for the wiring invariants
+- Wire `EnterpriseAuth` into `auth-manager.ts` via Strangler Fig with lazy async init
+- Inject enterprise token into Claude spawn env via `ANTHROPIC_AUTH_TOKEN` env var (the only mechanism the pinned CLI supports)
+- Add `ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_AUTH_TOKEN_FILE` to `STRIPPED_ENV_KEYS_BASE` to prevent shell leaks
+- Add `enterprise-auth` tRPC router for renderer sign-in/out
+- Add regression guard for wiring invariants
 
 **Non-Goals:**
-- Settings UI for LiteLLM proxy URL (change #3)
-- Cluster SecurityPolicy/CiliumNetworkPolicy (change #4)
-- `getCurrentUser()` OID migration (Step C from §5.3.1 — can be a separate cleanup)
-- CAE claims challenge handler
-- Deleting the legacy 21st.dev code path (Step D — requires 2+ weeks of flag-on production)
+- File descriptor (`CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR`) injection — documented as a future improvement when CLI pin is bumped, but not blocking for initial wiring
+- Settings UI (change #3), cluster config (change #4)
+- `getCurrentUser()` OID migration (can be a follow-up)
+- Deleting legacy code (Step D — requires production soak)
 
 ## Decisions
 
-### Decision 1: Strangler Fig adapter pattern
+### Decision 1: Token injection via `ANTHROPIC_AUTH_TOKEN` env var (revised)
 
-**Chosen: Feature-flag branch in `auth-manager.ts` constructor**
+**Chosen: Env var injection with mitigations**
 
-When `getFlag("enterpriseAuthEnabled")` is `true`, the constructor creates an `EnterpriseAuth` instance (via `createEnterpriseAuth()`) and all public methods delegate to it. When `false`, the existing constructor body runs unchanged. This means the 20+ call sites to `getAuthManager()` throughout the app don't change — they get the same `AuthManager` interface regardless of which backend is active.
+The original design mandated `ANTHROPIC_AUTH_TOKEN_FILE` (0600 tmpfile), but Claude CLI 2.1.96 doesn't support it. The CLI supports:
+- `ANTHROPIC_AUTH_TOKEN` (env var) — for Bearer header injection
+- `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` (FD number) — for secure FD-based token passing
+
+We use `ANTHROPIC_AUTH_TOKEN` for the initial implementation with these mitigations:
+1. Add `ANTHROPIC_AUTH_TOKEN` to `STRIPPED_ENV_KEYS_BASE` so shell-inherited values don't persist
+2. Entra access tokens expire in 60-90 minutes by default, limiting the exposure window
+3. Document `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` as the upgrade path when CLI pin is bumped
+4. The token is acquired fresh via `acquireTokenSilent()` before each spawn — no long-lived cached value in env
+
+**Future improvement:** When the Claude CLI pin is bumped, implement FD-based injection: open a pipe, write the token, pass the FD number via `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR`. This eliminates env-var exposure entirely.
+
+### Decision 2: Lazy async initialization with `ensureReady()`
+
+**Chosen: Sync constructor + lazy `ensureReady()` Promise**
+
+`initAuthManager()` remains synchronous (preserving the 20+ call site contract). When `enterpriseAuthEnabled` is true, the constructor stores a `readyPromise` that resolves when `EnterpriseAuth.create()` completes. An `ensureReady(): Promise<void>` method is added. The app startup in `index.ts` awaits it after `app.whenReady()`:
 
 ```typescript
-// Simplified view of the adapter pattern:
-constructor(isDev: boolean) {
-  if (getFlag("enterpriseAuthEnabled")) {
-    this.enterpriseAuth = await createEnterpriseAuth(getEnterpriseAuthConfig());
-    // All methods delegate to this.enterpriseAuth
-  } else {
-    // Existing 21st.dev initialization
-  }
+const authManager = initAuthManager(IS_DEV);
+await authManager.ensureReady(); // No-op when enterprise flag is off
+```
+
+Before MSAL is ready, `isAuthenticated()` returns `false` and `getUser()` returns the dev bypass user (if enabled) or `null`. This is safe because the startup sequence awaits `ensureReady()` before checking auth state.
+
+### Decision 3: Full adapter with stubs (Option 2, confirmed by all agents)
+
+| `AuthManager` method | Enterprise behavior |
+|---|---|
+| `isAuthenticated()` | Delegates to `EnterpriseAuth.isAuthenticated()` (+ dev bypass) |
+| `getUser()` | Returns `EnterpriseUser` adapted to `AuthUser` shape |
+| `getAuth()` | Returns adapted `AuthData` from cached MSAL result |
+| `getValidToken()` | Calls `acquireTokenSilent()`, returns access token |
+| `refresh()` | Calls `acquireTokenSilent({ forceRefresh: true })` |
+| `logout()` | Calls `EnterpriseAuth.signOut()` |
+| `exchangeCode()` | Throws "Not available in enterprise mode" |
+| `startAuthFlow()` | Calls `acquireTokenInteractive()` (opens Entra sign-in) |
+| `updateUser()` | Throws "Not available in enterprise mode" (no upstream) |
+| `fetchUserPlan()` | Returns `null` (no subscription in enterprise) |
+| `setOnTokenRefresh()` | Stores callback, invoked after silent refresh |
+| `scheduleRefresh()` | No-op — MSAL handles refresh on-demand via `acquireTokenSilent()` |
+
+### Decision 4: Skip `AuthStore` in enterprise mode
+
+When `enterpriseAuthEnabled` is true, the constructor does NOT create `new AuthStore()`. MSAL's `enterprise-store.ts` cache plugin handles persistence. This prevents orphaned `auth.dat` files.
+
+### Decision 5: User shape adaptation at the boundary
+
+`getUser()` in enterprise mode returns an adapted `AuthUser`:
+```typescript
+{
+  id: enterpriseUser.oid,      // oid → id
+  email: enterpriseUser.email,
+  name: enterpriseUser.displayName,
+  imageUrl: null,              // No avatar in Entra basic claims
+  username: enterpriseUser.email,
 }
 ```
 
-### Decision 2: Token injection via 0600 tmpfile (not env var)
+The dev bypass user in enterprise mode uses synthetic `oid`/`tid` values.
 
-**Chosen: `ANTHROPIC_AUTH_TOKEN_FILE` as the default path**
+### Decision 6: 1 call site, not 5
 
-Auth-strategy §4.9 explicitly forbids env-var injection (`ANTHROPIC_AUTH_TOKEN`) as default because co-resident processes can read `/proc/<pid>/environ` (Linux), `ps eww` (macOS). The token is written to a tmpfile with 0600 permissions and the path is passed via `ANTHROPIC_AUTH_TOKEN_FILE`. The caller must unlink the file after the subprocess confirms read.
-
-A fallback to `ANTHROPIC_AUTH_TOKEN` env var exists for CLI binaries that don't support the file form, gated by `useTokenFile: false`.
-
-### Decision 3: `applyEnterpriseAuth()` placement
-
-**Chosen: Add to existing `src/main/lib/claude/env.ts`**
-
-The strategy doc (§5.4) explicitly states: "modify the existing function in place, not introduce a new one." `applyEnterpriseAuth()` is called at the END of `buildClaudeEnv()` after the `STRIPPED_ENV_KEYS` pass, so the enterprise token survives the strip. The function's return type gains an optional `tokenFile?: string` field.
-
-### Decision 4: tRPC router for renderer integration
-
-**Chosen: New `src/main/lib/trpc/routers/enterprise-auth.ts`**
-
-Procedures: `signIn` (triggers `acquireTokenInteractive`), `signOut`, `getStatus` (returns auth state + user info), `refreshToken` (triggers `acquireTokenSilent`). All procedures check `enterpriseAuthEnabled` flag and throw if disabled. Router count goes from 21 → 22.
-
-### Decision 5: Isolation guard removal
-
-**Chosen: Remove the "auth-manager must not import enterprise-auth" assertion**
-
-The `enterprise-auth-module.test.ts` regression guard currently blocks wiring. This change intentionally removes that specific assertion (not the whole test file — other assertions about exports and CP1 config remain). The removed assertion is replaced by the new `enterprise-auth-wiring.test.ts` guard that validates the wiring is correct.
+`buildClaudeEnv()` is called at exactly 1 location: `claude.ts:1142`. The `applyEnterpriseAuth()` integration modifies this single call site. Cleanup goes in the `finally` block at line 2778 and the unsubscribe callback at line 2784 (idempotent).
 
 ## Risks / Trade-offs
 
-**[Risk: `buildClaudeEnv()` becomes async]** → Currently it's sync. Adding `applyEnterpriseAuth()` (which calls `acquireTokenSilent`) makes it async. The 5 call sites already run in async tRPC procedures, so the `await` propagation is straightforward.
+**[Risk: Env-var token exposure via `/proc/environ`]** → Mitigated by short-lived tokens (60-90 min), `STRIPPED_ENV_KEYS` cleanup, and documented upgrade path to FD-based injection.
 
-**[Risk: Token file left behind on crash]** → If the Electron process crashes between writing the tmpfile and the subprocess reading it, the 0600 file persists in `os.tmpdir()`. Mitigated: files are named `1code-token-<uuid>.txt` — a periodic cleanup of stale files (older than 5 min) can be added as a future enhancement. The OS typically cleans `/tmp` on reboot.
+**[Risk: MSAL not ready before auth check at startup]** → Mitigated by `ensureReady()` awaited in `index.ts` after `app.whenReady()`.
 
-**[Risk: ANTHROPIC_AUTH_TOKEN_FILE support in Claude CLI 2.1.96]** → The auth strategy notes this must be verified against the pinned version. If the pinned CLI doesn't support it, the fallback to `ANTHROPIC_AUTH_TOKEN` env var is used with a logged security warning.
+**[Risk: User shape mismatch breaks renderer components]** → Mitigated by adapting `EnterpriseUser` to `AuthUser` shape at the boundary. Full union type is a follow-up.
 
-**[Trade-off: Router count increases 21→22]** → Acceptable. The new router is thin (4 procedures) and follows the existing pattern. `trpc-router-auditor` will need its count updated.
+**[Trade-off: No FD-based injection in initial release]** → Acceptable. The env-var path is the only mechanism the pinned CLI supports. FD-based injection is documented as the upgrade path.
