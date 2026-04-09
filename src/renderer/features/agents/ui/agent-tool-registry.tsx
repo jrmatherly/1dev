@@ -78,9 +78,9 @@ export function getDisplayPath(filePath: string, projectPath?: string): string {
       return filePath.slice(prefix.length);
     }
   }
-  // Handle worktree paths: /.21st/worktrees/{chatId}/{subChatId}/relativePath
+  // Handle worktree paths: /.1code/worktrees/{chatId}/{subChatId}/relativePath
   const worktreeMatch = filePath.match(
-    /\.21st\/worktrees\/[^/]+\/[^/]+\/(.+)$/,
+    /\.1code\/worktrees\/[^/]+\/[^/]+\/(.+)$/,
   );
   if (worktreeMatch) {
     return worktreeMatch[1];

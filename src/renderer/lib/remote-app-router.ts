@@ -1,5 +1,8 @@
 /**
- * Type stub for the remote 21st.dev web backend's AppRouter.
+ * Type stub for the legacy upstream web backend's AppRouter. The upstream
+ * backend is retiring in favor of the self-hosted apollosai.dev
+ * infrastructure — see .scratchpad/upstream-features-inventory.md for the
+ * retirement plan.
  *
  * The actual router lives in the hosted web product. This file reconstructs the
  * router TYPE using tRPC's exported type helpers so that `createTRPCClient<AppRouter>`

@@ -597,7 +597,7 @@ if (gotTheLock) {
 
     // Set app user model ID for Windows (different in dev to avoid taskbar conflicts)
     if (process.platform === "win32") {
-      app.setAppUserModelId(IS_DEV ? "dev.21st.1code.dev" : "dev.21st.1code");
+      app.setAppUserModelId(IS_DEV ? "dev.apollosai.agents.dev" : "dev.apollosai.agents");
     }
 
     console.log(`[App] Starting 1Code${IS_DEV ? " (DEV)" : ""}...`);

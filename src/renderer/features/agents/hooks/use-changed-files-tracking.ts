@@ -58,10 +58,10 @@ export function useChangedFilesTracking(
         }
       }
 
-      // Handle worktree paths: /Users/.../.21st/worktrees/{chatId}/{subChatId}/relativePath
+      // Handle worktree paths: /Users/.../.1code/worktrees/{chatId}/{subChatId}/relativePath
       // Extract everything after the subChatId directory
       const worktreeMatch = filePath.match(
-        /\.21st\/worktrees\/[^/]+\/[^/]+\/(.+)$/,
+        /\.1code\/worktrees\/[^/]+\/[^/]+\/(.+)$/,
       );
       if (worktreeMatch) {
         return worktreeMatch[1];

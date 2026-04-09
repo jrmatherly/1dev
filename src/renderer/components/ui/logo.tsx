@@ -17,7 +17,7 @@ export function Logo({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("w-full h-full", className)}
-      aria-label="21st logo"
+      aria-label="1Code logo"
       {...props}
     >
       <path

@@ -45,7 +45,6 @@
 - `bun run release:dev` — Dev release variant (no upload)
 - `bun run dist:manifest` — Generate update manifests (`latest-mac.yml`, `latest-mac-x64.yml`)
 - `bun run dist:upload` — Upload built artifacts to R2 CDN (`scripts/upload-release.mjs`)
-- `./scripts/sync-to-public.sh` — Sync to public repo
 - After release: notarize via electron-builder, then `xcrun stapler staple release/*.dmg`, then re-upload stapled DMGs and manifests
 
 ## Upstream Backend Discovery (for fork work)

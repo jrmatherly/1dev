@@ -927,7 +927,7 @@ export async function createWorktreeForChat(
       selectedBaseBranch || (await getDefaultBranch(projectPath));
 
     const branch = generateBranchName();
-    const worktreesDir = join(homedir(), ".21st", "worktrees");
+    const worktreesDir = join(homedir(), ".1code", "worktrees");
     const projectWorktreeDir = join(worktreesDir, projectSlug);
     const folderName = generateWorktreeFolderName(projectWorktreeDir);
     const worktreePath = join(projectWorktreeDir, folderName);

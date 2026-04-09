@@ -2,7 +2,7 @@
 
 A local-first desktop client for running AI coding agents (Claude Code, Codex, Ollama) against your own repositories.
 
-> **About this fork.** This is an enterprise fork of [1Code by 21st.dev](https://1code.dev). It is being progressively decoupled from the upstream `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway). Features that depend on the upstream backend have been removed from the highlights below — see [`.scratchpad/upstream-features-inventory.md`](.scratchpad/upstream-features-inventory.md) for the catalog of removed/pending-restoration functionality and [`.scratchpad/auth-strategy-envoy-gateway.md`](.scratchpad/auth-strategy-envoy-gateway.md) for the auth migration plan.
+> **About this fork.** This is an enterprise fork of [1Code by 21st-dev](https://github.com/21st-dev/1code). It is being progressively decoupled from the upstream `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway). Features that depend on the upstream backend have been removed from the highlights below — see [`.scratchpad/upstream-features-inventory.md`](.scratchpad/upstream-features-inventory.md) for the catalog of removed/pending-restoration functionality and [`.scratchpad/auth-strategy-envoy-gateway.md`](.scratchpad/auth-strategy-envoy-gateway.md) for the auth migration plan.
 
 ## Highlights
 

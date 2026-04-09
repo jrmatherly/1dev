@@ -26,7 +26,6 @@
     "codex:download:all": "node scripts/download-codex-binary.mjs --version=0.118.0 --all",
     "release": "rm -rf release && bun i && bun run claude:download && bun run codex:download && bun run build && bun run package:mac && bun run dist:manifest",
     "release:dev": "rm -rf release && bun run claude:download && bun run codex:download && bun run build && bun run package:mac && rm -rf node_modules && bun i",
-    "sync:public": "./scripts/sync-to-public.sh",
     "icon:generate": "node scripts/generate-icon.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
@@ -146,6 +145,12 @@
         "name": "1Code",
         "schemes": [
           "apollosai-agents"
+        ]
+      },
+      {
+        "name": "1Code (Dev)",
+        "schemes": [
+          "apollosai-agents-dev"
         ]
       }
     ],

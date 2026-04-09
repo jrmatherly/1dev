@@ -176,7 +176,6 @@ Radix-based primitives: accordion, alert-dialog, badge, button, button-group, ca
 | `generate-update-manifest.mjs` | Generate `latest-mac.yml` / `latest-mac-x64.yml` |
 | `generate-icon.mjs` | Generate app icons |
 | `patch-electron-dev.mjs` | Patch Electron for dev mode quirks |
-| `sync-to-public.sh` | Sync private repo to public repo |
 
 ### Build Pipeline
 ```

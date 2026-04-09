@@ -1,0 +1,20 @@
+1Code (apollosai.dev enterprise fork)
+======================================
+
+This product includes software originally developed at the 21st-dev GitHub
+organization (https://github.com/21st-dev/1code), an open-source "orchestration
+layer for coding agents (Claude Code, Codex)" first published on 2026-01-14.
+
+The enterprise fork in this repository, maintained by apollosai.dev, is being
+progressively decoupled from the upstream 1code.dev hosted backend in favor of
+self-hosted infrastructure (LiteLLM behind an Envoy Gateway with Microsoft
+Entra ID SSO). The original work's architecture, source code, and design are
+preserved and attributed here per Apache License 2.0 §4(c) and §4(d).
+
+  Original work:   Copyright 2026 21st-dev
+                   https://github.com/21st-dev/1code
+  Fork work:       Copyright 2026 apollosai.dev
+                   https://apollosai.dev
+
+Both the original and the fork are licensed under the Apache License,
+Version 2.0. See LICENSE in this repository for the full terms.

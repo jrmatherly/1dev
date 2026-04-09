@@ -107,12 +107,12 @@ export function AgentsHelpPopover({
   };
 
   const handleChangelogClick = () => {
-    window.desktopApi.openExternal("https://1code.dev/agents/changelog");
+    window.desktopApi.openExternal("https://apollosai.dev/changelog");
   };
 
   const handleReleaseClick = (version: string) => {
     window.desktopApi.openExternal(
-      `https://1code.dev/agents/changelog#${version}`,
+      `https://apollosai.dev/changelog#${version}`,
     );
   };
 

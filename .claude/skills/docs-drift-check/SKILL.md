@@ -85,6 +85,31 @@ For each drift point, run the listed grep commands and verify the documented val
 **Source of truth:** `grep -rn "remoteTrpc\." src/renderer/` and `grep -rn "fetch(\`\${apiUrl}" src/main/ src/renderer/`
 **Check:** README.md "Highlights" and "Removed in this fork" lists must accurately reflect which features depend on the upstream backend. Cross-reference against `.scratchpad/upstream-features-inventory.md`.
 
+### Bonus (11) — Deleted-file references in docs
+**Source of truth:** `git log --diff-filter=D --name-only --pretty=format: | sort -u` (every file ever deleted from the repo), cross-checked against the current git HEAD (`git ls-tree -r HEAD --name-only`) to confirm the file is still gone.
+**Check:** Every file that was deleted in a recent commit MUST NOT be referenced by name in `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, `.claude/PROJECT_INDEX.md`, `.claude/skills/*/SKILL.md`, or `.serena/memories/*.md`. Documentation references to deleted scripts/modules are the most common doc-drift failure mode in this repo — see the `rebrand-residual-sweep` session (2026-04-08) where `scripts/sync-to-public.sh` was deleted but 3 doc references persisted.
+
+**Operational steps:**
+1. Enumerate recently-deleted files from the last N commits:
+   ```bash
+   git log --since="30 days ago" --diff-filter=D --name-only --pretty=format: | sort -u
+   ```
+2. For each deleted file `F`, grep the doc corpus for the **basename** (not the full path, since docs may use relative references):
+   ```bash
+   grep -rn "$(basename F)" CLAUDE.md README.md CONTRIBUTING.md AGENTS.md .claude/PROJECT_INDEX.md .claude/skills/ .serena/memories/ 2>/dev/null | grep -v "^Binary"
+   ```
+3. Report every hit — each is a potential stale reference needing removal or replacement.
+
+**Example failure from the rebrand session:**
+```
+scripts/sync-to-public.sh (deleted)
+  CLAUDE.md:339              6. Sync to public: `./scripts/sync-to-public.sh`
+  .claude/PROJECT_INDEX.md:179   | sync-to-public.sh | Sync private repo to public repo |
+  .serena/memories/suggested_commands.md:48  - `./scripts/sync-to-public.sh` — Sync to public repo
+```
+
+All three were fixed as part of the sweep, but only because the `rebrand-residual-sweep` apply explicitly greped for `sync:public` callers in task 1.2. Without that step they would have persisted as stale docs.
+
 ## Output format
 
 Produce a structured report:
