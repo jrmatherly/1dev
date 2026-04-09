@@ -1,11 +1,12 @@
 import { observable } from "@trpc/server/observable";
 import { eq } from "drizzle-orm";
-import { app, BrowserWindow, safeStorage } from "electron";
+import { app, BrowserWindow } from "electron";
 import * as fs from "fs/promises";
 import * as os from "os";
 import path from "path";
 import { z } from "zod";
 import { setConnectionMethod } from "../../analytics";
+import { decryptCredential } from "../../credential-store";
 import { mcpServerUrlSchema } from "../schemas/mcp-url";
 import {
   buildClaudeEnv,
@@ -155,16 +156,6 @@ function parseMentions(prompt: string): {
   };
 }
 
-/**
- * Decrypt token using Electron's safeStorage
- */
-function decryptToken(encrypted: string): string {
-  if (!safeStorage.isEncryptionAvailable()) {
-    return Buffer.from(encrypted, "base64").toString("utf-8");
-  }
-  const buffer = Buffer.from(encrypted, "base64");
-  return safeStorage.decryptString(buffer);
-}
 
 /**
  * Get Claude Code OAuth token from local SQLite
@@ -196,7 +187,7 @@ function getClaudeCodeToken(): string | null {
           "[claude-auth] Using multi-account system, activeAccountId:",
           settings.activeAccountId,
         );
-        const decrypted = decryptToken(account.oauthToken);
+        const decrypted = decryptCredential(account.oauthToken);
         console.log("[claude-auth] Token decrypted successfully");
         return decrypted;
       }
@@ -232,7 +223,7 @@ function getClaudeCodeToken(): string | null {
       return null;
     }
 
-    const decrypted = decryptToken(cred.oauthToken);
+    const decrypted = decryptCredential(cred.oauthToken);
     console.log("[claude-auth] Token decrypted successfully (legacy)");
 
     return decrypted;

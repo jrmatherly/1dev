@@ -87,6 +87,14 @@ export const FLAG_DEFAULTS = {
    * remoteTrpc.automations.* calls still run.
    */
   automationsSelfHosted: false,
+
+  /**
+   * When true, Tier 2 credential storage (Linux basic_text backend —
+   * obfuscation only) is escalated to hard refusal. Enterprise operators
+   * enable this to enforce real OS-keystore encryption for all stored
+   * tokens. See src/main/lib/credential-store.ts for the 3-tier policy.
+   */
+  credentialStorageRequireEncryption: false,
 } as const;
 
 /**

@@ -29,6 +29,7 @@ import {
   initAutoUpdater,
   setupFocusUpdateCheck,
 } from "./lib/auto-updater";
+import { logCredentialTier } from "./lib/credential-store";
 import { closeDatabase, initDatabase } from "./lib/db";
 import {
   getLaunchDirectory,
@@ -601,6 +602,9 @@ if (gotTheLock) {
     }
 
     console.log(`[App] Starting 1Code${IS_DEV ? " (DEV)" : ""}...`);
+
+    // Log credential storage tier for operator audit
+    logCredentialTier();
 
     // Verify protocol registration after app is ready
     // This helps diagnose first-install issues where the protocol isn't recognized yet

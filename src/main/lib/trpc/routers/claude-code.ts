@@ -1,5 +1,4 @@
 import { eq, sql } from "drizzle-orm";
-import { safeStorage } from "electron";
 import { z } from "zod";
 import { getAuthManager } from "../../../index";
 import { getClaudeShellEnvironment } from "../../claude";
@@ -10,30 +9,10 @@ import {
   claudeCodeCredentials,
   getDatabase,
 } from "../../db";
+import { encryptCredential, decryptCredential } from "../../credential-store";
 import { createId } from "../../db/utils";
 import { publicProcedure, router } from "../index";
 
-/**
- * Encrypt token using Electron's safeStorage
- */
-function encryptToken(token: string): string {
-  if (!safeStorage.isEncryptionAvailable()) {
-    console.warn("[ClaudeCode] Encryption not available, storing as base64");
-    return Buffer.from(token).toString("base64");
-  }
-  return safeStorage.encryptString(token).toString("base64");
-}
-
-/**
- * Decrypt token using Electron's safeStorage
- */
-function decryptToken(encrypted: string): string {
-  if (!safeStorage.isEncryptionAvailable()) {
-    return Buffer.from(encrypted, "base64").toString("utf-8");
-  }
-  const buffer = Buffer.from(encrypted, "base64");
-  return safeStorage.decryptString(buffer);
-}
 
 /**
  * Store OAuth token - now uses multi-account system
@@ -43,7 +22,7 @@ function storeOAuthToken(oauthToken: string, setAsActive = true): string {
   const authManager = getAuthManager();
   const user = authManager.getUser();
 
-  const encryptedToken = encryptToken(oauthToken);
+  const encryptedToken = encryptCredential(oauthToken);
   const db = getDatabase();
   const newId = createId();
 
@@ -228,7 +207,7 @@ export const claudeCodeRouter = router({
 
       if (account) {
         try {
-          const token = decryptToken(account.oauthToken);
+          const token = decryptCredential(account.oauthToken);
           return { token, error: null };
         } catch (error) {
           console.error("[ClaudeCode] Decrypt error:", error);
@@ -249,7 +228,7 @@ export const claudeCodeRouter = router({
     }
 
     try {
-      const token = decryptToken(cred.oauthToken);
+      const token = decryptCredential(cred.oauthToken);
       return { token, error: null };
     } catch (error) {
       console.error("[ClaudeCode] Decrypt error:", error);
