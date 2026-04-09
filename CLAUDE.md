@@ -428,7 +428,7 @@ Common drift points:
 - Renderer feature subdirectories (`src/renderer/features/agents/*`)
 - Quality-gate naming (always: both `ts:check` and `build`)
 - Hosted-vs-OSS feature claims in README/CONTRIBUTING (verify against actual code paths, not assumptions)
-- Regression guard count under `tests/regression/` — currently **10** (36 tests); grows whenever a new Phase 0 gate or brand guard lands
+- Regression guard count under `tests/regression/` — currently **11** (45 tests); grows whenever a new Phase 0 gate or brand guard lands
 - Brand taxonomy acceptance rules — authoritative source is `openspec/specs/brand-identity/spec.md` (the `brand-identity` capability, introduced by the `rebrand-residual-sweep` change). Do NOT duplicate the Tier A/B/C definitions in this file — point at the spec
 - Baseline spec count in `openspec/specs/` — currently **7** (`brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`); grows when changes archive
 - Deleted-file references — when a script or module is deleted, grep `CLAUDE.md`, `.claude/PROJECT_INDEX.md`, `.serena/memories/*` for the filename before committing (the `docs-drift-check` skill covers this as drift point #10)
