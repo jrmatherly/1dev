@@ -11,26 +11,45 @@ This is Phase 2 of 3:
 
 ## What Changes
 
-**New file: `src/renderer/lib/message-parser.ts`** (~100-150 lines)
-- Extract `parseSubChatMessages(messagesJson)` — parses JSON-encoded message arrays
-- Extract `normalizeSubChatMessageParts(messages)` — tool-invocation → `tool-{toolName}` migration, MCP wrapper normalization via `normalizeCodexToolPart()`
-- Export combined `parseAndNormalizeSubChatMessages()` for convenience
+**New file: `src/renderer/lib/message-parser.ts`** (~150-200 lines)
+- Extract `parseSubChatMessages(messagesJson)` — parses JSON-encoded message arrays (mock-api.ts lines 50-53)
+- Extract `normalizeMessageParts(messages)` — ALL 5 normalization stages from mock-api.ts lines 54-234:
+  1. `tool-invocation` → `tool-{toolName}` + state normalization
+  2. Codex MCP wrapper normalization via `normalizeCodexToolPart()`
+  3. ACP title-based type extraction (the `acpVerbMap` logic mapping `"tool-Read README.md"` → `"tool-Read"`)
+  4. Generic state normalization for remaining tool parts
+  5. `stream_id: null` injection for sub-chat DTO shape compatibility
+- Export combined `parseAndNormalizeSubChatMessages()` and `parseAndNormalizeChat()`
 - Fully typed with proper `Message` / `MessagePart` interfaces
+- **Decision needed:** `sandbox_id: null` and `meta: null` injection — keep in helper or remove? Consumers may check `=== null` vs `undefined`
 
-**6 consumer files migrated from `api.agents.*` to `trpc.chats.*`:**
+**6 consumer files migrated (verified via `grep -rn 'from.*mock-api' src/`):**
 
-| File | Current Import | Migration Pattern | Complexity |
-|------|---------------|-------------------|-----------|
-| `active-chat.tsx` | `api.agents.getAgentChat.useQuery()` + mutations | Query + message parsing helper + mutations | **HIGH** — largest consumer, F1 boundary must be preserved |
-| `agents-subchats-sidebar.tsx` | `api.agents.getAgentChats.useQuery()` + mutations | Query + mutations | **MEDIUM-HIGH** — 8 usage sites |
-| `sub-chat-selector.tsx` | `api.agents.getAgentChat.useQuery()` | Query only | **MEDIUM** — 5 timestamp sort sites |
-| `mobile-chat-header.tsx` | `api.agents.getAgentChat.useQuery()` | Query only | **MEDIUM** — 3 sort/display sites |
-| `subchats-quick-switch-dialog.tsx` | `api.agents.getAgentChat.useQuery()` | Query only | **LOW** — 1 sort site |
-| `archive-popover.tsx` | `api.agents.getArchivedChats.useQuery()` | Query only (archived) | **LOW** — archived list |
+| File | Current Usage | Migration Pattern | Complexity |
+|------|--------------|-------------------|-----------|
+| `active-chat.tsx` | 6 `api.agents.*` calls + **13 `utils.agents.*` cache manipulation sites** + mutations | Query + message parser + mutations + useUtils migration | **VERY HIGH** — F1 boundary, cache layer |
+| `agents-subchats-sidebar.tsx` | `api.agents.getAgentChats.useQuery()` + `renameSubChat` mutation | Query + mutation (2 `api.*` sites; already uses direct `trpc.*` for some calls) | **MEDIUM** |
+| `sub-chat-selector.tsx` | `api.agents.getAgentChat.useQuery()` + `renameSubChat.useMutation()` | Query + mutation | **MEDIUM** |
+| `agents-content.tsx` | `api.agents.getAgentChats`, `api.agents.getAgentChat`, `api.teams.getUserTeams` (stub) | Query + **stub dependency decision** | **MEDIUM** — must decide how to handle `getUserTeams` stub |
+| `agents-file-mention.tsx` | `api.github.searchFiles.useQuery()` | **Real tRPC bridge** to `trpc.files.search` with argument translation | **MEDIUM** — not a simple rename |
+| `agent-diff-view.tsx` | Dead import (imports mock-api but has 0 `api.*` call sites) | Remove dead import | **TRIVIAL** |
 
-**Input key mapping:**
-- `{ chatId }` → `{ id }` for `trpc.chats.get`
-- All mutations: pass-through (keys already match)
+**Files previously listed that do NOT need migration** (already use direct `trpc.chats.*`):
+- `mobile-chat-header.tsx` — no mock-api import
+- `subchats-quick-switch-dialog.tsx` — no mock-api import
+- `archive-popover.tsx` — no mock-api import
+
+**Input key mapping (NOT pass-through — this is critical):**
+- `{ chatId }` → `{ id }` for `trpc.chats.get`, `trpc.chats.archive`, `trpc.chats.restore`, `trpc.chats.rename`
+- `{ subChatId }` → `{ id }` for `trpc.chats.renameSubChat`, `trpc.chats.updateSubChatMode`
+- `{ chatIds }` → pass-through for `trpc.chats.archiveBatch`
+- `trpc.chats.list` takes `{ projectId?: string }` — current mock-api silently drops `teamId` argument
+
+**`useUtils` cache manipulation (CRITICAL — 13 sites in active-chat.tsx):**
+- `utils.agents.getAgentChat.invalidate({ chatId })` → `utils.chats.get.invalidate({ id: chatId })`
+- `utils.agents.getAgentChat.setData({ chatId }, updater)` → `utils.chats.get.setData({ id: chatId }, updater)`
+- `utils.agents.getAgentChats.setData({ teamId }, updater)` → `utils.chats.list.setData({ projectId }, updater)`
+- Dependency array references also need updating
 
 **Query migration pattern:**
 ```typescript
