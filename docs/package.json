@@ -10,6 +10,6 @@
     "build": "xyd build"
   },
   "engines": {
-    "node": "22"
+    "node": ">=22"
   }
 }

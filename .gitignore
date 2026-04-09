@@ -3,7 +3,7 @@ node_modules/
 
 # Build outputs
 dist/
-release/
+/release/
 release-*/
 out/
 
@@ -35,6 +35,9 @@ resources/bin/
 
 # Legacy lockfile (migrated to text-based bun.lock)
 bun.lockb
+
+# Claude Code local settings (user-specific, not tracked)
+.claude/settings.local.json
 
 # Session ephemeral files
 .remember/tmp/save-session.pid

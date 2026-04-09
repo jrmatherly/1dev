@@ -58,6 +58,29 @@ updates:
     # major bump) — no `ignore` block needed. Add one here if specific majors
     # become noisy.
 
+  - package-ecosystem: "bun"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docs"
+    groups:
+      docs-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+        exclude-patterns:
+          - "@xyd-js/*"   # Pinned to lockstep build, requires verify-pin skill
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
