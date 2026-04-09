@@ -28,7 +28,7 @@ defaults delete dev.apollosai.agents.dev                     # Clear preferences
 ## Quality Gates — ALL FOUR are required (none is a superset)
 - **`bun run ts:check`** (tsgo, Go-based, faster) — stricter, catches type errors esbuild masks. Requires `npm install -g @typescript/native-preview`.
 - **`bun run build`** (electron-vite + esbuild) — validates the packaging pipeline; produces the actual artifact.
-- **`bun test`** — `bun:test` regression guards under `tests/regression/` (5 tests, ~100ms total). Bootstrapped 2026-04-08 as Phase 0 gate #11. No Jest/Vitest/Playwright — broader test adoption is still pending.
+- **`bun test`** — `bun:test` regression guards under `tests/regression/` (14 tests across 6 files, ~200ms total as of 2026-04-08 22:50). Bootstrapped 2026-04-08 as Phase 0 gate #11. No Jest/Vitest/Playwright — broader test adoption is still pending. Current guards: `auth-get-token-deleted`, `brand-sweep-complete`, `credential-manager-deleted`, `feature-flags-shape`, `gpg-verification-present`, `token-leak-logs-removed`.
 - **`bun audit`** — checks for known dependency vulnerabilities.
 - **Run all four before submitting a PR.** Together they take under 2 minutes on an M-series Mac.
 - tsgo has known gaps with mapped-type recursion vs tsc — fall back to `tsc` for tricky type errors

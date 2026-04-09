@@ -194,6 +194,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 
 ### Upstream Backend Boundary
 - **`remoteTrpc.*`** (`src/renderer/lib/remote-trpc.ts`) is the typed tRPC client for the upstream `21st.dev` / `1code.dev` backend. Any `remoteTrpc.foo.bar` call site will break when upstream is retired — grep for it before claiming a feature is local.
+- **`sandbox_id` vocabulary collision**: `sandbox_id` appears in two unrelated contexts. The `claude-code.ts` sandbox OAuth flow (Gate #8 deletion target) uses sandbox URLs for Claude CLI OAuth. The renderer's `sandbox_id` in `agents-content.tsx`, `agent-preview.tsx`, `mock-api.ts`, and `agents-sidebar.tsx` refers to the E2B browser sandbox for the live preview feature (F9 — dead UI, Phase 2 work). Any regression guard that greps for `sandbox_id` must scope to the specific file being guarded.
 - Type contract lives in `src/renderer/lib/remote-app-router.ts` (TRPCBuiltRouter stub)
 - Default base URL is `https://apollosai.dev`, overridable via `desktopApi.getApiBaseUrl()` (reads from main-process env)
 - Raw `fetch(\`${apiUrl}/...\`)` is the secondary upstream channel — used in `voice.ts`,`sandbox-import.ts`,`claude-code.ts` OAuth flow, `agents-help-popover.tsx` changelog
@@ -256,6 +257,7 @@ const projectChats = db.select().from(chats).where(eq(chats.projectId, id)).all(
 
 ## Known Security Gaps & Footguns
 
+- **HARD RULE for any auth code touching Claude/Codex spawn env vars:** Read `.scratchpad/auth-strategy-envoy-gateway.md` §4.9 and §5.4 FIRST. Env-var injection of bearer tokens (`ANTHROPIC_AUTH_TOKEN=<bearer>`) is explicitly forbidden — co-resident processes can read `/proc/<pid>/environ` (Linux), `ps eww` (macOS), `NtQueryInformationProcess` (Windows). The mandated pattern is `applyEnterpriseAuth()` writing a 0600 tmpfile and passing `ANTHROPIC_AUTH_TOKEN_FILE=/path`. Verify `ANTHROPIC_AUTH_TOKEN_FILE` support against the pinned Claude CLI version (currently 2.1.96) before designing against it. §3.1 cluster lock-down (CiliumNetworkPolicy + HTTPRoute header strip) is a blocking prerequisite for any code that sends live traffic to LiteLLM via Envoy Gateway.
 - ~~`scripts/download-claude-binary.mjs` and `scripts/download-codex-binary.mjs` do NOT verify checksums/signatures~~ — **RESOLVED 2026-04-08** (Phase 0 gate #7). The earlier footgun text was factually wrong: both scripts always verified SHA-256 against authoritative manifests (Claude: GCS `manifest.json`; Codex: GitHub release `asset.digest`). The gate closed the remaining gap: `download-claude-binary.mjs` now also verifies the detached GPG signature on `manifest.json` against a vendored Anthropic release-signing public key (`scripts/anthropic-release-pubkey.asc`, fingerprint `31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE`) with fingerprint pinning to catch tampered keys. Signature verification is available for Claude 2.1.89+ (we pin 2.1.96). Regression guard at `tests/regression/gpg-verification-present.test.ts`. Codex releases do not publish a separate detached signature — the GitHub release metadata's TLS chain is the trust anchor for the SHA-256 digest, which is as good as upstream provides. See https://code.claude.com/docs/en/setup#binary-integrity-and-code-signing.
 - ~~`auth:get-token` IPC handler is **dead code** but still registered~~ — **RESOLVED 2026-04-08** (Phase 0 gates #1-4). Handler, preload bridge, and type declaration all deleted. Regression guard at `tests/regression/auth-get-token-deleted.test.ts`.
 - ~~**FIVE token preview logs**~~ — **RESOLVED 2026-04-08** (Phase 0 gates #5-6). All four sites in `src/main/lib/trpc/routers/claude.ts` and the one in `src/main/lib/claude/env.ts` removed. Regression guard at `tests/regression/token-leak-logs-removed.test.ts` scans all of `src/main/` for forbidden substrings (`Token preview:`, `tokenPreview:`, `Token total length:`, `finalCustomConfig.token.slice`, and the env.ts presence-log pattern).
@@ -336,7 +338,6 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 3. Re-upload stapled DMGs to R2 and GitHub
 4. Update changelog: `gh release edit v0.0.X --notes "..."`
 5. **Upload manifests (triggers auto-updates!)**
-6. Sync to public: `./scripts/sync-to-public.sh`
 
 ### Files Uploaded to CDN
 
@@ -383,6 +384,9 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 - **Tailwind must stay on 3.x** — `tailwind-merge` v3 requires Tailwind v4; upgrading requires full config migration (134 files use `cn()`)
 - **shiki must stay on 3.x** — `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream releases compatible version
 - `bun update` is semver-safe; `bun update --latest` pulls major version bumps (use cautiously). For `bun audit` / `bun outdated` see the Commands block above.
+- **`openspec` CLI is installed globally** but mise shims may not be on the Bash tool's PATH in non-login shells. Use `bunx @fission-ai/openspec@1.2.0` (matches the globally pinned version) instead of bare `openspec` in automation. Supports `new change`, `instructions <artifact>`, `validate --strict --no-interactive`, `list`, `status`, `archive`.
+- **OpenSpec `## MODIFIED Requirements` requires an archived baseline.** You can only use MODIFIED against a capability spec that lives under `openspec/specs/<capability>/spec.md`. Capabilities still inside unarchived `openspec/changes/<id>/specs/` directories are NOT baselines — use `## ADDED Requirements` on a new capability instead, or archive the source change first with `bunx @fission-ai/openspec@1.2.0 archive <id>`.
+- **TDD red-state verification rule:** A test that fails because of a missing import, undefined symbol, or TypeScript compile error is NOT a valid red. The red step must produce an assertion failure with a readable `expected X, got Y` message. If the red output mentions `ReferenceError`, `TypeError`, or `Cannot find module`, stop and fix the test harness before proceeding to green.
 - Claude Agent SDK version: see `@anthropic-ai/claude-agent-sdk` in `package.json`
 - Protocol handlers: Production uses `apollosai-agents://`, dev uses `apollosai-agents-dev://`
 - **Serena MCP requires `mcp__serena__activate_project` first** before `list_memories` / `read_memory` will work — call with `project: "ai-coding-cli"` or the absolute repo path. Without activation it returns `Error: No active project`.
@@ -391,6 +395,8 @@ npm version patch --no-git-tag-version  # e.g. 0.0.72 → 0.0.73
 ## Documentation Maintenance
 
 The authoritative repo navigation map is `.claude/PROJECT_INDEX.md` — regenerate it after any structural change (new router, new table, new renderer feature). Doc sync targets: `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, this file, `.serena/memories/*`, `.claude/PROJECT_INDEX.md`. Working directories (`.scratchpad/`, `.full-review/`) and the key strategy docs in them are catalogued under "Working Directories & Conventions" above.
+
+**Phase 0 gate text is exact scope, not a minimum.** Gate text in `.scratchpad/auth-strategy-envoy-gateway.md` §6 (e.g., "Resolve sandbox dependency") names exactly what a gate closes. Do NOT expand scope within a single gate. If a gate's implementation reveals additional work (new auth mechanism, new credential store, three-segment model), that additional work needs its own OpenSpec change proposal, not a bigger Layer 1. This rule is load-bearing — violating it triggered the 4-reviewer Gate #8 audit rework in the prior session.
 
 Common drift points:
 - SDK package names and versions (`@anthropic-ai/claude-agent-sdk`)

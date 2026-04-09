@@ -43,7 +43,7 @@
 - **Four automated quality gates** — all required before submitting a PR (none is a superset of the others):
   1. `bun run ts:check` (tsgo, stricter, catches type errors esbuild masks). Baseline: 88 errors stored in `.claude/.tscheck-baseline`. PostToolUse hook tracks drift on every TS edit.
   2. `bun run build` (electron-vite, validates packaging pipeline)
-  3. `bun test` (5 regression guards under `tests/regression/`, ~100ms total)
+  3. `bun test` (6 regression guards, 14 tests under `tests/regression/`, ~200ms total)
   4. `bun audit` (dependency vulnerability scan)
 - All four together run in under 2 minutes on an M-series Mac
 - The same four are enforced in `.github/workflows/ci.yml` on every PR to main

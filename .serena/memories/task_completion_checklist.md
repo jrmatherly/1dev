@@ -8,7 +8,7 @@ When a task is completed, run through these steps:
    - PostToolUse hook tracks drift on every TS edit and emits ❌/✅ status.
    - To distinguish your errors from baseline: `git stash && bun run ts:check 2>&1 | grep -c "error TS" && git stash pop`
 2. **Dev build**: `bun run build` — Validates the electron-vite packaging pipeline produces a working artifact
-3. **Regression tests**: `bun test` — 5 guards under `tests/regression/` (~100ms total)
+3. **Regression tests**: `bun test` — 6 guards (14 tests) under `tests/regression/` (~200ms total)
 4. **Dependency audit**: `bun audit` — Known vulnerability scan
 - **None of these is a superset of the others.** All four are required before submitting a PR.
 - All four together run in under 2 minutes on an M-series Mac.
@@ -62,7 +62,7 @@ Reference: `.scratchpad/auth-strategy-envoy-gateway.md` v2.1 §6 and CLAUDE.md "
 - ✅ #7 — Claude binary SHA-256 + GPG signature verification, Codex SHA-256 verification
 - ✅ #9 — `.github/workflows/ci.yml` minimum-viable CI
 - ✅ #10 — Dependabot config (UI secret-scanning enable still pending)
-- ✅ #11 — `bun:test` framework + 5 regression guards
+- ✅ #11 — `bun:test` framework + 6 regression guards (14 tests total)
 - ✅ #12 — Feature flag infrastructure (Drizzle table + lib + tRPC router)
 - ✅ #13 — OpenSpec 1.2.0 migration
 - ✅ #14 — Electron 39.8.6 → 39.8.7 patch

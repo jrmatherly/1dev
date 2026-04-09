@@ -135,7 +135,7 @@ lib/
 - ⏳ **#8 — upstream sandbox OAuth extraction from `claude-code.ts`** (only remaining gate; current implementation uses an upstream sandbox as the OAuth redirect host — must be replaced with localhost-loopback like `auth-manager.ts` already uses)
 - ✅ #9 — `.github/workflows/ci.yml` minimum-viable CI (runs all 4 quality gates on PR to main)
 - ✅ #10 — Dependabot config (UI secret-scanning enable still pending)
-- ✅ #11 — `bun:test` framework + 5 regression guards under `tests/regression/`
+- ✅ #11 — `bun:test` framework + 6 regression guards under `tests/regression/` (14 tests, 40 expect calls, ~200ms total as of 2026-04-08 22:50)
 - ✅ #12 — Feature flag infrastructure (Drizzle table + lib module + tRPC router)
 - ✅ #13 — OpenSpec 1.2.0 migration (config.yaml, skills under `.claude/skills/openspec-*`, old `openspec/AGENTS.md` deleted)
 - ✅ #14 — Electron 39.8.6 → 39.8.7 patch
@@ -143,10 +143,11 @@ lib/
 
 ## Regression Tests (`tests/regression/`, run via `bun test`)
 - `auth-get-token-deleted.test.ts` — guards Gate #1-4 against re-introduction of dead IPC handler
-- `token-leak-logs-removed.test.ts` — scans `src/main/` for forbidden log strings (Gate #5-6)
+- `brand-sweep-complete.test.ts` — scans repo for 21st.dev/1code.dev residue after 2026-04-08 rebrand to apollosai.dev
 - `credential-manager-deleted.test.ts` — guards against re-creating orphan `credential-manager.ts`
-- `gpg-verification-present.test.ts` — guards Gate #7 against GPG verification removal
 - `feature-flags-shape.test.ts` — guards Gate #12 feature flag key shape against renames
+- `gpg-verification-present.test.ts` — guards Gate #7 against GPG verification removal
+- `token-leak-logs-removed.test.ts` — scans `src/main/` for forbidden log strings (Gate #5-6)
 
 ## Resolved Security Findings (from earlier .full-review/, now closed)
 - ~~`auth:get-token` IPC handler dead code (CVSS 9.0)~~ — RESOLVED (Phase 0 #1-4)
