@@ -62,10 +62,10 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 ### [Ready] mock-api.ts Phase 2 -- consumer migration
 
 **Added:** 2026-04-09
-**Scope:** Port 6 consumer files from `api.agents.*` (mock-api facade) to `trpc.chats.*` direct. Extract `normalizeCodexToolPart` and JSON message-parsing into typed helpers. This is the follow-up to the `retire-mock-api-translator` Phase 1 change (archived 2026-04-09).
+**Scope:** Port 6 consumer files from `api.agents.*` (mock-api facade) to `trpc.chats.*` direct. Extract JSON message-parsing pipeline (including `normalizeCodexToolPart` adapter) into `src/renderer/lib/message-parser.ts`. F1/F2 boundary sites preserved. Phase 3 (delete mock-api.ts) follows after F1-F10 stubs are replaced.
 **Effort:** Medium-Large
 **Prereqs:** Phase 1 complete (done)
-**Canonical reference:** `openspec/changes/archive/2026-04-09-retire-mock-api-translator/proposal.md` section 10
+**Canonical reference:** `openspec/changes/migrate-mock-api-consumers/proposal.md`
 
 ### [Cleanup] ts:check baseline remediation (86 remaining)
 
