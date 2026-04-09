@@ -2,7 +2,9 @@
 
 A local-first desktop client for running AI coding agents (Claude Code, Codex, Ollama) against your own repositories.
 
-> **About this fork.** This is an enterprise fork of [1Code by 21st-dev](https://github.com/21st-dev/1code). It is being progressively decoupled from the upstream `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway). Features that depend on the upstream backend have been removed from the highlights below — see [`docs/enterprise/upstream-features.md`](docs/enterprise/upstream-features.md) for the catalog of removed/pending-restoration functionality and [`docs/enterprise/auth-strategy.md`](docs/enterprise/auth-strategy.md) for the auth migration plan.
+> **About this fork.** This is an enterprise fork of [1Code by 21st-dev](https://github.com/21st-dev/1code), progressively decoupled from the upstream `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway). See [`docs/enterprise/fork-posture.md`](docs/enterprise/fork-posture.md) for the full context, and [`docs/enterprise/upstream-features.md`](docs/enterprise/upstream-features.md) for the upstream-feature catalog (F1-F10).
+
+![Worktree Demo](assets/worktree.gif)
 
 ## Highlights
 
@@ -10,7 +12,7 @@ These features run entirely on your machine — no hosted backend required.
 
 - **Multi-Agent Support** — Claude Code, Codex, and Ollama in one app; switch instantly
 - **Cursor-like Visual UI** — Diff previews and real-time tool execution
-- **BYOK (Bring Your Own Key)** — Use your own API keys for any supported provider
+- **BYOK** — Use your own API keys for any supported provider
 - **Git Worktree Isolation** — Each chat session runs in its own isolated worktree, never touching `main`
 - **Built-in Git Client** — Visual staging, diffs, branch management, PR creation
 - **Kanban Board** — Visualize agent sessions across worktrees
@@ -21,98 +23,16 @@ These features run entirely on your machine — no hosted backend required.
 - **Skills & Slash Commands** — User-defined skills and slash commands surfaced in chat
 - **Custom Sub-agents** — Visual task display in the details sidebar
 - **Memory** — Reads `CLAUDE.md` and `AGENTS.md` from the project root
-- **Chat Forking** — Fork a sub-chat from any assistant message to explore alternatives
+- **Chat Forking** — Fork a sub-chat from any assistant message
 - **Message Queue** — Queue prompts while an agent is working
 - **Plan Mode** — Structured plans with markdown preview before execution
 - **Extended Thinking** — Visual thinking gradient for Claude reasoning
-- **Auto-Updates** — `electron-updater` polling a configurable CDN (defaults to upstream `cdn.apollosai.dev`; self-hosters override `CDN_BASE` in `src/main/lib/auto-updater.ts`)
+- **Auto-Updates** — `electron-updater` polling a configurable CDN (self-hosters override `CDN_BASE` in `src/main/lib/auto-updater.ts`)
 - **Cross Platform** — macOS, Windows, Linux
 
-### Upstream-dependent features — restoration in progress
+### Upstream-dependent features
 
-The following features depend on the `1code.dev` hosted backend. Per the fork's **self-host-everything** theme (locked 2026-04-08), each will be **reverse-engineered, re-created, and self-hosted** — not dropped. Until then they remain in the codebase but will not function once the upstream backend is retired.
-
-- **Background Agents** — cloud sandboxes that run when your laptop sleeps (F1)
-- **Automations & Inbox** — `@1code` triggers from GitHub / Linear / Slack (F2)
-- **Remote agent chats / multi-team sync** (F3)
-- **Hosted voice transcription** — BYOK OpenAI key path still works (F4)
-- **PWA companion app** — always a separate upstream project (F6)
-- **The hosted REST API** — `POST /api/v1/tasks` (F8)
-- **Live Browser Previews** — currently dead UI on desktop (gated on `sandbox_id` hard-coded to `null`); will be rebuilt Phase 2 on top of `src/main/lib/terminal/port-manager.ts` (F9)
-
-**Not affected** (investigated 2026-04-08, no restoration needed):
-- **Plugin marketplace** — local-only, reads `~/.claude/plugins/` directly, never talked to upstream (F7)
-
-See [`docs/enterprise/upstream-features.md`](docs/enterprise/upstream-features.md) for restoration priorities, per-feature decisions, and candidate self-host approaches.
-
-## Features
-
-### Worktree-isolated agent sessions
-
-Every chat runs in its own git worktree, so agents can edit, commit, and run code without ever touching your main working tree.
-
-![Worktree Demo](assets/worktree.gif)
-
-- **Git Worktree Isolation** — Each chat session gets its own worktree off the project repo
-- **Branch Safety** — Never accidentally commit to `main`
-- **Local-First** — All code, chats, and credentials stay on your machine (SQLite at `{userData}/data/agents.db`)
-- **Shared Terminals** — Reuse terminal sessions across worktrees in the same project
-
----
-
-### A UI that respects your code
-
-Cursor-like interface with diff previews, a built-in git client, and the ability to see changes before they land.
-
-![Cursor UI Demo](assets/cursor-ui.gif)
-
-- **Diff Previews** — See exactly what the agent is changing, in real time
-- **Built-in Git Client** — Stage, commit, push, and manage branches without leaving the app
-- **Git Activity Badges** — Inline indicators for git operations on agent messages
-- **Rollback** — Roll back changes from any user-message bubble
-- **Real-time Tool Execution** — Watch bash commands, file edits, and web searches as they happen
-- **File Viewer** — Cmd+P fuzzy search, syntax highlighting, image viewer
-- **Chat Forking** — Branch the conversation from any assistant message
-- **Chat Export** — Export conversations for sharing or archival
-- **File Mentions** — Reference files directly with `@` mentions
-- **Message Queue** — Queue prompts while an agent is working
-
----
-
-### Plan mode for thinking before acting
-
-The agent asks clarifying questions, builds a structured plan, and shows it as clean markdown — all before execution.
-
-![Plan Mode Demo](assets/plan-mode.gif)
-
-- **Clarifying Questions** — The agent asks what it needs before starting
-- **Structured Plans** — Step-by-step breakdown of what will happen
-- **Clean Markdown Preview** — Plans rendered in readable format
-- **Review Before Execution** — Approve or modify the plan first
-- **Extended Thinking** — Visual thinking gradient for Claude reasoning
-- **Sub-agents** — Visual task list for sub-agents in the details sidebar
-
----
-
-### Connect anything with MCP
-
-Full MCP server lifecycle management from the UI — no config files needed.
-
-- **MCP Server Management** — Toggle, configure, and delete MCP servers from the UI
-- **SSRF-Safe URL Validation** — MCP server URLs are validated against an allow-list (`src/main/lib/trpc/schemas/mcp-url.ts`)
-- **Rich Tool Display** — Formatted inputs and outputs for MCP tool calls
-- **@ Mentions** — Reference MCP servers directly in chat input
-
----
-
-### Skills, slash commands, and sub-agents
-
-Extend agent capability with project-local definitions.
-
-- **Skills** — Drop skill definitions into the project; they show up automatically
-- **Slash Commands** — Define custom commands for repetitive workflows
-- **Sub-agents** — Spawn specialized agents for parallel sub-tasks
-- **Memory** — `CLAUDE.md` and `AGENTS.md` are read from the project root
+Several features depend on the upstream `1code.dev` hosted backend and will stop functioning once it's retired. Per the fork's **self-host-everything** theme, each will be reverse-engineered and self-hosted rather than dropped. See [`docs/enterprise/upstream-features.md`](docs/enterprise/upstream-features.md) for the full F1-F10 catalog with per-feature restoration status and priorities.
 
 ## Installation
 
@@ -129,9 +49,9 @@ bun run package:mac      # or package:win, package:linux
 
 > **Important:** The `claude:download` and `codex:download` steps fetch the pinned agent CLI binaries. Skipping them produces a build that compiles but cannot run agents.
 >
-> **Python note:** Python 3.11 is recommended for native module rebuilds (`better-sqlite3`, `node-pty`). On Python 3.12+, install setuptools first: `pip install setuptools`.
->
-> **Looking for the upstream OSS product?** Pre-built releases of upstream 1Code (with background agents and the hosted backend) are available from [1code.dev](https://1code.dev). This fork is a separate distribution.
+> **Looking for the upstream OSS product?** Pre-built releases of upstream 1Code are available from [1code.dev](https://1code.dev). This fork is a separate distribution.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for development setup, Python notes, and the full build workflow.
 
 ## Development
 
@@ -149,15 +69,14 @@ Join our [Discord](https://discord.gg/8ektTZGnj4) for support and discussions.
 ## Developer Guide
 
 **Canonical documentation** lives under [`docs/`](docs/) — a tracked xyd-js site with five tabs:
+
 - [`docs/architecture/`](docs/architecture/) — codebase layout, database schema, tech stack, tRPC routers, upstream boundary
 - [`docs/enterprise/`](docs/enterprise/) — auth strategy, upstream feature catalog (F1-F10), Phase 0 gates, cluster facts
 - [`docs/conventions/`](docs/conventions/) — pinned deps, quality gates, regression guards, brand taxonomy
 - [`docs/operations/`](docs/operations/) — release process, debugging first install, cluster access, env gotchas
 - [`docs/api-reference/`](docs/api-reference/) — API reference material
 
-For Claude Code-specific guidance (identity, critical rules, quick commands), see [`CLAUDE.md`](CLAUDE.md) — a concise overview that links to the canonical `docs/` pages above.
-
-For contribution guidelines and setup instructions, see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+For Claude Code-specific guidance, see [`CLAUDE.md`](CLAUDE.md). For contribution guidelines and setup, see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
