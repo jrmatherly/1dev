@@ -1,6 +1,6 @@
 ## Context
 
-The enterprise fork of 1Code was decoupled from the upstream `21st.dev` / `1code.dev` brand in commit `9b6d525` (2026-04-08), which manually rebranded 31 files. A follow-up audit orchestrated by five parallel Explore subagents and captured in `.scratchpad/rebrand-residual-audit.md` identified 17 concrete residual hits across 14 files plus 2 attribution gaps (unfilled Apache 2.0 placeholder in `LICENSE`, missing `NOTICE` file).
+The enterprise fork of 1Code was decoupled from the upstream `21st.dev` / `1code.dev` brand in commit `9b6d525` (2026-04-08), which manually rebranded 31 files. A follow-up audit orchestrated by five parallel Explore subagents and captured in `openspec/specs/brand-identity/spec.md` identified 17 concrete residual hits across 14 files plus 2 attribution gaps (unfilled Apache 2.0 placeholder in `LICENSE`, missing `NOTICE` file).
 
 The audit's original 4-phase remediation plan was written with a deployed-product assumption in mind — specifically, that renaming theme IDs, localStorage keys, or the `.21st/worktrees/` filesystem path would orphan user data. The user then confirmed the project is **greenfield**: zero deployments, zero installed users, no persisted data on any machine. That signal collapses the entire Tier C "user-data migration" category into trivial text replacements.
 
@@ -40,7 +40,7 @@ The audit introduced a Tier A / Tier B / Tier C taxonomy to answer "what counts 
 - **Tier B (KEEP):** Product-name identifiers owned by this fork — `"1Code"` (product name), `1code-desktop` (package name), `resources/cli/1code` (CLI launcher), `.1code/worktree.json` (per-worktree config file), any future `1code-*` prefixed identifier
 - **Tier C (PRESERVE AS ATTRIBUTION):** Historical references that satisfy Apache 2.0 §4(c) — the `cli.ts:6` upstream PR link comment, the `README.md:3` "forked from" sentence, the `LICENSE` copyright header block (once added), the `NOTICE` file, and historical references inside documentation files under `.scratchpad/` and `openspec/changes/retire-mock-api-translator/`
 
-**Alternative considered:** Leave the taxonomy in `.scratchpad/rebrand-residual-audit.md` only. **Rejected** because scratchpad documents are not treated as normative — the `retire-mock-api-translator` proposal explicitly quotes scratchpad context but doesn't *bind* against it. A capability spec is the durable home for acceptance rules that future PRs must respect.
+**Alternative considered:** Leave the taxonomy in `openspec/specs/brand-identity/spec.md` only. **Rejected** because scratchpad documents are not treated as normative — the `retire-mock-api-translator` proposal explicitly quotes scratchpad context but doesn't *bind* against it. A capability spec is the durable home for acceptance rules that future PRs must respect.
 
 ### Decision 2: Filesystem path rename target is `.1code/`, not `.apollosai/`
 

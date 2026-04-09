@@ -1,67 +1,31 @@
 schema: spec-driven
 
-# Project context shown to AI when creating OpenSpec artifacts. Migrated from
-# the now-deleted openspec/project.md during the 1.2.0 skill-based layout
-# migration. CLAUDE.md remains the authoritative long-form reference for
-# architecture, commands, debugging, and release process.
 context: |
-  1Code (by apollosai.dev, enterprise fork) — local-first Electron desktop app for
-  parallel AI-assisted development. Users create chat sessions linked to local
-  project folders, interact with multiple AI backends (Claude, Codex, Ollama)
-  in Plan or Agent mode, and see real-time tool execution (bash, file edits,
-  web search, terminal). The enterprise fork is being decoupled from the
-  upstream 21st.dev/1code.dev hosted backend in favor of self-hosted
-  infrastructure (LiteLLM behind an Envoy Gateway with Microsoft Entra ID SSO).
-  All SaaS features catalogued in .scratchpad/upstream-features-inventory.md
-  (F1-F10) are being reverse-engineered and re-hosted on the Talos AI cluster.
+  Project: 1Code enterprise fork (apollosai.dev) — local-first Electron desktop app
+  Tech stack: Electron 39, React 19, TypeScript 5, Tailwind 3, tRPC, Drizzle ORM, SQLite
+  Package manager: bun
+  AI backends: Claude Agent SDK, Codex CLI, Ollama
+  Fork posture: Decoupling from upstream 1code.dev — self-hosting via LiteLLM + Entra + Envoy Gateway
+  Quality gates: bun run ts:check + bun run build + bun test + bun audit
+  TS baseline: ~88 pre-existing errors (only new errors matter)
+  Database: 7 tables in Drizzle schema, auto-migrates on startup
+  Upstream boundary: remoteTrpc.* and fetch(${apiUrl}/) calls hit 1code.dev — must be replaced
+  Brand taxonomy: Tier A/B/C per openspec/specs/brand-identity/spec.md
 
-  Tech stack: Electron ~39.8.7, electron-vite 3, React 19, TypeScript 5,
-  Tailwind 3, Radix UI, Jotai + Zustand + React Query, tRPC + Drizzle ORM +
-  better-sqlite3, @anthropic-ai/claude-agent-sdk, Codex CLI 0.118.0, Ollama.
-  Package manager: bun. Tests: bun:test under tests/regression/ (structural
-  guards only — broader test adoption is Phase 0 hard gate #11).
-
-  Conventions: Components PascalCase, utilities/hooks camelCase, stores
-  kebab-case, Jotai atoms camelCase + Atom suffix. Simplicity over complexity.
-  IPC is tRPC over trpc-electron (21 routers in createAppRouter). State: Jotai
-  for UI state, Zustand for persisted sub-chat tabs, React Query for server
-  state via tRPC. Database: Drizzle ORM with auto-migration on app startup,
-  schema at src/main/lib/db/schema/index.ts (7 tables including the new
-  feature_flag_overrides). AI integration: dynamic import of the Claude Agent
-  SDK with two modes — "plan" (read-only) and "agent" (full permissions).
-
-  Domain vocabulary: Chat (top-level session linked to a project folder),
-  SubChat (individual AI session within a chat, with mode plan/agent and
-  sessionId for Claude resume), tool execution (real-time streaming of bash,
-  file edits, web search), integrated terminal (node-pty + xterm.js).
-
-  Important constraints: Local-first storage in SQLite at
-  {userData}/data/agents.db. Auth credentials encrypted via Electron
-  safeStorage. macOS notarization required for releases. Dev and production
-  use separate userData paths and protocol handlers.
-
-  Current migration posture: Phase 0 hard gates from strategy v2.1 §6 are
-  landing incrementally. Gates #1-6 (dead IPC handler deletion, token log
-  sanitization), #7 (binary checksum + GPG verification), #9 (minimum CI),
-  #10 (Dependabot), #11 (bun:test), #12 (feature flags), #14 (Electron
-  39.8.7), and #15 (F1-F10 decisions) are committed or in progress.
-  Remaining: #8 (Claude Code OAuth env-var injection via Envoy Gateway).
-  Phase 1 will land MSAL Node token acquisition and flip the
-  enterpriseAuthEnabled feature flag.
-
-  Key reference documents (for AI context during OpenSpec artifact creation):
-  - CLAUDE.md — architecture, commands, patterns, Environment Notes,
-    Known Security Gaps, Documentation Maintenance checklist
-  - .scratchpad/auth-strategy-envoy-gateway.md v2.1 — chosen auth strategy,
-    empirically validated via smoke test against the Talos AI cluster
-  - .scratchpad/upstream-features-inventory.md v2 — F1-F10 SaaS dependency
-    catalog with restoration decisions locked in 2026-04-08
-  - .full-review/envoy-gateway-review/ — comprehensive review of the strategy
-
-# Per-artifact rules (optional). Uncomment and populate as needed.
-# rules:
-#   proposal:
-#     - Keep proposals under 500 words unless the change is load-bearing
-#     - Always reference the relevant strategy doc or inventory F-entry
-#   tasks:
-#     - Break tasks into verifiable steps, each completable in one session
+rules:
+  proposal:
+    - Reference the upstream-features-inventory (F1-F10) when proposing changes that touch upstream-dependent code
+    - Include which Phase 0 hard gate(s) the change advances, if any
+    - Identify affected tRPC routers and database tables
+  specs:
+    - Use Given/When/Then scenario format
+    - Reference existing patterns in the codebase before inventing new ones
+    - Include regression guard requirements for any behavioral change
+  design:
+    - Reference the chosen auth strategy (Envoy Gateway dual-auth v2.1) when touching auth code
+    - Call out any Electron-specific constraints (main/renderer process boundary, IPC)
+    - Identify upstream boundary implications (remoteTrpc, apiUrl call sites)
+  tasks:
+    - Each task must be independently verifiable
+    - Include quality gate verification as a task when code changes are involved
+    - Reference specific file paths where changes will land

@@ -70,7 +70,7 @@ bun outdated        # List outdated packages (use `bun update` for semver-safe u
 
 This is the **enterprise fork** of upstream [1Code](https://1code.dev), being progressively decoupled from the `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM + Microsoft Entra ID via Envoy Gateway).
 
-**Self-host-everything theme (locked 2026-04-08):** Every upstream-dependent feature is being reverse-engineered, re-created, and self-hosted. Dropping features or pointing at someone else's hosted service are both off the table. See `.scratchpad/upstream-features-inventory.md` for the per-feature restoration catalog (F1–F10) and `.scratchpad/auth-strategy-envoy-gateway.md` v2.1 for the chosen enterprise auth strategy (empirically validated against the Talos AI cluster).
+**Self-host-everything theme (locked 2026-04-08):** Every upstream-dependent feature is being reverse-engineered, re-created, and self-hosted. Dropping features or pointing at someone else's hosted service are both off the table. See `docs/enterprise/upstream-features.md` for the per-feature restoration catalog (F1–F10) and `docs/enterprise/auth-strategy.md` v2.1 for the chosen enterprise auth strategy (empirically validated against the Talos AI cluster).
 
 **What works today without the upstream backend:** local AI chat (Claude, Codex, Ollama), Claude Code integration, git worktrees, integrated terminal, file viewer, MCP server management, skills & slash commands, the built-in git client.
 

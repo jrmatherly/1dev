@@ -1,6 +1,6 @@
 ---
 name: upstream-boundary-check
-description: Use when reading or writing any file under src/renderer/ that calls remoteTrpc.* or fetch(${apiUrl}/...). Verifies the call site is documented in .scratchpad/upstream-features-inventory.md and warns if a new upstream-backend dependency is being introduced without a corresponding F-entry. This skill enforces the enterprise-fork posture documented in CLAUDE.md.
+description: Use when reading or writing any file under src/renderer/ that calls remoteTrpc.* or fetch(${apiUrl}/...). Verifies the call site is documented in docs/enterprise/upstream-features.md and warns if a new upstream-backend dependency is being introduced without a corresponding F-entry. This skill enforces the enterprise-fork posture documented in CLAUDE.md.
 user-invocable: false
 ---
 
@@ -29,7 +29,7 @@ If the file you're touching introduces a NEW boundary call (one not previously i
 
 ### Step 2 — Cross-reference against the inventory
 
-Read `.scratchpad/upstream-features-inventory.md`. The inventory contains 10 catalogued features (F1–F10) with code locations. Check whether the new call site fits inside an existing F-entry.
+Read `docs/enterprise/upstream-features.md`. The inventory contains 10 catalogued features (F1–F10) with code locations. Check whether the new call site fits inside an existing F-entry.
 
 ### Step 3 — Enforce the rule
 
@@ -46,7 +46,7 @@ Read `.scratchpad/upstream-features-inventory.md`. The inventory contains 10 cat
   File: <file>:<line>
   Call: <the remoteTrpc.* or fetch(${apiUrl}/...) line>
 
-  This call site is not documented in .scratchpad/upstream-features-inventory.md.
+  This call site is not documented in docs/enterprise/upstream-features.md.
 
   Per CLAUDE.md "Upstream Backend Boundary" section, every new remoteTrpc.* call
   becomes a future migration cost. Before introducing this dependency:
@@ -61,7 +61,7 @@ Read `.scratchpad/upstream-features-inventory.md`. The inventory contains 10 cat
   3. Then re-attempt the change
   ```
 
-## Inventory snapshot (refresh from .scratchpad/upstream-features-inventory.md)
+## Inventory snapshot (refresh from docs/enterprise/upstream-features.md)
 
 | ID | Feature | Priority | Primary code locations |
 |---|---|---|---|
@@ -83,5 +83,5 @@ Before this skill, the only way to enforce the upstream-boundary discipline was 
 ## Related artifacts
 
 - `CLAUDE.md` "Upstream Backend Boundary" section — the canonical reference
-- `.scratchpad/upstream-features-inventory.md` — the working catalog
-- `.scratchpad/auth-strategy-envoy-gateway.md` and `.scratchpad/enterprise-auth-integration-strategy.md` — the migration plans this skill supports
+- `docs/enterprise/upstream-features.md` — the working catalog
+- `docs/enterprise/auth-strategy.md` and `docs/enterprise/auth-fallback.md` — the migration plans this skill supports

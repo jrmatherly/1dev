@@ -19,7 +19,7 @@
  *      (the trust anchor — fingerprint mismatch must abort).
  *
  * See:
- *   .scratchpad/auth-strategy-envoy-gateway.md §6 Phase 0 hard gate #7
+ *   docs/enterprise/auth-strategy.md §6 Phase 0 hard gate #7
  *   https://code.claude.com/docs/en/setup#binary-integrity-and-code-signing
  */
 

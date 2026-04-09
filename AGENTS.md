@@ -25,7 +25,7 @@ grep -rn "remoteTrpc\." src/renderer/         # typed tRPC client to upstream
 grep -rn '\${apiUrl}' src/                    # raw fetch() to upstream
 ```
 
-Known raw-fetch upstream sites: `voice.ts`, `sandbox-import.ts`, `claude-code.ts` (OAuth flow — P0 hidden dep), `agents-help-popover.tsx`. Catalog in `.scratchpad/upstream-features-inventory.md`.
+Known raw-fetch upstream sites: `voice.ts`, `sandbox-import.ts`, `claude-code.ts` (OAuth flow — P0 hidden dep), `agents-help-popover.tsx`. Catalog in `docs/enterprise/upstream-features.md`.
 
 ### Phase 0 Migration Status (as of 2026-04-08)
 12 of 15 hard gates complete. Only remaining: **#8** (upstream sandbox OAuth extraction from `src/main/lib/trpc/routers/claude-code.ts:178-220`). See CLAUDE.md "Chosen enterprise auth strategy" block for the full status and [.claude/PROJECT_INDEX.md](.claude/PROJECT_INDEX.md) for the per-gate table.

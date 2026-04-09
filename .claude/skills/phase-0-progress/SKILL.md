@@ -5,7 +5,7 @@ description: Verify Phase 0 hard-gate status for the enterprise self-hosting mig
 
 # Phase 0 Progress Verifier
 
-This skill codifies the Phase 0 hard-gate checklist from the 1Code enterprise fork's self-hosting migration strategy (see `.scratchpad/auth-strategy-envoy-gateway.md` v2.1). It checks the claims in the CLAUDE.md "Phase 0 progress" block against actual filesystem evidence and reports any drift.
+This skill codifies the Phase 0 hard-gate checklist from the 1Code enterprise fork's self-hosting migration strategy (see `docs/enterprise/auth-strategy.md` v2.1). It checks the claims in the CLAUDE.md "Phase 0 progress" block against actual filesystem evidence and reports any drift.
 
 ## Why this exists
 
@@ -138,7 +138,7 @@ Status is ✅ if: Electron pin is 39.8.7 or newer in the 39.x line.
 #### Gate #15 — F1-F10 restoration decisions
 
 ```bash
-test -f .scratchpad/upstream-features-inventory.md && grep -cE "^F[0-9]+ " .scratchpad/upstream-features-inventory.md
+test -f docs/enterprise/upstream-features.md && grep -cE "^F[0-9]+ " docs/enterprise/upstream-features.md
 # Should find at least 10 F-entries
 ```
 
@@ -200,7 +200,7 @@ Edit CLAUDE.md line ~14 Phase 0 block to update the following bullets:
 
 ## When to recommend running this skill
 
-- Before any commit that touches: `src/main/lib/db/schema/`, `tests/regression/`, `scripts/download-*-binary.mjs`, `.github/workflows/`, `.scratchpad/upstream-features-inventory.md`, or the CLAUDE.md Phase 0 block itself
+- Before any commit that touches: `src/main/lib/db/schema/`, `tests/regression/`, `scripts/download-*-binary.mjs`, `.github/workflows/`, `docs/enterprise/upstream-features.md`, or the CLAUDE.md Phase 0 block itself
 - Before tagging a release
 - After completing what the user believes to be a gate, to verify and update CLAUDE.md in the same commit
 - When the user asks "where are we on Phase 0?" or "how many gates are left?"

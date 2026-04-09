@@ -2,10 +2,9 @@
  * Regression guard for the rebrand-residual-sweep change.
  *
  * After commit 9b6d525 rebranded 21st.dev → apollosai.dev, a follow-up audit
- * captured in .scratchpad/rebrand-residual-audit.md found 17 residual hits
- * across 14 files. The rebrand-residual-sweep openspec change (proposal at
- * openspec/changes/rebrand-residual-sweep/proposal.md) landed the final
- * sweep — this guard prevents regression.
+ * found 17 residual hits across 14 files. The rebrand-residual-sweep openspec
+ * change (now archived at openspec/changes/archive/2026-04-09-rebrand-residual-sweep/)
+ * landed the final sweep — this guard prevents regression.
  *
  * The enterprise fork uses a three-tier brand taxonomy (defined in the
  * brand-identity capability spec):
@@ -26,14 +25,13 @@
  * README.md for the case-insensitive Tier A patterns `21st`, `twentyfirst`,
  * and `1code.dev`. Any hit outside the Tier C allowlist fails the test.
  *
- * The test does NOT walk .scratchpad/, .full-review/, openspec/, .claude/,
+ * The test does NOT walk docs/, .full-review/, openspec/, .claude/,
  * .serena/, CLAUDE.md, AGENTS.md, CONTRIBUTING.md — those are documentation
  * and historical surfaces that legitimately reference the upstream brand.
  *
  * See:
- *   .scratchpad/rebrand-residual-audit.md
- *   openspec/changes/rebrand-residual-sweep/
- *   openspec/changes/rebrand-residual-sweep/specs/brand-identity/spec.md
+ *   openspec/specs/brand-identity/spec.md
+ *   openspec/changes/archive/2026-04-09-rebrand-residual-sweep/
  */
 
 import { describe, expect, test } from "bun:test";

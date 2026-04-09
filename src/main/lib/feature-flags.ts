@@ -2,7 +2,7 @@
  * Feature flag infrastructure for the 1Code enterprise fork.
  *
  * Phase 0 hard gate #12 from the enterprise auth strategy
- * (.scratchpad/auth-strategy-envoy-gateway.md v2.1 §5.7). The migration
+ * (docs/enterprise/auth-strategy.md v2.1 §5.7). The migration
  * from upstream SaaS auth to self-hosted Entra/Envoy auth cannot land as
  * a flag day — the new code paths must coexist with the old ones during a
  * Strangler Fig rollout. This module provides the runtime-toggleable

@@ -52,7 +52,7 @@ Phase 1 scope only. Phases 2 and 3 are explicitly out of scope and will be track
 - Migrating consumer files to use `trpc.chats.*` directly instead of `api.agents.*` (Phase 2)
 - Extracting `normalizeCodexToolPart` and the JSON message-parsing pipeline into typed helpers (Phase 2)
 - Deleting `mock-api.ts` entirely (Phase 3)
-- Removing `mock-api.ts`'s translation of `sandbox_id: null` and `stream_id: null` and `meta: null` for sub-chat objects — these are F1/upstream feature fossils tracked separately in `.scratchpad/upstream-features-inventory.md`
+- Removing `mock-api.ts`'s translation of `sandbox_id: null` and `stream_id: null` and `meta: null` for sub-chat objects — these are F1/upstream feature fossils tracked separately in `docs/enterprise/upstream-features.md`
 - Adjusting any of the upstream-only feature stubs (`getUserTeams`, `getUserBalance`, F1/F3 GitHub installations, etc.) — these are coupled to the F-entries in the upstream features inventory and have their own restoration roadmap
 - Touching `src/renderer/lib/remote-types.ts` — that file describes the *external* upstream API contract and its snake_case shape is a faithful representation of the dead upstream `21st.dev` API shape (now apollosai.dev for the local fork; the upstream brand is historical), not a translator artifact
 - **F1 boundary translation sites in `active-chat.tsx` (lines 5765-5793) and `agents-sidebar.tsx` (lines 2077-2078)** — these reads of `remoteAgentChat.created_at` / `chat.created_at` from the `remoteChats` array intentionally accept the dead upstream snake_case shape and convert it into the local camelCase shape at the F1 boundary. They belong to the F1 restoration roadmap and MUST NOT be touched in Phase 1. Requirement 5 in the spec delta formalizes this exclusion
@@ -103,7 +103,7 @@ None. There are no existing OpenSpec specs touching renderer data access (the pr
 **Downstream blockers unblocked:**
 
 - Phase 2 of `mock-api` retirement (consumer migration to `trpc.*` direct) — needs the timestamp shape settled before consumers can be safely ported
-- The remaining work in `.scratchpad/tscheck-remediation-plan.md` §R4 (currently partially complete via commit `df421a8`)
+- The remaining work in `docs/conventions/tscheck-baseline.md` §R4 (currently partially complete via commit `df421a8`)
 - Future schema tightening on `chats.updatedAt` / `subChats.createdAt` — currently dangerous because the silent fall-through to `any` would mask nullability errors
 
 **User-visible risk surface:**

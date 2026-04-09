@@ -37,7 +37,7 @@ Any same-UID process on the host can read the spawned subprocess environment via
 - macOS: `ps -E <pid>` or `ps eww <pid>`
 - Windows: `NtQueryInformationProcess` with `PROCESS_QUERY_INFORMATION`
 
-Attack surface includes every npm postinstall hook, VS Code extension host, MCP server subprocess, other dev-tool daemon running under the user's UID. **Read `.scratchpad/auth-strategy-envoy-gateway.md` §4.9** for the full threat model.
+Attack surface includes every npm postinstall hook, VS Code extension host, MCP server subprocess, other dev-tool daemon running under the user's UID. **Read `docs/enterprise/auth-strategy.md` §4.9** for the full threat model.
 
 ### Rule 2 — Use the token-file pattern from §5.4
 
@@ -73,7 +73,7 @@ Any code that sends production traffic to LiteLLM via Envoy Gateway depends on c
 
 Without these, any pod in the `ai` namespace can forge `x-user-oid` headers and impersonate any user (LiteLLM OSS cannot validate JWTs — the JWT-Auth feature is Enterprise-only). **Verify these cluster-side mitigations are in place** before shipping app-side code that routes through Envoy → LiteLLM.
 
-See `.scratchpad/auth-strategy-envoy-gateway.md` §3.1.
+See `docs/enterprise/auth-strategy.md` §3.1.
 
 ### Rule 5 — LiteLLM OSS feature matrix constraints
 
@@ -90,7 +90,7 @@ LiteLLM OSS edition does NOT support:
 
 Before writing any code for an auth-touching edit, the agent MUST answer:
 
-- [ ] Did I read `.scratchpad/auth-strategy-envoy-gateway.md` §3.1, §4.9, §5.4, and §6?
+- [ ] Did I read `docs/enterprise/auth-strategy.md` §3.1, §4.9, §5.4, and §6?
 - [ ] Does my edit avoid setting `ANTHROPIC_AUTH_TOKEN=<bearer>` directly in `finalEnv`?
 - [ ] Does my edit avoid setting `ANTHROPIC_CUSTOM_HEADERS=<...Bearer...>` directly in `finalEnv`?
 - [ ] If my edit DOES need to pass a bearer to Claude, am I using the `ANTHROPIC_AUTH_TOKEN_FILE` + tmpfile pattern?
@@ -105,8 +105,8 @@ If any answer is "no," stop and research the gap before writing production code.
 
 ## Relevant file references
 
-- `.scratchpad/auth-strategy-envoy-gateway.md` — the frozen v2.1 strategy doc (do NOT edit, read-only reference)
-- `.scratchpad/forwardaccesstoken-smoke-test.md` — empirical Envoy Gateway smoke test (Outcome A PASS)
+- `docs/enterprise/auth-strategy.md` — the frozen v2.1 strategy doc (do NOT edit, read-only reference)
+- `docs/enterprise/envoy-smoke-test.md` — empirical Envoy Gateway smoke test (Outcome A PASS)
 - `.full-review/envoy-gateway-review/05-final-report.md` — prior comprehensive review with resolution status
 - `src/main/lib/trpc/routers/claude.ts:826-832` — existing `customConfig` Zod schema
 - `src/main/lib/trpc/routers/claude.ts:1151-1158` — existing `buildClaudeEnv({ customEnv })` substrate

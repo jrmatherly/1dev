@@ -1,7 +1,7 @@
 /**
  * Type stub for the legacy upstream web backend's AppRouter. The upstream
  * backend is retiring in favor of the self-hosted apollosai.dev
- * infrastructure — see .scratchpad/upstream-features-inventory.md for the
+ * infrastructure — see docs/enterprise/upstream-features.md for the
  * retirement plan.
  *
  * The actual router lives in the hosted web product. This file reconstructs the
@@ -19,8 +19,6 @@
  * SuperJSON is used, so output types containing Date/Map/Set would round-trip as
  * those types rather than being wrapped in `Serialize<T>`. None of the current
  * outputs use non-JSON types, but this is future-proofing.
- *
- * See .scratchpad/typed-approuter-implementation-plan.md for full details.
  */
 import type {
   TRPCBuiltRouter,

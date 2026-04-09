@@ -7,7 +7,7 @@
  * renderer-visible type — this test fails and blocks the merge.
  *
  * See:
- *   .scratchpad/auth-strategy-envoy-gateway.md §6 Phase 0 hard gates #1-4
+ *   docs/enterprise/auth-strategy.md §6 Phase 0 hard gates #1-4
  *   .full-review/envoy-gateway-review/05-final-report.md §C5
  *
  * Note: this is a structural / source-level guard, not a runtime check. The

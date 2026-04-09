@@ -1,0 +1,109 @@
+{
+    "theme": {
+        "name": "picasso",
+        "logo": {
+            "light": "/public/assets/logo.svg",
+            "dark": "/public/assets/logo-dark.svg"
+        },
+        "favicon": "/public/assets/logo.svg",
+        "banner": {
+            "content": "**1Code** enterprise fork documentation",
+            "label": "v0",
+            "icon": "book-open"
+        }
+    },
+    "navigation": {
+        "tabs": [
+            {
+                "title": "Architecture",
+                "icon": "code",
+                "page": "architecture",
+                "href": "architecture/overview"
+            },
+            {
+                "title": "Enterprise",
+                "icon": "building",
+                "page": "enterprise",
+                "href": "enterprise/fork-posture"
+            },
+            {
+                "title": "Conventions",
+                "icon": "book-text",
+                "page": "conventions",
+                "href": "conventions/quality-gates"
+            },
+            {
+                "title": "Operations",
+                "icon": "wrench",
+                "page": "operations",
+                "href": "operations/release"
+            },
+            {
+                "title": "API Reference",
+                "page": "api-reference"
+            }
+        ],
+        "sidebar": [
+            {
+                "group": "Architecture",
+                "icon": "code",
+                "pages": [
+                    "architecture/overview",
+                    "architecture/tech-stack",
+                    "architecture/codebase-layout",
+                    "architecture/database",
+                    "architecture/trpc-routers",
+                    "architecture/upstream-boundary"
+                ]
+            },
+            {
+                "group": "Enterprise Migration",
+                "icon": "building",
+                "pages": [
+                    "enterprise/fork-posture",
+                    "enterprise/upstream-features",
+                    "enterprise/auth-strategy",
+                    "enterprise/auth-fallback",
+                    "enterprise/envoy-smoke-test",
+                    "enterprise/phase-0-gates",
+                    "enterprise/cluster-facts"
+                ]
+            },
+            {
+                "group": "Conventions",
+                "icon": "book-text",
+                "pages": [
+                    "conventions/quality-gates",
+                    "conventions/brand-taxonomy",
+                    "conventions/pinned-deps",
+                    "conventions/regression-guards",
+                    "conventions/feature-flags",
+                    "conventions/tscheck-baseline",
+                    "conventions/no-scratchpad-references"
+                ]
+            },
+            {
+                "group": "Operations",
+                "icon": "wrench",
+                "pages": [
+                    "operations/release",
+                    "operations/debugging-first-install",
+                    "operations/env-gotchas",
+                    "operations/cluster-access"
+                ]
+            }
+        ]
+    },
+    "api": {
+        "openapi": {
+            "source": "openapi.json",
+            "route": "api-reference"
+        }
+    },
+    "redirects": [
+        {
+            "source": "index",
+            "destination": "introduction"
+        }
+    ]
+}

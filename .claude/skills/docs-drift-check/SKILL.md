@@ -25,7 +25,7 @@ This repo's documentation is split across **5 source-of-truth files** plus **6 S
 2. `README.md` — user-facing pitch
 3. `CONTRIBUTING.md` — contributor setup
 4. `AGENTS.md` — AI quick-reference
-5. `openspec/project.md` — brief summary
+5. `openspec/config.yaml` — project schema, context, and rules
 
 ### Serena memories
 6. `.serena/memories/project_overview.md`
@@ -79,11 +79,11 @@ For each drift point, run the listed grep commands and verify the documented val
 
 ### 9. Quality-gate naming
 **Check:** Every doc that mentions quality gates must say **both `ts:check` AND `build`** are required (neither is "primary"). Grep all 5 source-of-truth docs for "quality gate" and verify wording.
-**Grep:** `grep -n "ts:check\|quality gate" CLAUDE.md README.md CONTRIBUTING.md AGENTS.md openspec/project.md`
+**Grep:** `grep -n "ts:check\|quality gate" CLAUDE.md README.md CONTRIBUTING.md AGENTS.md openspec/config.yaml`
 
 ### Bonus (10) — Hosted-vs-OSS feature claims
 **Source of truth:** `grep -rn "remoteTrpc\." src/renderer/` and `grep -rn "fetch(\`\${apiUrl}" src/main/ src/renderer/`
-**Check:** README.md "Highlights" and "Removed in this fork" lists must accurately reflect which features depend on the upstream backend. Cross-reference against `.scratchpad/upstream-features-inventory.md`.
+**Check:** README.md "Highlights" and "Removed in this fork" lists must accurately reflect which features depend on the upstream backend. Cross-reference against `docs/enterprise/upstream-features.md`.
 
 ### Bonus (11) — Deleted-file references in docs
 **Source of truth:** `git log --diff-filter=D --name-only --pretty=format: | sort -u` (every file ever deleted from the repo), cross-checked against the current git HEAD (`git ls-tree -r HEAD --name-only`) to confirm the file is still gone.

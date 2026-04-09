@@ -22,7 +22,7 @@
  * narrow.
  *
  * A backup of the deleted file is preserved at
- * `.scratchpad/backup/credential-manager.ts` for reference during any
+ * the project backup directory for reference during any
  * future credential-layer design work.
  *
  * Note: this is a structural / source-level guard, not a runtime check.
@@ -32,8 +32,8 @@
  * the orphaned skeleton).
  *
  * See:
- *   .scratchpad/tscheck-remediation-plan.md §2 R1 (Root Cause 1)
- *   .scratchpad/backup/credential-manager.ts (preserved copy)
+ *   docs/conventions/tscheck-baseline.md §2 R1 (Root Cause 1)
+ *   backup copy preserved locally (not tracked)
  */
 
 import { describe, expect, test } from "bun:test";

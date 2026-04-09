@@ -2,7 +2,7 @@
 
 A local-first desktop client for running AI coding agents (Claude Code, Codex, Ollama) against your own repositories.
 
-> **About this fork.** This is an enterprise fork of [1Code by 21st-dev](https://github.com/21st-dev/1code). It is being progressively decoupled from the upstream `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway). Features that depend on the upstream backend have been removed from the highlights below — see [`.scratchpad/upstream-features-inventory.md`](.scratchpad/upstream-features-inventory.md) for the catalog of removed/pending-restoration functionality and [`.scratchpad/auth-strategy-envoy-gateway.md`](.scratchpad/auth-strategy-envoy-gateway.md) for the auth migration plan.
+> **About this fork.** This is an enterprise fork of [1Code by 21st-dev](https://github.com/21st-dev/1code). It is being progressively decoupled from the upstream `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM, Microsoft Entra ID via Envoy Gateway). Features that depend on the upstream backend have been removed from the highlights below — see [`docs/enterprise/upstream-features.md`](docs/enterprise/upstream-features.md) for the catalog of removed/pending-restoration functionality and [`docs/enterprise/auth-strategy.md`](docs/enterprise/auth-strategy.md) for the auth migration plan.
 
 ## Highlights
 
@@ -43,7 +43,7 @@ The following features depend on the `1code.dev` hosted backend. Per the fork's 
 **Not affected** (investigated 2026-04-08, no restoration needed):
 - **Plugin marketplace** — local-only, reads `~/.claude/plugins/` directly, never talked to upstream (F7)
 
-See [`.scratchpad/upstream-features-inventory.md`](.scratchpad/upstream-features-inventory.md) for restoration priorities, per-feature decisions, and candidate self-host approaches.
+See [`docs/enterprise/upstream-features.md`](docs/enterprise/upstream-features.md) for restoration priorities, per-feature decisions, and candidate self-host approaches.
 
 ## Features
 

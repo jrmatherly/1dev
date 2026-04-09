@@ -1,0 +1,15 @@
+{
+  "name": "1code-docs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "1Code enterprise fork — canonical documentation site",
+  "dependencies": {
+    "@xyd-js/cli": "0.0.0-build-1202121-20260121231224"
+  },
+  "scripts": {
+    "build": "xyd build"
+  },
+  "engines": {
+    "node": "22"
+  }
+}

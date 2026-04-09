@@ -5,7 +5,7 @@ description: Scaffold a new OpenSpec change proposal from a Phase 0 hard gate in
 
 # OpenSpec Propose Gate
 
-Create an OpenSpec change proposal that implements exactly one Phase 0 hard gate from `.scratchpad/auth-strategy-envoy-gateway.md` §6. This skill enforces the "gate text is exact scope, not a minimum" rule documented in CLAUDE.md — the proposal must match the gate's scope as written in §6, not an expanded version.
+Create an OpenSpec change proposal that implements exactly one Phase 0 hard gate from `docs/enterprise/auth-strategy.md` §6. This skill enforces the "gate text is exact scope, not a minimum" rule documented in CLAUDE.md — the proposal must match the gate's scope as written in §6, not an expanded version.
 
 ## When to invoke
 
@@ -25,10 +25,10 @@ Create an OpenSpec change proposal that implements exactly one Phase 0 hard gate
 
 ### Step 1 — Read the gate text
 
-Read `.scratchpad/auth-strategy-envoy-gateway.md` §6 using `sed -n` via Bash (the file exceeds the Read tool's 10k-token cap — see CLAUDE.md "claude-mem Read-tool interaction" note):
+Read `docs/enterprise/auth-strategy.md` §6 using `sed -n` via Bash (the file exceeds the Read tool's 10k-token cap — see CLAUDE.md "claude-mem Read-tool interaction" note):
 
 ```bash
-grep -n "^### Phase 0 Hard Gate #" .scratchpad/auth-strategy-envoy-gateway.md
+grep -n "^### Phase 0 Hard Gate #" docs/enterprise/auth-strategy.md
 ```
 
 Then read the specific gate's section. The gate text is the **literal scope** of the proposal — do not expand it with design decisions, architecture sketches, or three-segment models. Those belong in separate proposals if they become needed.
@@ -196,7 +196,7 @@ Violating this rule in the Gate #8 prior session triggered a 4-reviewer audit th
 
 ## References
 
-- `.scratchpad/auth-strategy-envoy-gateway.md` — the frozen strategy doc with Phase 0 §6 gate text
+- `docs/enterprise/auth-strategy.md` — the frozen strategy doc with Phase 0 §6 gate text
 - `openspec/changes/add-feature-flag-infrastructure/` — reference for a multi-requirement proposal with complete spec + tasks
 - `openspec/changes/retire-mock-api-translator/` — reference for a scoped deletion proposal
 - `openspec/config.yaml` — schema config (must be `spec-driven`)

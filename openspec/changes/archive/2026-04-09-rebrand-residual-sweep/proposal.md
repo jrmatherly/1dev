@@ -1,6 +1,6 @@
 ## Why
 
-Commit `9b6d525` ("chore: rebrand 21st.dev -> apollosai.dev + doc drift remediation", 2026-04-08) landed a manual first-pass rebrand across 31 files, but a follow-up audit captured in `.scratchpad/rebrand-residual-audit.md` found **17 concrete residual hits across 14 files** plus **2 attribution gaps** (missing `LICENSE` copyright header, no `NOTICE` file). The residual references will break functionality on Windows (`AppUserModelId` mismatch with `package.json.appId`), leak old branding into user-visible UI (`aria-label="21st logo"`, `login.html` title), point at dead upstream domains (4 `https://1code.dev/changelog` call sites), and leave the fork without legally-sound Apache 2.0 attribution. Because this is a greenfield project with zero deployments, the sweep can land as a single commit without migration shims, feature flags, or release-note warnings — the audit's original 4-phase remediation plan collapses to one unified commit.
+Commit `9b6d525` ("chore: rebrand 21st.dev -> apollosai.dev + doc drift remediation", 2026-04-08) landed a manual first-pass rebrand across 31 files, but a follow-up audit captured in `openspec/specs/brand-identity/spec.md` found **17 concrete residual hits across 14 files** plus **2 attribution gaps** (missing `LICENSE` copyright header, no `NOTICE` file). The residual references will break functionality on Windows (`AppUserModelId` mismatch with `package.json.appId`), leak old branding into user-visible UI (`aria-label="21st logo"`, `login.html` title), point at dead upstream domains (4 `https://1code.dev/changelog` call sites), and leave the fork without legally-sound Apache 2.0 attribution. Because this is a greenfield project with zero deployments, the sweep can land as a single commit without migration shims, feature flags, or release-note warnings — the audit's original 4-phase remediation plan collapses to one unified commit.
 
 ## What Changes
 
@@ -21,7 +21,7 @@ Commit `9b6d525` ("chore: rebrand 21st.dev -> apollosai.dev + doc drift remediat
   - `src/main/lib/cli.ts:6` — upstream PR link as historical attribution
   - `README.md:3` — "forked from" line (target link updated, sentiment retained)
   - `"1Code"` product name, `1code-desktop` package name, `resources/cli/1code` CLI launcher (all Tier B — product name, not upstream brand)
-  - `.scratchpad/upstream-features-inventory.md`, `auth-strategy-envoy-gateway.md`, `enterprise-auth-integration-strategy.md`, and `openspec/changes/retire-mock-api-translator/*` — intentional historical context
+  - `docs/enterprise/upstream-features.md`, `auth-strategy-envoy-gateway.md`, `enterprise-auth-integration-strategy.md`, and `openspec/changes/retire-mock-api-translator/*` — intentional historical context
 
 ## Capabilities
 

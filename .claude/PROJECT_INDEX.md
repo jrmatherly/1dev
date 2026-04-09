@@ -3,7 +3,7 @@
 > Auto-generated project knowledge base for AI-assisted development.
 > Last indexed: 2026-04-08 | Version: 0.0.72 | Files: 504 TS/TSX in `src/`
 
-**Fork posture:** Enterprise fork of upstream 1Code. Decoupling from `1code.dev` SaaS in favor of self-hosted infrastructure (LiteLLM + Microsoft Entra via Envoy Gateway). All upstream-dependent features (F1–F10) catalogued in `.scratchpad/upstream-features-inventory.md`.
+**Fork posture:** Enterprise fork of upstream 1Code. Decoupling from `1code.dev` SaaS in favor of self-hosted infrastructure (LiteLLM + Microsoft Entra via Envoy Gateway). All upstream-dependent features (F1–F10) catalogued in `docs/enterprise/upstream-features.md`.
 
 ---
 
@@ -19,8 +19,8 @@
 | tRPC router registry | `src/main/lib/trpc/routers/index.ts` |
 | Git tRPC router | `src/main/lib/git/index.ts` (mounted as `changes`) |
 | Feature flags | `src/main/lib/feature-flags.ts` |
-| Auth strategy (chosen) | `.scratchpad/auth-strategy-envoy-gateway.md` v2.1 |
-| Upstream dependency catalog | `.scratchpad/upstream-features-inventory.md` v2 |
+| Auth strategy (chosen) | `docs/enterprise/auth-strategy.md` v2.1 |
+| Upstream dependency catalog | `docs/enterprise/upstream-features.md` v2 |
 
 ---
 
@@ -252,7 +252,7 @@ Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `spec
 | `PROJECT_INDEX.md` | This file — repo navigation map |
 | `settings.json` / `settings.local.json` | Hooks, permissions, MCP config |
 | `commands/opsx/` | OpenSpec slash commands (apply, archive, explore, propose) |
-| `skills/openspec-{apply,archive,explore,propose}-change/` | OpenSpec workflow skills |
+| `skills/openspec-{apply-change,archive-change,explore,propose,propose-gate}/` | OpenSpec workflow skills (4 generated + 1 custom gate skill) |
 | `skills/docs-drift-check/` | Documentation drift detector |
 | `skills/upstream-boundary-check/` | Guards `remoteTrpc.*` and `${apiUrl}/...` call sites |
 | `skills/new-router/` | Scaffold new tRPC router |
@@ -265,7 +265,7 @@ Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `spec
 
 ## 8. Working Directories (gitignored)
 
-- `.scratchpad/` — Strategy/research docs (auth strategies, upstream inventory, smoke tests)
+- `.scratchpad/` — Ephemeral local-only working notes (gitignored). Canonical docs live in `docs/`
 - `.full-review/` — Output from `comprehensive-review:full-review` plugin
 - `.serena/memories/` — Serena project memories (read via `mcp__serena__read_memory`)
 - `.remember/` — Session continuity buffer

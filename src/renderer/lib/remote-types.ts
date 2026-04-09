@@ -1,7 +1,7 @@
 /**
  * Shared types for the legacy upstream tRPC client. The upstream backend is
  * retiring in favor of the self-hosted apollosai.dev infrastructure — see
- * .scratchpad/upstream-features-inventory.md for the retirement plan.
+ * docs/enterprise/upstream-features.md for the retirement plan.
  *
  * Extracted from `remote-api.ts` to break the circular dependency between
  * `remote-app-router.ts` (type stub) and `remote-api.ts` (consumer wrapper).

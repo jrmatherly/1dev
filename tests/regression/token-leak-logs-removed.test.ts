@@ -18,7 +18,7 @@
  * legitimate code for any other reason.
  *
  * See:
- *   .scratchpad/auth-strategy-envoy-gateway.md §6 Phase 0 hard gates #5-6
+ *   docs/enterprise/auth-strategy.md §6 Phase 0 hard gates #5-6
  *   .full-review/envoy-gateway-review/05-final-report.md §H6
  */
 

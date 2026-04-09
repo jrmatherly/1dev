@@ -1,7 +1,7 @@
 # Dependabot configuration for the 1Code enterprise fork.
 #
 # Phase 0 hard gate #10 from the enterprise auth strategy
-# (.scratchpad/auth-strategy-envoy-gateway.md v2.1 §6). Secret scanning is
+# (docs/enterprise/auth-strategy.md v2.1 §6). Secret scanning is
 # enabled separately in the GitHub repo settings UI — it is not file-driven.
 #
 # Two ecosystems are watched:

@@ -10,7 +10,7 @@
           },
           {
             "type": "command",
-            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in */src/main/lib/trpc/routers/claude.ts|*/src/main/lib/trpc/routers/claude-code.ts|*/src/main/lib/claude/env.ts|*/src/main/lib/feature-flags.ts|*/src/main/lib/claude-token.ts) echo '🔒 AUTH CODE EDIT — HARD RULE: Read .scratchpad/auth-strategy-envoy-gateway.md §4.9 (env-var bearer injection FORBIDDEN), §5.4 (token-file pattern mandated via applyEnterpriseAuth helper), §3.1 (cluster lock-down prerequisite). Do NOT set ANTHROPIC_AUTH_TOKEN or ANTHROPIC_CUSTOM_HEADERS as env vars; use ANTHROPIC_AUTH_TOKEN_FILE=/path/to/0600/tmpfile instead. Do NOT store credentials in feature_flag_overrides. See .claude/skills/verify-strategy-compliance/SKILL.md for the full checklist.' >&2;; esac"
+            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in */src/main/lib/trpc/routers/claude.ts|*/src/main/lib/trpc/routers/claude-code.ts|*/src/main/lib/claude/env.ts|*/src/main/lib/feature-flags.ts|*/src/main/lib/claude-token.ts) echo '🔒 AUTH CODE EDIT — HARD RULE: Read docs/enterprise/auth-strategy.md §4.9 (env-var bearer injection FORBIDDEN), §5.4 (token-file pattern mandated via applyEnterpriseAuth helper), §3.1 (cluster lock-down prerequisite). Do NOT set ANTHROPIC_AUTH_TOKEN or ANTHROPIC_CUSTOM_HEADERS as env vars; use ANTHROPIC_AUTH_TOKEN_FILE=/path/to/0600/tmpfile instead. Do NOT store credentials in feature_flag_overrides. See .claude/skills/verify-strategy-compliance/SKILL.md for the full checklist.' >&2;; esac"
           }
         ]
       }

@@ -49,7 +49,7 @@ If not provided as arguments, ask:
 1. **Read the closest-match template** from the table above. Do NOT blindly copy `brand-sweep-complete.test.ts` unless the new guard also needs file-level allowlisting.
 
 2. **Create the guard file** at `tests/regression/{guard-name}.test.ts`. Match the existing structure:
-   - Top-of-file docstring: what invariant this guard enforces, why it exists, what change or gate motivated it, and a link to the relevant OpenSpec change or `.scratchpad/` strategy doc
+   - Top-of-file docstring: what invariant this guard enforces, why it exists, what change or gate motivated it, and a link to the relevant OpenSpec change or `docs/` page
    - Imports: `describe`, `test`, `expect` from `bun:test`; file I/O helpers from `node:fs` + `node:path`
    - `REPO_ROOT` constant computed via `join(import.meta.dir, "..", "..")`
    - Walker generator (`walkFiles`, `walkTsFiles`, or similar) if scanning a directory

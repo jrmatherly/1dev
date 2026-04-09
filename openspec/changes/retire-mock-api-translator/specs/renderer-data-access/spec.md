@@ -69,7 +69,7 @@ The guard MUST NOT extend its scope beyond the timestamp fields. Other snake_cas
 - **WHEN** a developer adds a new upstream-feature stub to `mock-api.ts` that uses `inbox_count: 0` (a snake_case field unrelated to timestamps)
 - **THEN** the regression guard does NOT fire
 - **AND** the developer's change proceeds normally
-- **AND** the new fossil is tracked in `.scratchpad/upstream-features-inventory.md` under whichever F-entry it belongs to
+- **AND** the new fossil is tracked in `docs/enterprise/upstream-features.md` under whichever F-entry it belongs to
 
 ### Requirement: Phase 1 explicitly does not retire `mock-api.ts`
 
@@ -100,7 +100,7 @@ The file's responsibilities that are REMOVED by this change:
 
 ### Requirement: F1 / F2 boundary translation sites are preserved unchanged
 
-The system SHALL preserve the snake_case timestamp reads at specific boundary translation sites that consume data from the dead upstream `21st.dev` API contract (now `apollosai.dev` for the local fork; the upstream brand is historical). These boundary sites convert F1 (Background Agents / cloud sandboxes) and F2 (Automations & Inbox) external DTO shapes into the local camelCase shape used elsewhere. They MUST NOT be migrated as part of Phase 1 because they belong to the F1 / F2 restoration roadmap tracked separately at `.scratchpad/upstream-features-inventory.md`.
+The system SHALL preserve the snake_case timestamp reads at specific boundary translation sites that consume data from the dead upstream `21st.dev` API contract (now `apollosai.dev` for the local fork; the upstream brand is historical). These boundary sites convert F1 (Background Agents / cloud sandboxes) and F2 (Automations & Inbox) external DTO shapes into the local camelCase shape used elsewhere. They MUST NOT be migrated as part of Phase 1 because they belong to the F1 / F2 restoration roadmap tracked separately at `docs/enterprise/upstream-features.md`.
 
 The protected boundary sites at the time of writing this spec are (line numbers may shift slightly post-rebrand and are advisory, not authoritative):
 
