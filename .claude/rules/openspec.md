@@ -7,18 +7,37 @@ paths:
 
 This repo uses **OpenSpec 1.2.0** for spec-driven change proposals. The CLI is installed globally but **mise shims may not be on the Bash tool's PATH** in non-login shells — use `bunx @fission-ai/openspec@1.2.0` instead of bare `openspec` in automation.
 
-## Supported commands
+## CLI reference (v1.2.0)
+
+`openspec` is installed globally via mise. In non-login shells (Bash tool), use `bunx @fission-ai/openspec@1.2.0` if `openspec` is not on PATH.
 
 ```bash
-bunx @fission-ai/openspec@1.2.0 new change <id>
-bunx @fission-ai/openspec@1.2.0 instructions <artifact>
-bunx @fission-ai/openspec@1.2.0 validate --strict --no-interactive
-bunx @fission-ai/openspec@1.2.0 validate --all --strict --no-interactive
-bunx @fission-ai/openspec@1.2.0 list
-bunx @fission-ai/openspec@1.2.0 status --change <id>
-bunx @fission-ai/openspec@1.2.0 show <id>
-bunx @fission-ai/openspec@1.2.0 archive <id>
+# Discovery & inspection
+openspec list                          # List active changes (default)
+openspec list --specs                  # List baseline specs with requirement counts
+openspec view                          # Interactive dashboard (specs + changes summary)
+openspec show <change-or-spec>         # Show details for a change or spec
+openspec status --change <id>          # Artifact completion status (JSON with --json)
+
+# Change lifecycle
+openspec new change <id>               # Create a new change proposal
+openspec instructions <artifact>       # Get enriched instructions for an artifact
+openspec instructions apply --change <id>  # Get apply instructions with task list
+openspec validate --strict --no-interactive  # Validate current change
+openspec validate --all --strict --no-interactive  # Validate all changes
+openspec archive <id>                  # Archive completed change + sync baseline specs
+
+# Spec management
+openspec spec                          # Manage specifications
+openspec schemas                       # List available workflow schemas
+
+# Configuration
+openspec config                        # View/modify global config
+openspec init [path]                   # Initialize OpenSpec in a project
+openspec update [path]                 # Update instruction files
 ```
+
+**JSON output:** Most commands accept `--json` for machine-readable output (used by `/opsx:apply` and `/opsx:archive` skills).
 
 ## MODIFIED Requirements rule (baseline constraint)
 
@@ -67,13 +86,16 @@ ls -d openspec/specs/*/ 2>/dev/null | xargs -n1 basename
 
 ## Workflow skills
 
-Use these skills for the OpenSpec workflow:
+Use these skills for the OpenSpec workflow (full lifecycle):
 
-- `/opsx:explore` — thinking partner for exploring ideas
-- `/opsx:propose` — scaffold a new change with all artifacts
-- `/opsx:apply` — implement tasks from a change
-- `/opsx:verify` — validate implementation before archiving
-- `/opsx:archive` — archive a completed change
+- `/opsx:explore` — thinking partner for exploring ideas and investigating problems
+- `/opsx:propose` — scaffold a new change with all artifacts in one step
+- `/openspec-propose-gate` — scaffold from a Phase 0 hard gate specifically
+- `/opsx:apply <name>` — implement tasks from a change (reads context files, loops through tasks)
+- `/opsx:verify <name>` — validate implementation matches change artifacts before archiving
+- `/opsx:archive <name>` — archive a completed change, sync delta specs to baselines
+
+For inspection, use CLI directly: `openspec list --specs`, `openspec view`, `openspec show <name>`, `openspec status --change <name> --json`.
 
 ## Related canonical docs
 
