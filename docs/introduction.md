@@ -13,19 +13,20 @@ This repository is the **enterprise fork**, being decoupled from the upstream `1
 
 | Section | What you'll find |
 |---------|-----------------|
-| [Architecture](architecture/overview.md) | Codebase structure, tech stack, database schema, tRPC routers |
-| [Enterprise](enterprise/fork-posture.md) | Migration narrative, auth strategy, Phase 0 gates, cluster facts |
+| [Architecture](architecture/overview.md) | Codebase structure, tech stack, database schema, tRPC routers, upstream boundary |
+| [Enterprise](enterprise/fork-posture.md) | Migration narrative, auth strategy, [Phase 0 gates](enterprise/phase-0-gates.md), cluster facts |
 | [Conventions](conventions/quality-gates.md) | Quality gates, regression guards, brand taxonomy, pinned deps |
-| [Operations](operations/release.md) | Release pipeline, debugging, cluster access |
-| [API Reference](api-reference) | OpenAPI scaffold (future use) |
+| [Operations](operations/release.md) | Release pipeline, debugging, cluster access, env gotchas |
+| [API Reference](api-reference) | OpenAPI scaffold — placeholder content from the xyd starter template, awaiting real API surface |
 
 ## For Contributors
 
 Before making changes, read:
 
-1. **[Quality Gates](conventions/quality-gates.md)** — the four gates every PR must pass
+1. **[Quality Gates](conventions/quality-gates.md)** — the five gates every PR must pass
 2. **[No .scratchpad/ References](conventions/no-scratchpad-references.md)** — tracked files must only reference tracked files
 3. **[Regression Guards](conventions/regression-guards.md)** — the guards that protect invariants
+4. **[`.claude/rules/`](https://github.com/jrmatherly/1dev/tree/main/.claude/rules)** — Claude Code behavioral rules (auto-loaded when working on matching files) that complement the canonical docs here
 
 ## Building These Docs Locally
 
