@@ -9,20 +9,20 @@ scripts/       — Build, release, and utility scripts
 build/         — Electron-builder config
 docs/          — Canonical documentation site (xyd-js, 25 pages, 5 tabs)
 openspec/      — OpenSpec change proposal system
-  specs/       — Durable capability specs (4: brand-identity, feature-flags, claude-code-auth-import, documentation-site)
+  specs/       — Durable capability specs (5: brand-identity, feature-flags, claude-code-auth-import, documentation-site, credential-storage)
   changes/     — Active change proposals
   changes/archive/ — Archived completed changes
 .scratchpad/   — Ephemeral local-only working notes (gitignored). Canonical docs live in docs/
 .full-review/  — Comprehensive review artifacts (gitignored)
 .serena/       — Serena project memories
-tests/regression/ — bun:test regression guards (8 files, 25 tests as of 2026-04-09)
+tests/regression/ — bun:test regression guards (10 files, 36 tests as of 2026-04-09)
 ```
 
 ## Main Process (`src/main/`)
 ```
 index.ts              — App entry, window lifecycle
 auth-manager.ts       — OAuth flow, token refresh
-auth-store.ts         — Encrypted credential storage (safeStorage)
+auth-store.ts         — Encrypted credential storage (delegates to credential-store.ts)
 constants.ts          — App constants
 windows/main.ts       — Window creation, IPC handlers
 lib/
@@ -35,7 +35,8 @@ lib/
     index.ts          — DB init, auto-migrate on startup
     schema/index.ts   — Drizzle table definitions (source of truth, 7 tables)
     utils.ts          — ID generation (nanoid)
-  feature-flags.ts    — Type-safe feature flag API backed by feature_flag_overrides table
+  credential-store.ts — Unified 3-tier credential encryption (Tier 1: OS keystore, Tier 2: basic_text warn, Tier 3: refuse)
+  feature-flags.ts    — Type-safe feature flag API backed by feature_flag_overrides table (5 flags incl. credentialStorageRequireEncryption)
   trpc/
     index.ts          — tRPC router/procedure factory
     routers/index.ts  — createAppRouter mounts 21 routers (20 from routers/ + 1 git router from ../../git)
@@ -99,22 +100,23 @@ public/assets/        — 1Code logo SVGs (light + dark)
 - `docs/enterprise/upstream-features.md` — F1-F10 upstream-backend catalog (all 10 decisions locked)
 - Cluster deployment target: `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos + Flux v2 + Envoy Gateway v1.7.1)
 
-## Phase 0 Hard Gate Status (12 of 15 complete)
-- ✅ #1-7, #9-15 — done (regression guards exist for 1-7, 12)
-- ⏳ **#8 — upstream sandbox OAuth extraction from `claude-code.ts`** (only remaining gate)
+## Phase 0 Hard Gate Status (15 of 15 complete ✅)
+All gates closed. Phase 0.5 (harden-credential-storage) also complete — unified credential encryption in credential-store.ts.
 
 ## Regression Tests (`tests/regression/`, run via `bun test`)
-Eight guards as of 2026-04-09:
+Ten guards as of 2026-04-09:
 - `auth-get-token-deleted.test.ts` — Gates #1-4
 - `token-leak-logs-removed.test.ts` — Gates #5-6
 - `credential-manager-deleted.test.ts` — tscheck remediation R1
 - `gpg-verification-present.test.ts` — Gate #7
 - `feature-flags-shape.test.ts` — Gate #12
 - `brand-sweep-complete.test.ts` — rebrand-residual-sweep
-- `no-scratchpad-references.test.ts` — documentation-site capability (added 2026-04-09)
-- `no-upstream-sandbox-oauth.test.ts` — Gate #8 (added by remove-upstream-sandbox-oauth change)
+- `no-scratchpad-references.test.ts` — documentation-site capability
+- `no-upstream-sandbox-oauth.test.ts` — Gate #8
+- `mock-api-no-snake-timestamps.test.ts` — mock-api translator retirement
+- `credential-storage-tier.test.ts` — credential-store centralization (9 assertions)
 
 ## .claude/ Automations Inventory
 - **Agents**: `db-schema-auditor`, `security-reviewer`, `trpc-router-auditor`, `ui-reviewer`, `upstream-dependency-auditor`
 - **Skills**: `docs-drift-check`, `new-router`, `new-regression-guard`, `openspec-*` (5), `phase-0-progress`, `release`, `upstream-boundary-check`, `verify-pin`, `verify-strategy-compliance`
-- **Hooks**: Pre/Post-tool-use on Edit|Write; auth-code edit warning; ts:check baseline drift tracker; Vite/builder smoke check; regression guards auto-run
+- **Hooks**: Pre/Post-tool-use on Edit|Write; auth-code edit warning; ts:check baseline drift tracker; Vite/builder smoke check; regression guards auto-run; safeStorage guard (blocks direct calls outside credential-store.ts); credential/auth regression trigger

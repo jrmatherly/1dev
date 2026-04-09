@@ -11,7 +11,7 @@
 - Zod for runtime validation on tRPC procedure inputs
 - Type inference preferred over explicit annotations
 - `tsgo` used instead of `tsc` — faster but has known gaps with mapped-type recursion
-- Current baseline: ~88 pre-existing errors (stored in `.claude/.tscheck-baseline`)
+- Current baseline: ~87 pre-existing errors (stored in `.claude/.tscheck-baseline`)
 
 ## State Management
 - **Jotai**: UI state (selected chat, sidebar, preview)
@@ -28,6 +28,7 @@
 - Canonical docs live in `docs/` — always link to `docs/` pages
 - Enforced by `tests/regression/no-scratchpad-references.test.ts`
 - Do not introduce new `remoteTrpc.*` call sites without documenting in `docs/enterprise/upstream-features.md`
+- All credential encryption goes through `src/main/lib/credential-store.ts` — no direct `safeStorage` calls elsewhere (enforced by hook + regression guard)
 
 ## Brand Taxonomy (per `openspec/specs/brand-identity/spec.md`)
 - **Tier A (upstream brand — MUST REMOVE):** `21st`, `twentyfirst`, `1code.dev`, etc.

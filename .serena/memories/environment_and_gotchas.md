@@ -20,9 +20,9 @@
 - Dev builds require both: `bun run claude:download && bun run codex:download`
 
 ## Quality Gates — ALL REQUIRED (none is a superset)
-- `bun run ts:check` — tsgo (baseline: 88 errors in `.claude/.tscheck-baseline`)
+- `bun run ts:check` — tsgo (baseline: 87 errors in `.claude/.tscheck-baseline`)
 - `bun run build` — electron-vite build
-- `bun test` — 8 regression guards, 25 tests, ~2s total
+- `bun test` — 10 regression guards, 36 tests, ~2.5s total
 - `bun audit` — ~57 pre-existing transitive dev-dep advisories
 - CI also runs `docs-build` (xyd build against `docs/`) as a 6th parallel job
 - All together under 2 minutes on M-series Mac
@@ -41,6 +41,13 @@
 - Canonical docs live in `docs/` — always reference `docs/` pages instead
 - See `docs/conventions/no-scratchpad-references.md` for the rule and allowlist
 - Promoted `.scratchpad/` originals have DEPRECATED banners pointing at `docs/` pages
+
+## Credential Storage
+- **All encryption goes through `src/main/lib/credential-store.ts`** — no other file may call `safeStorage.encryptString/decryptString/isEncryptionAvailable`
+- 3-tier policy: Tier 1 (OS keystore), Tier 2 (basic_text — warn), Tier 3 (refuse)
+- `getSelectedStorageBackend()` is **Linux-only** — macOS/Windows always Tier 1 when available
+- Enterprise override: `credentialStorageRequireEncryption: true` escalates Tier 2 to refusal
+- Enforced by PreToolUse hook + `tests/regression/credential-storage-tier.test.ts`
 
 ## Upstream Backend Boundary
 - `remoteTrpc.*` (`src/renderer/lib/remote-trpc.ts`) is the typed tRPC client for the legacy upstream

@@ -24,7 +24,7 @@ Users create chat sessions linked to local project folders, interact with multip
 | AI | @anthropic-ai/claude-agent-sdk (0.2.45), Codex CLI (pinned 0.118.0), Ollama |
 | Claude binary | pinned 2.1.96 (see `claude:download` script) |
 | Package Manager | bun |
-| Testing | bun:test (built in, no config) under `tests/regression/` — 8 guards, 25 tests as of 2026-04-09 |
+| Testing | bun:test (built in, no config) under `tests/regression/` — 10 guards, 36 tests as of 2026-04-09 |
 | Documentation | xyd-js (`@xyd-js/cli` pinned `0.0.0-build-1202121-20260121231224`) under `docs/` |
 | Analytics | PostHog, Sentry (disabled by default in OSS builds) |
 
@@ -32,12 +32,12 @@ Users create chat sessions linked to local project folders, interact with multip
 v0.0.72+
 
 ## Active Workstreams (as of 2026-04-09)
-- **Phase 0 hard gates: 12 of 15 complete**. Only #8 (upstream sandbox OAuth extraction from `claude-code.ts:178-220`) remains.
+- **Phase 0 hard gates: 15 of 15 complete ✅**. Phase 0.5 (harden-credential-storage) also complete — unified credential encryption in `credential-store.ts`.
 - **Chosen enterprise auth strategy:** `docs/enterprise/auth-strategy.md` **v2.1** (Envoy Gateway dual-auth, **empirically validated** via live smoke test against the Talos cluster on 2026-04-08). Reproducible runbook in `docs/enterprise/envoy-smoke-test.md`.
 - **Fallback strategy:** `docs/enterprise/auth-fallback.md` v5 (MSAL-in-Electron) — retained but not chosen.
 - **Documentation site:** `docs/` bootstrapped 2026-04-09 as a tracked xyd-js site with 25 pages (13 authored + 12 stubs) across 5 tabs. CI runs `docs-build` as a 6th parallel job. The `documentation-site` capability spec codifies the rules including the no-scratchpad-references contract.
-- **Active OpenSpec proposals:** `retire-mock-api-translator` (2/64 tasks), `remove-upstream-sandbox-oauth` (gate #8 closer).
-- **Archived OpenSpec changes:** `rebrand-residual-sweep` (2026-04-09), `bootstrap-documentation-site` (2026-04-09).
+- **Active OpenSpec proposals:** `retire-mock-api-translator` (in progress).
+- **Archived OpenSpec changes:** `rebrand-residual-sweep`, `bootstrap-documentation-site`, `remove-upstream-sandbox-oauth`, `harden-credential-storage` (all 2026-04-09).
 - Target deployment: Talos Kubernetes cluster at `/Users/jason/dev/ai-k8s/talos-ai-cluster/` with LiteLLM + Envoy Gateway.
 
 ## Source-of-Truth Docs
@@ -47,4 +47,4 @@ v0.0.72+
 - `README.md` — user-facing pitch (positions repo as enterprise fork)
 - `CONTRIBUTING.md` — contributor setup, four quality gates, fork posture
 - `AGENTS.md` — AI quick-reference
-- `openspec/specs/` — 4 capability specs: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`
+- `openspec/specs/` — 5 capability specs: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`

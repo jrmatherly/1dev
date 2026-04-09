@@ -6,9 +6,9 @@
 - `bun run preview` — Preview built app
 
 ## Quality Gates (ALL REQUIRED)
-- `bun run ts:check` — TypeScript check via tsgo (baseline: 88 errors)
+- `bun run ts:check` — TypeScript check via tsgo (baseline: 87 errors)
 - `bun run build` — Full electron-vite build
-- `bun test` — 8 regression guards, 25 tests (~2s)
+- `bun test` — 10 regression guards, 36 tests (~2.5s)
 - `bun audit` — Dependency vulnerability scan
 - `cd docs && bun run build` — Docs site build (also a CI gate)
 

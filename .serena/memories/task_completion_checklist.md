@@ -1,9 +1,9 @@
 # Task Completion Checklist
 
 ## Required — All Quality Gates
-1. `bun run ts:check` — baseline 88 errors (`.claude/.tscheck-baseline`), only fail if count increases
+1. `bun run ts:check` — baseline 87 errors (`.claude/.tscheck-baseline`), only fail if count increases
 2. `bun run build` — electron-vite build
-3. `bun test` — 8 guards, 25 tests under `tests/regression/`
+3. `bun test` — 10 guards, 36 tests under `tests/regression/`
 4. `bun audit` — focus on NEW advisories only
 5. CI also runs `cd docs && bun run build` — recommended locally too
 
@@ -43,8 +43,12 @@
 1. `/opsx:propose <description>` — create change with all artifacts
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:archive <name>` — archive and promote capability specs
-- 4 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`
+- 5 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`
 
-## Phase 0 Status (12 of 15 complete)
-- ✅ #1-7, #9-15 — done
-- ⏳ **#8 — upstream sandbox OAuth extraction** (only remaining gate, tracked by `remove-upstream-sandbox-oauth` change)
+## Phase 0 Status (15 of 15 complete ✅)
+All gates closed. Phase 0.5 (harden-credential-storage) also complete.
+
+## If Editing Credential Code
+- All encryption MUST go through `src/main/lib/credential-store.ts`
+- Do NOT add `safeStorage.encryptString/decryptString` calls in any other file
+- PreToolUse hook blocks violations; regression guard catches in CI
