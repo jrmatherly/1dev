@@ -30,9 +30,12 @@ describe("enterprise-auth-module", () => {
     expect(content).toContain("export class EnterpriseAuth");
   });
 
-  test("enterprise-auth.ts configures MSAL with CP1 client capabilities", () => {
+  test("enterprise-auth.ts does NOT enable CP1 (CAE not useful for non-Microsoft resources)", () => {
     const content = readFileSync(ENTERPRISE_AUTH, "utf-8");
-    expect(content).toContain('clientCapabilities: ["CP1"]');
+    // CP1 was removed after agent team review — LiteLLM is not CAE-enabled,
+    // so CP1 would cause 28-hour tokens without revocation capability.
+    expect(content).not.toContain('clientCapabilities: ["CP1"]');
+    expect(content).toContain("CP1"); // Comment explaining the decision must remain
   });
 
   test("enterprise-store.ts exists and exports createEnterpriseCachePlugin", () => {
@@ -65,12 +68,8 @@ describe("enterprise-auth-module", () => {
     expect(content).not.toMatch(/preferred_username\s*[?:]?\s*string/);
   });
 
-  test("auth-manager.ts does NOT import enterprise-auth (isolation boundary)", () => {
-    const content = readFileSync(AUTH_MANAGER, "utf-8");
-    expect(content).not.toContain("enterprise-auth");
-    expect(content).not.toContain("enterprise-store");
-    expect(content).not.toContain("EnterpriseAuth");
-  });
+  // Isolation assertion removed — wiring is now permitted per change #2 (wire-enterprise-auth).
+  // The enterprise-auth-wiring.test.ts guard validates the wiring is correct.
 
   test("package.json includes MSAL and jose dependencies", () => {
     const pkg = JSON.parse(readFileSync(PACKAGE_JSON, "utf-8"));

@@ -101,7 +101,11 @@ export class EnterpriseAuth {
       auth: {
         clientId: config.clientId,
         authority,
-        clientCapabilities: ["CP1"], // Continuous Access Evaluation
+        // CP1 (Continuous Access Evaluation) intentionally omitted.
+        // LiteLLM is not a CAE-enabled resource — enabling CP1 would cause
+        // Entra to issue 28-hour tokens that cannot be revoked by the resource,
+        // which is worse than the default 1-hour lifetime. See agent team
+        // review finding C3 (2026-04-09).
       },
       cache: {
         cachePlugin,

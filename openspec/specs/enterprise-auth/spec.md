@@ -32,15 +32,15 @@ The module SHALL export:
   - `isAuthenticated(): boolean` — returns whether a non-expired cached account exists
 
 The MSAL configuration SHALL include:
-- `clientCapabilities: ["CP1"]` (Continuous Access Evaluation support)
 - Authority URL: `https://login.microsoftonline.com/{tenantId}/v2.0`
 - Loopback redirect URI: `http://localhost` (MSAL auto-selects an available port)
+- `clientCapabilities` SHALL NOT include `"CP1"` — LiteLLM is not a CAE-enabled resource; CP1 would cause Entra to issue 28-hour tokens without revocation capability, degrading security posture versus the default 1-hour lifetime
 
 #### Scenario: Creating an enterprise auth instance with valid config
 
 - **WHEN** `createEnterpriseAuth({ clientId: "abc", tenantId: "xyz" })` is called
 - **THEN** a configured `EnterpriseAuth` instance is returned
-- **AND** the underlying MSAL `PublicClientApplication` has `clientCapabilities: ["CP1"]`
+- **AND** the underlying MSAL `PublicClientApplication` does NOT have `clientCapabilities: ["CP1"]`
 - **AND** the authority is `https://login.microsoftonline.com/xyz/v2.0`
 
 #### Scenario: acquireTokenSilent returns cached token when valid
