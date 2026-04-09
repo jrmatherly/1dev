@@ -1,7 +1,7 @@
 # feature-flags Specification
 
 ## Purpose
-TBD - created by archiving change add-feature-flag-infrastructure. Update Purpose after archive.
+Type-safe runtime feature flag infrastructure for gating enterprise auth, voice, changelog, and automations cutover. Backed by Drizzle feature_flag_overrides table.
 ## Requirements
 ### Requirement: Typed default values source of truth
 

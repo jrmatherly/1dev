@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Baseline capability spec (promoted from archived change).
+Electron runtime version must be actively maintained with security patches from the Electron team.
 
 ## Requirements
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Baseline capability spec (promoted from archived change).
+Strangler Fig adapter wiring enterprise MSAL auth into auth-manager.ts, token injection via applyEnterpriseAuth(), and enterprise-auth tRPC router.
 
 ## Requirements
 

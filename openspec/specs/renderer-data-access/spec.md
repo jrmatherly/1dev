@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Baseline capability spec (promoted from archived change).
+CamelCase timestamp fields end-to-end for chat and sub-chat data across all TypeScript layers.
 
 ## Requirements
 

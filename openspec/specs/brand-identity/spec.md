@@ -1,7 +1,7 @@
 # brand-identity Specification
 
 ## Purpose
-TBD - created by archiving change rebrand-residual-sweep. Update Purpose after archive.
+Defines the brand taxonomy (Tier A/B/C) for the 1Code enterprise fork rebrand from 21st.dev to apollosai.dev. Enforced by the brand-sweep-complete regression guard.
 ## Requirements
 ### Requirement: Three-tier brand taxonomy
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Baseline capability spec (promoted from archived change).
+MSAL Node enterprise authentication module for Entra ID token acquisition, with tier-aware cache persistence.
 
 ## Requirements
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Baseline capability spec (promoted from archived change).
+Ensures upstream sandbox OAuth procedures are removed from the Claude Code tRPC router and stay removed.
 
 ## Requirements
 

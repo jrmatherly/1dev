@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Baseline capability spec (promoted from archived change).
+Unified 3-tier credential encryption via credential-store.ts. No direct safeStorage calls outside this module.
 
 ## Requirements
 
