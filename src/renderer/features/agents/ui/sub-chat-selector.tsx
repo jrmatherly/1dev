@@ -93,7 +93,7 @@ const SearchHistoryPopover = memo(forwardRef<SearchHistoryPopoverRef, SearchHist
   }), [])
 
   const renderItem = useCallback((subChat: SubChatMeta) => {
-    const timeAgo = formatTimeAgo(subChat.updated_at || subChat.created_at)
+    const timeAgo = formatTimeAgo(subChat.updatedAt || subChat.createdAt || undefined)
     const isLoading = loadingSubChats.has(subChat.id)
     const hasUnseen = subChatUnseenChanges.has(subChat.id)
     const mode = subChat.mode || "agent"
@@ -303,8 +303,8 @@ export function SubChatSelector({
 
     // Sort pinned by recency (most recent first)
     pinnedChats.sort((a, b) => {
-      const aT = new Date(a.updated_at || a.created_at || "0").getTime()
-      const bT = new Date(b.updated_at || b.created_at || "0").getTime()
+      const aT = new Date(a.updatedAt || a.createdAt || "0").getTime()
+      const bT = new Date(b.updatedAt || b.createdAt || "0").getTime()
       return bT - aT
     })
 
@@ -565,8 +565,8 @@ export function SubChatSelector({
   const sortedSubChats = useMemo(
     () =>
       [...allSubChats].sort((a, b) => {
-        const aT = new Date(a.updated_at || a.created_at || "0").getTime()
-        const bT = new Date(b.updated_at || b.created_at || "0").getTime()
+        const aT = new Date(a.updatedAt || a.createdAt || "0").getTime()
+        const bT = new Date(b.updatedAt || b.createdAt || "0").getTime()
         return bT - aT
       }),
     [allSubChats],

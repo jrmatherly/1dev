@@ -39,7 +39,7 @@ function SubChatCard({
   onMouseEnter?: () => void;
 }) {
   const mode = subChat.mode || "agent";
-  const timeAgo = formatTimeAgo(subChat.updated_at || subChat.created_at);
+  const timeAgo = formatTimeAgo(subChat.updatedAt || subChat.createdAt || undefined);
 
   // Calculate totals from file changes
   const stats = useMemo(() => {

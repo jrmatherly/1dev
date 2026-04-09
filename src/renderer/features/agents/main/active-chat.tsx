@@ -364,14 +364,14 @@ function groupExploringTools(parts: any[], nestedToolIds: Set<string>): any[] {
 // Get the ID of the first sub-chat by creation date
 function getFirstSubChatId(
   subChats:
-    | Array<{ id: string; created_at?: Date | string | null }>
+    | Array<{ id: string; createdAt?: Date | string | null }>
     | undefined,
 ): string | null {
   if (!subChats?.length) return null;
   const sorted = [...subChats].sort(
     (a, b) =>
-      (a.created_at ? new Date(a.created_at).getTime() : 0) -
-      (b.created_at ? new Date(b.created_at).getTime() : 0),
+      (a.createdAt ? new Date(a.createdAt).getTime() : 0) -
+      (b.createdAt ? new Date(b.createdAt).getTime() : 0),
   );
   return sorted[0]?.id ?? null;
 }
@@ -3765,7 +3765,7 @@ const ChatViewInner = memo(function ChatViewInner({
         store.addToAllSubChats({
           id: newSubChat.id,
           name: newSubChat.name || "Fork",
-          created_at: newSubChat.created_at || new Date().toISOString(),
+          createdAt: newSubChat.createdAt?.toISOString() ?? new Date().toISOString(),
           mode: newMode,
         });
 
@@ -4311,18 +4311,18 @@ const ChatViewInner = memo(function ChatViewInner({
     clearPastedTexts();
     clearFileContents();
 
-    // Optimistic update: immediately update chat's updated_at and resort array for instant sidebar resorting
+    // Optimistic update: immediately update chat's updatedAt and resort array for instant sidebar resorting
     if (teamId) {
       const now = new Date();
       utils.agents.getAgentChats.setData({ teamId }, (old: any) => {
         if (!old) return old;
-        // Update the timestamp and sort by updated_at descending
+        // Update the timestamp and sort by updatedAt descending
         const updated = old.map((c: any) =>
-          c.id === parentChatId ? { ...c, updated_at: now } : c,
+          c.id === parentChatId ? { ...c, updatedAt: now } : c,
         );
         return updated.sort(
           (a: any, b: any) =>
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
         );
       });
     }
@@ -4911,7 +4911,7 @@ const ChatViewInner = memo(function ChatViewInner({
         store.addToAllSubChats({
           id: newId,
           name: "New Chat",
-          created_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
           mode: subChatMode,
         });
         appStore.set(subChatModeAtomFamily(newId), subChatMode);
@@ -5838,8 +5838,8 @@ export function ChatView({
     id: string;
     name?: string | null;
     mode?: "plan" | "agent" | null;
-    created_at?: Date | string | null;
-    updated_at?: Date | string | null;
+    createdAt?: Date | string | null;
+    updatedAt?: Date | string | null;
     messages?: any;
     stream_id?: string | null;
   }>;
@@ -6174,7 +6174,7 @@ export function ChatView({
           name: subChat.name || "New Chat",
           filePaths: files.map((f) => f.filePath),
           fileCount: files.length,
-          updatedAt: subChat.updated_at || subChat.created_at || "",
+          updatedAt: subChat.updatedAt || subChat.createdAt || "",
         });
       }
     }
@@ -6764,7 +6764,7 @@ Make sure to preserve all functionality from both branches when resolving confli
     const freshState = useAgentSubChatStore.getState();
 
     // Get sub-chats from DB (like Canvas - no isPersistedInDb flag)
-    // Build a map of existing local sub-chats to preserve their created_at if DB doesn't have it
+    // Build a map of existing local sub-chats to preserve their createdAt if DB doesn't have it
     const existingSubChatsMap = new Map(
       freshState.allSubChats.map((sc) => [sc.id, sc]),
     );
@@ -6772,20 +6772,20 @@ Make sure to preserve all functionality from both branches when resolving confli
     const dbSubChats: SubChatMeta[] = agentSubChats.map((sc) => {
       const existingLocal = existingSubChatsMap.get(sc.id);
       const createdAt =
-        typeof sc.created_at === "string"
-          ? sc.created_at
-          : sc.created_at?.toISOString();
+        typeof sc.createdAt === "string"
+          ? sc.createdAt
+          : sc.createdAt?.toISOString();
       const updatedAt =
-        typeof sc.updated_at === "string"
-          ? sc.updated_at
-          : sc.updated_at?.toISOString();
+        typeof sc.updatedAt === "string"
+          ? sc.updatedAt
+          : sc.updatedAt?.toISOString();
       return {
         id: sc.id,
         name: sc.name || "New Chat",
         // Prefer DB timestamp, fall back to local timestamp, then current time
-        created_at:
-          createdAt ?? existingLocal?.created_at ?? new Date().toISOString(),
-        updated_at: updatedAt ?? existingLocal?.updated_at,
+        createdAt:
+          createdAt ?? existingLocal?.createdAt ?? new Date().toISOString(),
+        updatedAt: updatedAt ?? existingLocal?.updatedAt,
         mode:
           (sc.mode as "plan" | "agent" | undefined) ||
           existingLocal?.mode ||
@@ -6805,7 +6805,7 @@ Make sure to preserve all functionality from both branches when resolving confli
         allSubChats.push({
           id,
           name: "New Chat",
-          created_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
         });
       }
     });
@@ -7394,8 +7394,8 @@ Make sure to preserve all functionality from both branches when resolving confli
               id: newId,
               name: "New Chat",
               mode: newSubChatMode,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
               messages: null,
               stream_id: null,
             },
@@ -7415,7 +7415,7 @@ Make sure to preserve all functionality from both branches when resolving confli
     store.addToAllSubChats({
       id: newId,
       name: "New Chat",
-      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       mode: newSubChatMode,
     });
 
@@ -7919,8 +7919,8 @@ Make sure to preserve all functionality from both branches when resolving confli
                   {
                     id: subChatIdToUpdate,
                     name,
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
                     messages: "[]",
                     mode: "agent",
                     stream_id: null,

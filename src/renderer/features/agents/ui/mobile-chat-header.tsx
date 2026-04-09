@@ -91,8 +91,8 @@ export function MobileChatHeader({
   const sortedSubChats = useMemo(
     () =>
       [...allSubChats].sort((a, b) => {
-        const aT = new Date(a.updated_at || a.created_at || "0").getTime();
-        const bT = new Date(b.updated_at || b.created_at || "0").getTime();
+        const aT = new Date(a.updatedAt || a.createdAt || "0").getTime();
+        const bT = new Date(b.updatedAt || b.createdAt || "0").getTime();
         return bT - aT;
       }),
     [allSubChats],
@@ -157,7 +157,7 @@ export function MobileChatHeader({
         }
         renderItem={(subChat) => {
           const timeAgo = formatTimeAgo(
-            subChat.updated_at || subChat.created_at,
+            subChat.updatedAt || subChat.createdAt || undefined,
           );
           const isActive = subChat.id === activeSubChatId;
           return (

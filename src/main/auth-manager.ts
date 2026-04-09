@@ -10,6 +10,21 @@ function getApiBaseUrl(): string {
   return import.meta.env.MAIN_VITE_API_URL || "https://apollosai.dev";
 }
 
+// Dev-only auth bypass: set MAIN_VITE_DEV_BYPASS_AUTH=true in .env to skip
+// the login screen when the enterprise auth backend (Envoy Gateway + Entra)
+// is not yet deployed. Never works in packaged builds.
+function isDevAuthBypassed(): boolean {
+  return !app.isPackaged && import.meta.env.MAIN_VITE_DEV_BYPASS_AUTH === "true";
+}
+
+const DEV_BYPASS_USER: AuthUser = {
+  id: "dev-bypass-user",
+  email: "dev@localhost",
+  name: "Dev Bypass User",
+  imageUrl: null,
+  username: "dev-bypass",
+};
+
 export class AuthManager {
   private store: AuthStore;
   private refreshTimer?: NodeJS.Timeout;
@@ -185,6 +200,7 @@ export class AuthManager {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
+    if (isDevAuthBypassed()) return true;
     return this.store.isAuthenticated();
   }
 
@@ -192,6 +208,7 @@ export class AuthManager {
    * Get current user
    */
   getUser(): AuthUser | null {
+    if (isDevAuthBypassed()) return DEV_BYPASS_USER;
     return this.store.getUser();
   }
 

@@ -14,7 +14,7 @@ interface AgentsQuickSwitchDialogProps {
     name: string;
     meta: any;
     sandbox_id: string | null;
-    updated_at: Date;
+    updatedAt: Date | null;
     projectId: string;
   }>;
   selectedIndex: number;

@@ -12,8 +12,8 @@ const MAX_SPLIT_PANES = 4;
 export interface SubChatMeta {
   id: string;
   name: string;
-  created_at?: string;
-  updated_at?: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   mode?: "plan" | "agent";
 }
 
@@ -361,7 +361,7 @@ export const useAgentSubChatStore = create<AgentSubChatStore>((set, get) => ({
 
     set({
       allSubChats: allSubChats.map((sc) =>
-        sc.id === subChatId ? { ...sc, updated_at: newTimestamp } : sc,
+        sc.id === subChatId ? { ...sc, updatedAt: newTimestamp } : sc,
       ),
     });
   },

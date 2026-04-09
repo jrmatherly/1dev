@@ -133,7 +133,7 @@ const SidebarSearchHistoryPopover = memo(function SidebarSearchHistoryPopover({
 
   const renderItem = useCallback(
     (subChat: SubChatMeta) => {
-      const timeAgo = formatTimeAgo(subChat.updated_at || subChat.created_at);
+      const timeAgo = formatTimeAgo(subChat.updatedAt || subChat.createdAt || undefined);
       const isLoading = loadingSubChats.has(subChat.id);
       const hasUnseen = subChatUnseenChanges.has(subChat.id);
       const mode = subChat.mode || "agent";
@@ -363,7 +363,7 @@ export function AgentsSubChatsSidebar({
   // Chat source mode: "local" or "sandbox"
   const chatSourceMode = useAtomValue(chatSourceModeAtom);
 
-  // Map open IDs to metadata and sort by updated_at (most recent first)
+  // Map open IDs to metadata and sort by updatedAt (most recent first)
   const allSubChatsById = useMemo(() => {
     const map = new Map<string, SubChatMeta>();
     for (const chat of allSubChats) {
@@ -372,14 +372,14 @@ export function AgentsSubChatsSidebar({
     return map;
   }, [allSubChats]);
 
-  // Map open IDs to metadata and sort by updated_at (most recent first)
+  // Map open IDs to metadata and sort by updatedAt (most recent first)
   const openSubChats = useMemo(() => {
     const chats = openSubChatIds
       .map((id) => allSubChatsById.get(id))
       .filter((sc): sc is SubChatMeta => !!sc)
       .sort((a, b) => {
-        const aT = new Date(a.updated_at || a.created_at || "0").getTime();
-        const bT = new Date(b.updated_at || b.created_at || "0").getTime();
+        const aT = new Date(a.updatedAt || a.createdAt || "0").getTime();
+        const bT = new Date(b.updatedAt || b.createdAt || "0").getTime();
         return bT - aT; // Most recent first
       });
 
@@ -795,7 +795,7 @@ export function AgentsSubChatsSidebar({
     store.addToAllSubChats({
       id: newId,
       name: "New Chat",
-      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       mode: defaultAgentMode,
     });
 
@@ -818,8 +818,8 @@ export function AgentsSubChatsSidebar({
   const sortedSubChats = useMemo(
     () =>
       [...allSubChats].sort((a, b) => {
-        const aT = new Date(a.updated_at || a.created_at || "0").getTime();
-        const bT = new Date(b.updated_at || b.created_at || "0").getTime();
+        const aT = new Date(a.updatedAt || a.createdAt || "0").getTime();
+        const bT = new Date(b.updatedAt || b.createdAt || "0").getTime();
         return bT - aT;
       }),
     [allSubChats],
@@ -1353,7 +1353,7 @@ export function AgentsSubChatsSidebar({
                             subChat.id,
                           );
                           const timeAgo = formatTimeAgo(
-                            subChat.updated_at || subChat.created_at,
+                            subChat.updatedAt || subChat.createdAt || undefined,
                           );
                           const mode = subChat.mode || "agent";
                           const isChecked = selectedSubChatIds.has(subChat.id);
@@ -1716,7 +1716,7 @@ export function AgentsSubChatsSidebar({
                             subChat.id,
                           );
                           const timeAgo = formatTimeAgo(
-                            subChat.updated_at || subChat.created_at,
+                            subChat.updatedAt || subChat.createdAt || undefined,
                           );
                           const mode = subChat.mode || "agent";
                           const isChecked = selectedSubChatIds.has(subChat.id);

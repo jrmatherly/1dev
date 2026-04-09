@@ -106,6 +106,8 @@ None. There are no existing OpenSpec specs touching renderer data access (the pr
 - The remaining work in `docs/conventions/tscheck-baseline.md` §R4 (currently partially complete via commit `df421a8`)
 - Future schema tightening on `chats.updatedAt` / `subChats.createdAt` — currently dangerous because the silent fall-through to `any` would mask nullability errors
 
+**Actual `bun run ts:check` delta (2026-04-09):** 88 → 87 (−1 net). The modest drop is expected: most consumer sites were reading off `any` types from `mock-api.ts` output, so the snake→camel rename did not surface as new TS errors to fix — it prevented *future* errors by establishing the typed contract. The 5 original TS2551 "Did you mean" errors that motivated R4 had already been partially resolved by commit `df421a8` and intervening Phase 0 work. The Zustand `persist` migration (tasks 5.3-5.6) turned out to be unnecessary — the store does not use `persist()` middleware; `allSubChats` is rebuilt from DB on every `setChatId`. The archive-popover.tsx site (task 4.5) was reclassified as an F1 boundary during pre-flight investigation and preserved unchanged.
+
 **User-visible risk surface:**
 
 - The Zustand `persist` migration is the highest-risk piece of this change. If it is wrong, every existing user loses their sub-chat tab state on first launch after the upgrade. The regression guard test cannot catch this because it does not exercise the persist layer at runtime. Mitigation: write the migration as an explicit `migrate` function in the Zustand `persist` config, test it manually with a fresh dev profile that has snake_case localStorage data seeded, and document the rollback path (re-deploy the previous version, which still reads snake_case).

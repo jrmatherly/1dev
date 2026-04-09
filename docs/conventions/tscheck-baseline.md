@@ -28,7 +28,7 @@ The 103 errors are **not** 103 independent bugs. They collapse into **6 root cau
 | **R1** | Orphaned dead code: `credential-manager.ts` | **11** | 1 | **None** — zero importers | **Trivial** |
 | **R2** | Upstream sandbox DTO drift (`repos: never[]`) | **16** | 1 | High — touches F1 upstream feature | Medium |
 | **R3** | Upstream Teams router stub (`api.teams.*`) | **~8** | 1–2 | High — touches F3 upstream feature | Medium |
-| **R4** | Chat DTO field-name drift (`snake_case` ↔ `camelCase`) | **~7** | 2 | Low — renames only | Low |
+| **R4** | ~~Chat DTO field-name drift (`snake_case` ↔ `camelCase`)~~ | **~~7~~ 0** | ~~2~~ 0 | **Resolved** — OpenSpec `retire-mock-api-translator` Phase 1 | **Done** |
 | **R5** | Claude SDK / ai-sdk type drift (`ANTHROPIC_*` env, `UIMessageChunk`) | **9** | 2 | Medium — SDK surface moving target | Medium |
 | **R6** | Long-tail small fixes (implicit any, optional chaining, ref types) | **~52** | 18 | Low | Low (but slow) |
 
@@ -166,20 +166,11 @@ Then do the same for any other upstream router stub with the same pattern.
 
 ---
 
-### R4. Chat DTO field-name drift: `snake_case` ↔ `camelCase` (~7 errors)
+### R4. Chat DTO field-name drift: `snake_case` ↔ `camelCase` — **RESOLVED**
 
-**Evidence:** TS2551 "Did you mean 'updatedAt'?" errors across:
-- `agents-content.tsx:341,341,480,481` — consumer uses `chat.updated_at`; schema has `chat.updatedAt`
-- `active-chat.tsx:3768` — same pattern, `subChat.created_at` vs `subChat.createdAt`
-- Plus `agents-content.tsx:1067` — `updated_at: Date` in a type literal doesn't match the Drizzle schema which is `updatedAt`
+**Resolved by:** OpenSpec change `retire-mock-api-translator` (Phase 1), implemented 2026-04-09. The change removed the `created_at`/`updated_at` timestamp translation from `mock-api.ts` and migrated all consumer files to read camelCase directly from Drizzle. The `agents-content.tsx` sites were already fixed in commit `df421a8`. The remaining sites across 8 consumer files + the Zustand sub-chat store were migrated in this change.
 
-These errors are **pure rename fallout**. The Drizzle schema at `src/main/lib/db/schema/index.ts` uses camelCase (confirmed via memory "codebase_structure"). Somewhere an older snake_case API got migrated but these consumers weren't updated.
-
-**Fix:** Mechanical rename. For each site, change `.updated_at` → `.updatedAt`, `.created_at` → `.createdAt`. tsgo's "Did you mean" hints spell out the target exactly.
-
-**Validation:** After fix, re-run `bun run ts:check` to confirm errors went away. Run `bun run build` to confirm the call sites still work (no semantic change; these are accessor-only renames).
-
-**Impact:** −7 errors. Very low risk (non-semantic rename). Low effort (~15 min).
+**Actual impact:** ts:check baseline dropped from 88 → 87 (−1 net). The original estimate of ~7 errors was from the 2026-04-08 snapshot when the baseline was 103; most of the R4 errors had already been resolved by commit `df421a8` and intervening Phase 0 work before this change landed.
 
 ---
 
@@ -334,20 +325,9 @@ grep -rn "credential-manager" src/               # expect 0 results
 
 ---
 
-### Phase B — Mechanical renames (R4) → 92 → 85
+### Phase B — Mechanical renames (R4) — **COMPLETE**
 
-**Action:** Apply tsgo "Did you mean" hints:
-- `agents-content.tsx`: `updated_at` → `updatedAt` (4 sites, lines 341×2, 480, 481)
-- `active-chat.tsx:3768`: `created_at` → `createdAt`
-- `agents-content.tsx:1067`: Fix the type literal that declares `updated_at: Date` — change to `updatedAt: Date`
-
-**Validation:**
-```bash
-bun run ts:check 2>&1 | grep -c "error TS"     # expect 85
-bun run build                                    # expect success
-```
-
-**Commit message:** `fix(types): rename snake_case chat accessors to camelCase (schema sync)`
+**Resolved by:** OpenSpec change `retire-mock-api-translator` (Phase 1), 2026-04-09. The `agents-content.tsx` sites were already fixed in commit `df421a8`; the remaining consumer files and Zustand store were migrated in the Phase 1 implementation. Baseline drop: 88 → 87.
 
 **Update:** Drop baseline to 85.
 

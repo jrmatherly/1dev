@@ -229,8 +229,6 @@ export const api = {
               }
               return {
                 ...sc,
-                created_at: sc.createdAt,
-                updated_at: sc.updatedAt,
                 messages: parsedMessages,
                 stream_id: null,
               };
