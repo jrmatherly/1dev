@@ -329,32 +329,42 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 
 ## 11. Phase 0 Hard Gate Status (Self-Hosting Migration)
 
+**Canonical status:** [`docs/enterprise/phase-0-gates.md`](../docs/enterprise/phase-0-gates.md). Summary (all gates complete as of 2026-04-09):
+
 | # | Gate | Status |
 |---|------|--------|
 | 1–4 | Delete dead `auth:get-token` IPC handler + preload bridge + types | ✅ Done |
 | 5–6 | Remove 5 token preview logs from `claude.ts` and `claude/env.ts` | ✅ Done |
-| 7 | Binary checksum + GPG verification | ✅ Done (Claude SHA+GPG, Codex SHA-only — upstream ceiling) |
-| 8 | Upstream sandbox OAuth extraction | ⏳ Pending |
+| 7 | Binary checksum + GPG verification | ✅ Done (Claude SHA+GPG, Codex SHA-only) |
+| 8 | Upstream sandbox OAuth extraction | ✅ Done (archived `remove-upstream-sandbox-oauth`) |
 | 9 | Minimum CI workflow | ✅ Done (`.github/workflows/ci.yml`) |
-| 10 | Dependabot config | ✅ Done (secret scanning UI enable still needed) |
-| 11 | Test framework + regression guards | ✅ Done (bun:test, 5 guards) |
-| 12 | Feature flag infrastructure + Drizzle schema | ✅ Done (router, lib module, migration `0008`, OpenSpec proposal) |
-| 13 | OpenSpec conversion | ⏳ In progress (2 active proposals) |
-| 14 | Electron 39.8.6 → 39.8.7 patch | ✅ Done |
-| 15 | F1–F10 upstream restoration decisions | ✅ Done (all 10 catalogued in inventory v2) |
+| 10 | Dependabot config | ✅ Done |
+| 11 | Test framework + regression guards | ✅ Done (bun:test, 12 guards / 48 tests) |
+| 12 | Feature flag infrastructure + Drizzle schema | ✅ Done |
+| 13 | OpenSpec 1.2.0 migration | ✅ Done |
+| 14 | Electron upgrade (39 → 40) | ✅ Done (archived `upgrade-electron-40`) |
+| 15 | F1–F10 upstream restoration decisions | ✅ Done |
 
 ---
 
 ## 12. Documentation Sync Targets
 
-These files contain overlapping project info — keep in sync (per CLAUDE.md):
+**Canonical source-of-truth:** `docs/` (xyd-js site, tabs: Architecture, Enterprise, Conventions, Operations, API Reference). Enforced by `openspec/specs/documentation-site/spec.md`.
 
-- `CLAUDE.md` — authoritative architecture/commands/patterns
+These files are **mirrors or pointers** to the canonical `docs/` pages — they must stay consistent but MUST NOT duplicate full content:
+
+- `CLAUDE.md` — concise identity + critical rules + pointers (124 lines post-2026-04-09 restructure)
 - `README.md` — user-facing
 - `CONTRIBUTING.md` — contributor setup
 - `AGENTS.md` — AI agent quick reference
-- `openspec/project.md` — spec context
-- `.serena/memories/*.md` — Serena memories
+- `.serena/memories/*.md` — Serena memories (6 files)
 - `.claude/PROJECT_INDEX.md` — this file
+- `.claude/rules/*.md` — Claude Code behavioral rules (7 rules + README)
+- `openspec/project.md` — spec context
+- `openspec/config.yaml` — injected context + rules
 
-Common drift points: SDK versions, Electron/Vite/Tailwind/Shiki pins, Claude/Codex binary pins, tRPC router count, DB schema columns, renderer feature directory list.
+Common drift points are catalogued in `.claude/skills/docs-drift-check/SKILL.md`. Run `/docs-drift-check` after:
+- Schema changes (`src/main/lib/db/schema/`)
+- tRPC router add/remove
+- Version pin bumps (Vite, Tailwind, Shiki, Electron, Claude, Codex, xyd-js)
+- Substantive edits to any documentation surface above

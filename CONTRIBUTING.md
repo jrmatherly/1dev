@@ -2,7 +2,9 @@
 
 ## Getting Started
 
-- **Architecture & Tech Stack**: See [CLAUDE.md](CLAUDE.md) for detailed architecture, patterns, and important files
+- **Architecture & Tech Stack**: See [`docs/architecture/`](docs/architecture/) for canonical architecture, codebase layout, database schema, tRPC routers, and tech stack. [`CLAUDE.md`](CLAUDE.md) is a concise overview that links to these canonical pages.
+- **Conventions**: See [`docs/conventions/`](docs/conventions/) for pinned dependencies, quality gates, regression guards, and brand taxonomy. Claude Code-specific behavioral rules live under [`.claude/rules/`](.claude/rules/).
+- **Operations**: See [`docs/operations/`](docs/operations/) for release process, debugging first install, env gotchas, and cluster access.
 - **Spec-Driven Development**: This repo uses OpenSpec 1.2.0. Run `/opsx:propose`, `/opsx:apply`, or `/opsx:explore` inside Claude Code, or see the corresponding skills under `.claude/skills/openspec-*`. Active proposals live in `openspec/changes/`.
 - **Questions**: Ask on our [Discord](https://discord.gg/8ektTZGnj4)
 
@@ -45,16 +47,17 @@ bun run db:studio     # Open Drizzle Studio GUI for inspection
 
 ## Code Quality
 
-Before submitting a PR, run **all four** automated quality gates:
+Before submitting a PR, run **all five** automated quality gates:
 
 ```bash
-bun run ts:check    # Type check with tsgo (stricter — catches errors esbuild masks)
-bun run build       # Compile via electron-vite (validates the packaging pipeline)
-bun test            # bun:test regression guards under tests/regression/
-bun audit           # Check for known vulnerabilities in installed dependencies
+bun run ts:check           # Type check with tsgo (stricter — catches errors esbuild masks)
+bun run build              # Compile via electron-vite (validates the packaging pipeline)
+bun test                   # bun:test regression guards under tests/regression/ (12 guards)
+bun audit                  # Check for known vulnerabilities in installed dependencies
+cd docs && bun run build   # xyd-js docs site build
 ```
 
-> **None of these is a superset of the others** — run all four. The same four are enforced in CI (`.github/workflows/ci.yml`) on every PR to `main`.
+> **None of these is a superset of the others** — run all five. All five are enforced in CI (`.github/workflows/ci.yml`) on every PR to `main`. See [`docs/conventions/quality-gates.md`](docs/conventions/quality-gates.md) for the canonical reference.
 >
 > **Test suite:** `bun:test` (built in, no config) bootstrapped 2026-04-08 for Phase 0 regression guards under `tests/regression/`. Broader test adoption is an open Phase 0 item — new regression guards welcome, especially for behavior that can't be caught by `ts:check`.
 
@@ -93,14 +96,17 @@ For feature additions, breaking changes, or architecture changes, use the OpenSp
 1. Fork the repo
 2. Create a feature branch: `git checkout -b feature/your-feature-name`
 3. Make your changes
-4. Run all four quality gates: `bun run ts:check && bun run build && bun test && bun audit`
+4. Run all five quality gates: `bun run ts:check && bun run build && bun test && bun audit && (cd docs && bun run build)`
 5. Submit a PR with clear description of what and why
 
 ### Code Conventions
-See [CLAUDE.md](CLAUDE.md) for:
-- File naming conventions (PascalCase for components, camelCase for utilities)
-- Architecture patterns (Jotai/Zustand state, tRPC IPC)
-- Database patterns (Drizzle ORM usage)
+- **Canonical architecture docs:** [`docs/architecture/`](docs/architecture/)
+- **Convention reference:** [`docs/conventions/`](docs/conventions/)
+- **Claude Code behavioral rules:** [`.claude/rules/`](.claude/rules/) (auto-loaded when working on matching files)
+- File naming: PascalCase for components, camelCase for utilities, kebab-case for stores
+- State management: Jotai (UI), Zustand (persisted), React Query via tRPC (server)
+- IPC: all main↔renderer via tRPC, no raw IPC calls
+- Database: Drizzle ORM (schema at `src/main/lib/db/schema/index.ts` is source of truth)
 
 ## License
 

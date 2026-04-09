@@ -148,9 +148,16 @@ Join our [Discord](https://discord.gg/8ektTZGnj4) for support and discussions.
 
 ## Developer Guide
 
-For detailed architecture, development patterns, database schema, and release process, see [CLAUDE.md](CLAUDE.md).
+**Canonical documentation** lives under [`docs/`](docs/) — a tracked xyd-js site with five tabs:
+- [`docs/architecture/`](docs/architecture/) — codebase layout, database schema, tech stack, tRPC routers, upstream boundary
+- [`docs/enterprise/`](docs/enterprise/) — auth strategy, upstream feature catalog (F1-F10), Phase 0 gates, cluster facts
+- [`docs/conventions/`](docs/conventions/) — pinned deps, quality gates, regression guards, brand taxonomy
+- [`docs/operations/`](docs/operations/) — release process, debugging first install, cluster access, env gotchas
+- [`docs/api-reference/`](docs/api-reference/) — API reference material
 
-For contribution guidelines, setup instructions, and code conventions, see [CONTRIBUTING.md](CONTRIBUTING.md).
+For Claude Code-specific guidance (identity, critical rules, quick commands), see [`CLAUDE.md`](CLAUDE.md) — a concise overview that links to the canonical `docs/` pages above.
+
+For contribution guidelines and setup instructions, see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
