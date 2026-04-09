@@ -45,6 +45,13 @@
         ],
         "sidebar": [
             {
+                "group": "Get Started",
+                "icon": "rocket",
+                "pages": [
+                    "introduction"
+                ]
+            },
+            {
                 "group": "Architecture",
                 "icon": "code",
                 "pages": [
@@ -86,6 +93,7 @@
                 "group": "Operations",
                 "icon": "wrench",
                 "pages": [
+                    "operations/roadmap",
                     "operations/release",
                     "operations/debugging-first-install",
                     "operations/env-gotchas",
@@ -98,6 +106,12 @@
         "openapi": {
             "source": "openapi.json",
             "route": "api-reference"
+        }
+    },
+    "ai": {
+        "llmsTxt": {
+            "title": "1Code enterprise fork docs",
+            "summary": "Canonical documentation for the 1Code enterprise fork (apollosai.dev) — a local-first Electron desktop app for parallel AI-assisted development."
         }
     },
     "redirects": [
