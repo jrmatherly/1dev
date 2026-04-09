@@ -34,7 +34,7 @@ drizzle/       — 9 database migration files
 - `operations/roadmap.md` — **Single source of truth** for outstanding work
 - Build: `cd docs && bun run build` (cleans .xyd/ artifacts first)
 
-## OpenSpec Specs (8 baseline capabilities)
+## OpenSpec Specs (9 baseline capabilities, 45 requirements)
 brand-identity, feature-flags, claude-code-auth-import, documentation-site,
 credential-storage, renderer-data-access, enterprise-auth, electron-runtime
 

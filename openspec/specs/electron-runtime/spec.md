@@ -1,4 +1,10 @@
-## ADDED Requirements
+# electron-runtime Specification
+
+## Purpose
+
+Baseline capability spec (promoted from archived change).
+
+## Requirements
 
 ### Requirement: Electron runtime version is actively maintained
 

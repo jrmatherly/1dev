@@ -42,9 +42,24 @@ This rule is load-bearing — violating it triggered the 4-reviewer Gate #8 audi
 
 `openspec/config.yaml` has an active `context` + `rules` block that is injected into every `/opsx:propose` and `/opsx:apply` artifact generation. Keep it concise and up-to-date when the tech stack or constraints change.
 
+## Baseline spec format (load-bearing)
+
+When archiving a change, delta spec headings (`## ADDED Requirements`, `## MODIFIED Requirements`) **must** be converted to `## Requirements` in the baseline. The CLI only counts requirements under `## Requirements`.
+
+Required baseline structure:
+```markdown
+# <capability-name> Specification
+## Purpose
+<description>
+## Requirements
+### Requirement: ...
+```
+
+Missing the H1 or using `## ADDED Requirements` causes the CLI to report "0 requirements" for that spec.
+
 ## Baseline capability specs
 
-Canonical capability baselines under `openspec/specs/` (count grows when changes archive). Current list:
+Canonical capability baselines under `openspec/specs/` (count grows when changes archive — currently 9 specs, 45 requirements). Current list:
 
 ```bash
 ls -d openspec/specs/*/ 2>/dev/null | xargs -n1 basename

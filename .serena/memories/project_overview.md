@@ -26,5 +26,5 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - CLAUDE.md is a 125-line thin index (links, doesn't contain content)
 - `docs/` is the canonical source of truth (Operations tab has roadmap)
 - `.claude/rules/` has 9 behavioral rules (2 global + 7 path-scoped)
-- `openspec/specs/` has 8 baseline capability specs
+- `openspec/specs/` has 9 baseline capability specs (45 requirements)
 - Skills/agents read from canonical docs, not CLAUDE.md

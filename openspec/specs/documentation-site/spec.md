@@ -13,11 +13,7 @@ of the four-quality-gate `bun test` contract, and a CI job at
 `.github/workflows/ci.yml` that runs `xyd build` from `docs/` on every
 PR. Both surfaces are required.
 
-The capability has no prior baseline (this is the first version), so
-all requirements are added as `## ADDED Requirements` per OpenSpec 1.2.0
-conventions.
-
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Tracked files MUST NOT reference .scratchpad/ paths
 

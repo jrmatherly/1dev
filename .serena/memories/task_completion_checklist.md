@@ -47,7 +47,7 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 1. `/opsx:propose <description>` — create change with all artifacts
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:archive <name>` — archive and promote capability specs
-- 8 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`, `electron-runtime`
+- 9 capability specs in `openspec/specs/` (45 requirements): `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`, `electron-runtime`
 - Full rules: [`.claude/rules/openspec.md`](../../.claude/rules/openspec.md)
 
 ## Phase 0 Status (15 of 15 complete ✅)

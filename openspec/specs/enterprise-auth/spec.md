@@ -1,3 +1,9 @@
+# enterprise-auth Specification
+
+## Purpose
+
+Baseline capability spec (promoted from archived change).
+
 ## Requirements
 
 ### Requirement: MSAL Node dependencies installed and configured for Electron rebuild

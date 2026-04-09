@@ -1,4 +1,10 @@
-## ADDED Requirements
+# renderer-data-access Specification
+
+## Purpose
+
+Baseline capability spec (promoted from archived change).
+
+## Requirements
 
 ### Requirement: Camelcase timestamp fields end-to-end for chat and sub-chat data
 

@@ -1,3 +1,9 @@
+# credential-storage Specification
+
+## Purpose
+
+Baseline capability spec (promoted from archived change).
+
 ## Requirements
 
 ### Requirement: Unified credential encryption module with 3-tier degradation

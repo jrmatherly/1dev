@@ -1,4 +1,10 @@
-## ADDED Requirements
+# claude-code-auth-import Specification
+
+## Purpose
+
+Baseline capability spec (promoted from archived change).
+
+## Requirements
 
 ### Requirement: Upstream sandbox OAuth procedures removed from the Claude Code router
 

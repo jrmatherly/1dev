@@ -1,3 +1,9 @@
+# enterprise-auth-wiring Specification
+
+## Purpose
+
+Baseline capability spec (promoted from archived change).
+
 ## Requirements
 
 ### Requirement: Strangler Fig adapter in auth-manager.ts
