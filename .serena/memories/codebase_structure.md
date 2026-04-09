@@ -1,135 +1,44 @@
 # Codebase Structure
 
-> Canonical reference: [`docs/architecture/codebase-layout.md`](../../docs/architecture/codebase-layout.md). This memory is a summary supporting Claude's mental model — consult the canonical doc for authoritative layout details.
-
 ## Top-Level
 ```
 src/           — Application source code
-drizzle/       — Database migration files
-resources/     — Static assets (icons, migrations for packaged app)
-scripts/       — Build, release, and utility scripts
-build/         — Electron-builder config
-docs/          — Canonical documentation site (xyd-js, 5 tabs: Architecture, Enterprise, Conventions, Operations, API Reference)
-openspec/      — OpenSpec change proposal system
-  specs/       — Durable capability specs (8: brand-identity, feature-flags, claude-code-auth-import, documentation-site, credential-storage, renderer-data-access, enterprise-auth, electron-runtime)
-  changes/     — Active change proposals
-  changes/archive/ — Archived completed changes
-.scratchpad/   — Ephemeral local-only working notes (gitignored). Never referenced from tracked files — canonical docs live in docs/
-.full-review/  — Comprehensive review artifacts (gitignored)
-.claude/
-  rules/       — Claude Code behavioral rules (global + path-scoped, 7 rules + README)
-  skills/      — Claude Code workflow skills (on-demand)
-  agents/      — Claude Code subagents (5 task-specific)
-  PROJECT_INDEX.md — repo navigation map
-.serena/       — Serena project memories (6 files)
-tests/regression/ — bun:test regression guards (12 files, 48 tests as of 2026-04-09)
+docs/          — Canonical xyd-js documentation site (Operations tab has roadmap)
+openspec/      — OpenSpec change proposals + 8 capability specs
+.claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
+.claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, etc.)
+.claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
+tests/regression/ — 12 bun:test regression guards, 48 tests
+drizzle/       — 9 database migration files
 ```
 
 ## Main Process (`src/main/`)
-```
-index.ts              — App entry, window lifecycle, local auth callback HTTP server (port 21322 dev / 21321 prod)
-auth-manager.ts       — OAuth flow, token refresh, dev auth bypass (MAIN_VITE_DEV_BYPASS_AUTH)
-auth-store.ts         — Encrypted credential storage (delegates to credential-store.ts)
-constants.ts          — App constants (IS_DEV, AUTH_SERVER_PORT)
-windows/main.ts       — Window creation, IPC handlers, auth gate (isAuthenticated → login.html or app)
-lib/
-  auto-updater.ts     — electron-updater config; CDN_BASE = https://cdn.apollosai.dev/releases/desktop
-  cli.ts              — CLI launcher (line 6 has upstream PR attribution — Tier C, preserved)
-  claude-config.ts    — Worktree path detection (uses .1code/worktrees)
-  git/worktree.ts     — Worktree creation (creates under ~/.1code/worktrees/)
-  mcp-auth.ts         — MCP OAuth. Client name is "1code-desktop"
-  db/
-    index.ts          — DB init, auto-migrate on startup
-    schema/index.ts   — Drizzle table definitions (source of truth, 7 tables)
-    utils.ts          — ID generation (nanoid)
-  credential-store.ts — Unified 3-tier credential encryption (Tier 1: OS keystore, Tier 2: basic_text warn, Tier 3: refuse)
-  enterprise-auth.ts  — MSAL Node Entra token acquisition (Phase 1 — isolated, not yet wired; CP1 removed per agent review)
-  enterprise-store.ts — MSAL token cache persistence (tier-aware via credential-store.ts + msal-node-extensions)
-  enterprise-types.ts — Shared types: EnterpriseAuthConfig, EnterpriseUser (oid-keyed), EnterpriseAuthResult
-  feature-flags.ts    — Type-safe feature flag API backed by feature_flag_overrides table (5 flags incl. credentialStorageRequireEncryption)
-  trpc/
-    index.ts          — tRPC router/procedure factory
-    routers/index.ts  — createAppRouter mounts 21 routers (20 from routers/ + 1 git router from ../../git)
-    routers/agent-utils.ts — Shared helpers (NOT a router — utility file)
-    routers/          — 20 feature routers (claude, claude-code, claude-settings, anthropic-accounts, codex, ollama, projects, chats, agents, terminal, files, external, plugins, skills, commands, voice, worktree-config, sandbox-import, debug, feature-flags)
-    schemas/mcp-url.ts — SSRF-safe MCP server URL validation schema
-```
+- `auth-manager.ts` — OAuth flow + dev auth bypass (`isDevAuthBypassed()`)
+- `lib/credential-store.ts` — Unified 3-tier credential encryption
+- `lib/enterprise-auth.ts` — MSAL Node (Phase 1, isolated — not wired yet)
+- `lib/terminal/session.ts` — **Lazy import** for node-pty (prevents crash if native module fails)
+- `lib/db/schema/index.ts` — Drizzle schema (7 tables)
+- `lib/trpc/routers/index.ts` — 21 routers in `createAppRouter`
+- `lib/feature-flags.ts` — Type-safe feature flags backed by DB table
+- `electron.vite.config.ts` — Uses `build.externalizeDeps` (electron-vite 5.0 API)
 
 ## Renderer (`src/renderer/`)
-```
-App.tsx               — Root with providers
-login.html            — Pre-auth sign-in screen (static HTML, no React)
-features/
-  agents/             — Main chat interface (core feature)
-    stores/sub-chat-store.ts — Zustand store for sub-chat tabs/splits (NO persist middleware; allSubChats rebuilt from DB)
-  sidebar/            — Chat list, navigation
-  terminal/           — Integrated terminal (node-pty + xterm)
-  kanban/             — Kanban board view
-  file-viewer/        — File browser/viewer
-  hooks/              — Automation hooks
-  automations/        — Automations & inbox (FULLY upstream-dependent via remoteTrpc.*)
-  settings/           — App settings UI
-  onboarding/         — First-run experience (billing-method-page has API key option)
-  changes/            — Change tracking (git)
-  details-sidebar/    — Detail panel
-  mentions/           — Global @-mention
-  layout/             — Main layout with resizable panels
-components/ui/        — Radix UI wrappers
-lib/
-  trpc.ts             — Local tRPC client
-  remote-trpc.ts      — Remote tRPC client (TYPED — upstream backend boundary marker)
-  remote-app-router.ts — Typed AppRouter stub (TRPCBuiltRouter pattern)
-  remote-types.ts     — Shared types for remote tRPC (snake_case — dead upstream contract, do not rename)
-  mock-api.ts         — DEPRECATED — Phase 1 timestamp fossil retired (2026-04-09); still imported by 6 files for other adapters. Phases 2-3 tracked separately.
-```
+- `login.html` — Pre-auth sign-in screen (1Code logo, static HTML)
+- `lib/mock-api.ts` — DEPRECATED (Phase 1 timestamp fossil retired, Phase 2 on roadmap)
+- `lib/remote-trpc.ts` — Upstream tRPC client (F-entry boundary)
+- `features/agents/stores/sub-chat-store.ts` — No persist middleware; rebuilt from DB
 
 ## Documentation Site (`docs/`)
-```
-docs.json             — xyd-js config (5 tabs: Architecture, Enterprise, Conventions, Operations, API Reference)
-package.json          — @xyd-js/cli pinned to 0.0.0-build-1202121-20260121231224
-bun.lock              — Tracked lockfile (926 packages)
-.gitignore            — Ignores .xyd/ (build output)
-introduction.md       — Landing page
-architecture/         — 6 pages (1 authored: upstream-boundary, 5 stubs)
-enterprise/           — 7 pages (all authored: fork-posture, upstream-features, auth-strategy, auth-fallback, envoy-smoke-test, phase-0-gates, cluster-facts)
-conventions/          — 7 pages (4 authored: quality-gates, regression-guards, no-scratchpad-references, tscheck-baseline; 3 stubs)
-operations/           — 4 stubs (release, debugging-first-install, env-gotchas, cluster-access)
-openapi.json          — OpenAPI scaffold (future use)
-public/assets/        — 1Code logo SVGs (light + dark)
-```
+- `docs.json` — xyd-js config (5 tabs, operations tab includes roadmap)
+- `operations/roadmap.md` — **Single source of truth** for outstanding work
+- Build: `cd docs && bun run build` (cleans .xyd/ artifacts first)
 
-## Database (7 tables, source of truth: src/main/lib/db/schema/index.ts)
-- **Location**: `{userData}/data/agents.db` (SQLite via better-sqlite3)
-- **Tables**: projects, chats, sub_chats, claude_code_credentials (DEPRECATED), anthropic_accounts, anthropic_settings, feature_flag_overrides
-- **Migrations**: 9 files in `drizzle/` (`0000_*.sql` through `0008_brainy_sleepwalker.sql`)
+## OpenSpec Specs (8 baseline capabilities)
+brand-identity, feature-flags, claude-code-auth-import, documentation-site,
+credential-storage, renderer-data-access, enterprise-auth, electron-runtime
 
-## Review & Strategy Artifacts
-- `.full-review/` — Comprehensive multi-phase review (135 findings)
-- `.full-review/envoy-gateway-review/` — Envoy Gateway strategy review (47 findings, all 8 Critical resolved)
-- `docs/enterprise/auth-strategy.md` — CHOSEN auth strategy (Envoy Gateway dual-auth v2.1, empirically validated)
-- `docs/enterprise/auth-fallback.md` — MSAL-in-Electron fallback (v5, retained but not chosen)
-- `docs/enterprise/envoy-smoke-test.md` — Reproducible dual-auth validation runbook
-- `docs/enterprise/upstream-features.md` — F1-F10 upstream-backend catalog (all 10 decisions locked)
-- Cluster deployment target: `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos + Flux v2 + Envoy Gateway v1.7.1)
-
-## Phase 0 Hard Gate Status (15 of 15 complete ✅)
-All gates closed. Phase 0.5 (harden-credential-storage) also complete — unified credential encryption in credential-store.ts.
-
-## Regression Tests (`tests/regression/`, run via `bun test`)
-Ten guards as of 2026-04-09:
-- `auth-get-token-deleted.test.ts` — Gates #1-4
-- `token-leak-logs-removed.test.ts` — Gates #5-6
-- `credential-manager-deleted.test.ts` — tscheck remediation R1
-- `gpg-verification-present.test.ts` — Gate #7
-- `feature-flags-shape.test.ts` — Gate #12
-- `brand-sweep-complete.test.ts` — rebrand-residual-sweep
-- `no-scratchpad-references.test.ts` — documentation-site capability
-- `no-upstream-sandbox-oauth.test.ts` — Gate #8
-- `mock-api-no-snake-timestamps.test.ts` — mock-api translator retirement (Phase 1)
-- `credential-storage-tier.test.ts` — credential-store centralization (9 assertions)
-- `enterprise-auth-module.test.ts` — MSAL module exports, CP1 config, isolation boundary (9 assertions)
-
-## .claude/ Automations Inventory
-- **Agents**: `db-schema-auditor`, `security-reviewer`, `trpc-router-auditor`, `ui-reviewer`, `upstream-dependency-auditor`
-- **Skills**: `docs-drift-check`, `new-router`, `new-regression-guard`, `openspec-*` (5), `phase-0-progress`, `release`, `upstream-boundary-check`, `verify-pin`, `verify-strategy-compliance`
-- **Hooks**: Pre/Post-tool-use on Edit|Write; auth-code edit warning; ts:check baseline drift tracker; Vite/builder smoke check; regression guards auto-run; safeStorage guard (blocks direct calls outside credential-store.ts); credential/auth regression trigger
+## Regression Tests (12 guards, 48 tests)
+auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted,
+gpg-verification-present, feature-flags-shape, brand-sweep-complete,
+no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamps,
+credential-storage-tier, enterprise-auth-module, electron-version-pin
