@@ -6,10 +6,10 @@
 - `bun run preview` — Preview built app
 
 ## Quality Gates (ALL 6 REQUIRED)
-- `bun run ts:check` — TypeScript check via tsgo (baseline: 80 errors, see `.claude/.tscheck-baseline`)
+- `bun run ts:check` — TypeScript check via tsgo (baseline: 63 errors, see `.claude/.tscheck-baseline`)
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — Full electron-vite build
-- `bun test` — 14 regression guards, 58 tests (~2.5s)
+- `bun test` — 14 regression guards + 5 service test files = 75 tests (~2.5s)
 - `bun audit` — Dependency vulnerability scan
 - `cd docs && bun run build` — Docs site build (also a CI gate)
 - Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md)
@@ -19,10 +19,19 @@
 - `cd docs && bun run build` — Static output to .xyd/build/client/
 - `cd docs && bun install --frozen-lockfile` — Reproducible install
 
-## Database
+## Database (desktop app — SQLite)
 - `bun run db:generate` — Generate migrations from schema
 - `bun run db:push` — Push schema directly (dev only)
 - `bun run db:studio` — Open Drizzle Studio GUI
+
+## 1code-api Service (services/1code-api/)
+- `cd services/1code-api && bun install` — Install service deps
+- `cd services/1code-api && bun run dev` — tsx watch mode
+- `cd services/1code-api && bun test` — Run service tests
+- `cd services/1code-api && DATABASE_URL=<url> bunx drizzle-kit generate` — Generate new migration
+- `docker build -t 1code-api:local -f services/1code-api/Dockerfile services/1code-api/` — Build container
+- `docker run -d --name 1code-api-pg -e POSTGRES_USER=onecode -e POSTGRES_PASSWORD=devpass -e POSTGRES_DB=onecode -p 5433:5432 postgres:18-alpine` — Start test PostgreSQL
+- `docker run -d -p 8000:8000 -e DEV_BYPASS_AUTH=true -e DATABASE_URL="postgresql://onecode:devpass@host.docker.internal:5433/onecode" 1code-api:local` — Run container
 
 ## AI Binary Management
 - `bun run claude:download` — Download Claude CLI binary (pinned 2.1.96)

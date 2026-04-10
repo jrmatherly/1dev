@@ -1,9 +1,9 @@
 # Environment Notes and Gotchas
 
 ## Quality Gates — ALL REQUIRED
-- `bun run ts:check` — tsgo (baseline: 80 errors in `.claude/.tscheck-baseline`, improved from 86 after mock-api Phase 2 migration)
+- `bun run ts:check` — tsgo (baseline: 63 errors in `.claude/.tscheck-baseline`, improved from 80 after SonarLint remediation 2026-04-10)
 - `bun run build` — electron-vite 5 build
-- `bun test` — 14 regression guards, 58 tests, ~2.5s
+- `bun test` — 14 regression guards + 5 service test files = 75 tests, ~2.5s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
 
@@ -65,3 +65,7 @@
   - **macOS runner OOM (RESOLVED):** macOS-15 runners have only 7 GB RAM. Fix: `NODE_OPTIONS="--max-old-space-size=6144"` on the build step in `release.yml`. Build produces 463 renderer chunks from monaco/mermaid/shiki.
   - **Partial releases:** `release.yml` uses `if: !cancelled()` + `fail_on_unmatched_files: false` to allow partial releases during bootstrap. Tighten once all platforms are stable.
 - **`/session-sync` skill:** End-of-task drift sync for CLAUDE.md, Serena memories, roadmap, code-review graph. Run after every significant change instead of typing the full multi-command chain.
+- **`bun build` + `import.meta.dirname` gotcha:** `bun build` preserves `import.meta.dirname` as a runtime value in the output bundle, but relative paths computed from it at module-load time embed the ORIGINAL source file location (e.g. `src/routes/changelog.ts`), not the bundled location (`dist/index.js`). For runtime file lookups (changelog dir, resources), use `process.cwd()` + env override instead of `resolve(import.meta.dirname, "../...")`. Discovered 2026-04-10 in `services/1code-api/src/routes/changelog.ts`.
+- **`drizzle-kit generate` requires DATABASE_URL even when offline:** The CLI validates config at startup before checking if a database connection is actually needed. For scaffolding a new service with no DB yet, pass a placeholder: `DATABASE_URL="postgresql://localhost/x" bunx drizzle-kit generate`.
+- **Postgres 18 volume mount change:** Postgres 18 moved the default data directory, so existing volume mounts from Postgres 17 (`/var/lib/postgresql/data`) need reconciling. For fresh test containers without volumes this doesn't matter.
+- **`.dockerignore` gotcha for bundled TypeScript services:** Don't exclude `tsconfig.json` even if the Dockerfile uses `bun build` — the bundler reads tsconfig for path aliases and target config. Exclude `dist/`, `node_modules/`, tests, README — but keep tsconfig.
