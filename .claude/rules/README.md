@@ -34,6 +34,7 @@ This directory contains Claude Code **rule files** — markdown files loaded aut
 - [`testing.md`](./testing.md) — TDD red-state rule, regression guard requirements, quality gates. Scope: `tests/**`, `src/**/*.test.ts`
 - [`tscheck-baseline.md`](./tscheck-baseline.md) — Baseline file is load-bearing, hook behavior. Scope: `**/*.ts`, `**/*.tsx`
 - [`upstream-boundary.md`](./upstream-boundary.md) — F-entry catalog coverage, F1 boundary preservation. Scope: `src/renderer/**/*.{ts,tsx}`
+- [`vite-config.md`](./vite-config.md) — Vite / electron-vite upgrade verification playbook: static CJS output checks, ESM-only dynamic imports, runtime signals. Scope: `electron.vite.config.ts`, `openspec/changes/upgrade-vite*/**`
 
 ## Adding a new rule
 

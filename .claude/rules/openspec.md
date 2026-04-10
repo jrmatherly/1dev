@@ -48,6 +48,10 @@ openspec update [path]                 # Update instruction files
 
 Use `openspec archive <id> --skip-specs --yes` for toolchain, dependency, or documentation-only changes that have no capability spec deltas (proposal says "Capabilities: None — toolchain upgrade only"). Without `--skip-specs`, archive will attempt to promote non-existent delta specs and may fail or create empty baselines. Examples: `upgrade-typescript-6`, `upgrade-electron-41`, `upgrade-electron-40`.
 
+## Phased changes — do NOT archive partial completion
+
+Some changes are **phased** — e.g., `upgrade-vite-8-build-stack` has Phase A (Vite 7, unblocked) and Phase B (Vite 8, blocked on `electron-vite 6.0.0` stable). When one phase completes, **do not archive the change**. Keep it active so the remaining phases can be picked up later. Commit the completed phase's work, update the tasks.md checkboxes, move the phase-specific entry in `docs/operations/roadmap.md` to Recently Completed, but leave the change directory under `openspec/changes/`. The change only archives when ALL sections are done.
+
 ## MODIFIED Requirements rule (baseline constraint)
 
 **`## MODIFIED Requirements` requires an archived baseline.** You can only use `MODIFIED` against a capability spec that lives under `openspec/specs/<capability>/spec.md`.

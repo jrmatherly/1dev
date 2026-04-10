@@ -15,14 +15,14 @@
 - Top-level `permissions: { contents: read }`
 
 ## Key Version Pins
-- Electron 41.2.0 (EOL 2026-08-25, upgraded 2026-04-09), electron-vite 5.0.0, Vite 6.x
+- Electron 41.2.0 (EOL 2026-08-25, upgraded 2026-04-09), electron-vite 5.0.0, Vite 7.3.2 (upgraded from 6.4.2 on 2026-04-10, Phase A of upgrade-vite-8-build-stack)
 - Tailwind 3.x, shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0
 - @azure/msal-node ^5.1.2 (upgraded from 3.8.x), @azure/msal-node-extensions ^5.1.2
 - @types/node ^24, @swc/core ^1 (electron-vite 5 peer dep)
 - `build.externalizeDeps` config in electron.vite.config.ts (replaced `externalizeDepsPlugin`)
 
 ## Upgrade Blockers (as of 2026-04-10)
-- **Vite pin (6.x):** Vite 8 needs electron-vite 6.0.0 (beta-only); Vite 7 works with electron-vite 5.0.0
+- **Vite pin (7.x, was 6.x):** Phase A Vite 7.3.2 landed 2026-04-10; Phase B Vite 8 blocked on `electron-vite 6.0.0` stable (currently beta-only `6.0.0-beta.0`)
 - **Shiki pin (3.x):** `@pierre/diffs` pins `shiki: ^3.0.0` AND `@shikijs/transformers: ^3.0.0` — blocks shiki 4
 - **~~TypeScript 6.0 risk~~** ✅ **RESOLVED 2026-04-10:** Upgraded to TS 6.0.2. tsconfig now has explicit `types: ["node", "better-sqlite3", "diff", "react", "react-dom"]` and `noUncheckedSideEffectImports: false`. Baseline unchanged at 80, zero new errors. tsgo upgraded to 7.0.0-dev.
 - **Tailwind 4 risk:** `agents-styles.css` escaped hover selectors (lines 191-195) and `--tw-ring-*` internal vars (lines 219-234) need manual migration

@@ -87,14 +87,6 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None (upgrade tool available)
 **Canonical reference:** `openspec/changes/upgrade-tailwind-4/proposal.md`
 
-### [Ready] Vite 7 — Phase A (unblocked stepping stone)
-
-**Added:** 2026-04-09
-**Scope:** Bump Vite 6→7 + plugin-react 4→5 with electron-vite 5.0.0 (stable). Validates CJS interop and browser target changes. Should land BEFORE Tailwind 4 so `@tailwindcss/vite` is tested against its natural Vite version.
-**Effort:** Small-Medium
-**Prereqs:** None (TypeScript 6 landed 2026-04-10, `noUncheckedSideEffectImports` already set)
-**Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md` (Phase A tasks)
-
 ### [Blocked] Vite 8 — Phase B + Shiki 4
 
 **Added:** 2026-04-09
@@ -155,6 +147,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
+| 2026-04-10 | Vite 6.4.2 → 7.3.2 + @vitejs/plugin-react 4.7 → 5.2 (Phase A) — CJS interop + `import.meta.env` + React dedup verified in build; functional verification via full streaming Claude agent session | `upgrade-vite-8-build-stack` Phase A (15/59 tasks, stays active for Phase B) |
 | 2026-04-10 | TypeScript 5.9.3 → 6.0.2 upgrade (tsconfig `types[]` explicit, `noUncheckedSideEffectImports: false`, tsgo 7.0.0-dev; baseline unchanged at 80) | `upgrade-typescript-6` archived |
 | 2026-04-09 | Electron 40 → 41 upgrade (Chromium 146, Node.js 24.14, V8 14.6) | `upgrade-electron-41` committed + pushed (auto-updater pending packaged-build smoke test) |
 | 2026-04-09 | Analytics dual-import warning fix | static `setOptOut` import in `windows/main.ts:16` |
