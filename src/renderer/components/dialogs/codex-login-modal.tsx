@@ -58,11 +58,7 @@ export function CodexLoginModal({ autoStart = true }: CodexLoginModalProps) {
   } = useCodexLoginFlow();
 
   const clearPendingRetryIfNeeded = () => {
-    if (
-      pendingAuthRetry &&
-      pendingAuthRetry.provider === "codex" &&
-      !pendingAuthRetry.readyToRetry
-    ) {
+    if (pendingAuthRetry?.provider === "codex" && !pendingAuthRetry.readyToRetry) {
       setPendingAuthRetry(null);
     }
   };

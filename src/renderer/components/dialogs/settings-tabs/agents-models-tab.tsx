@@ -220,7 +220,7 @@ function AnthropicAccountsSection() {
       "Enter new name for this account:",
       currentName || "Anthropic Account",
     );
-    if (newName && newName.trim()) {
+    if (newName?.trim()) {
       renameMutation.mutate({ accountId, displayName: newName.trim() });
     }
   };
@@ -625,7 +625,6 @@ export function AgentsModelsTab() {
               Loading account...
             </div>
           ) : (
-            <>
               <div className="flex items-center justify-between gap-6 p-4 hover:bg-muted/50">
                 <div>
                   <div className="text-sm font-medium">Codex Subscription</div>
@@ -665,7 +664,6 @@ export function AgentsModelsTab() {
                   )}
                 </div>
               </div>
-            </>
           )}
         </div>
       </div>

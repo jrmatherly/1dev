@@ -60,7 +60,7 @@ function isVisibleColor(hex: string | undefined): boolean {
   const cleanHex = hex.replace(/^#/, "");
   // If 8 characters, check alpha
   if (cleanHex.length === 8) {
-    const alpha = parseInt(cleanHex.slice(6, 8), 16);
+    const alpha = Number.parseInt(cleanHex.slice(6, 8), 16);
     // Consider colors with less than 50% opacity as "not visible" for accent purposes
     return alpha >= 128;
   }
@@ -349,16 +349,6 @@ export function AgentsAppearanceTab() {
       }
     },
     [setSystemDarkThemeId, resolvedTheme, selectedThemeId],
-  );
-
-  // Group imported themes by type
-  const importedDarkThemes = useMemo(
-    () => importedThemes.filter((t) => t.type === "dark"),
-    [importedThemes],
-  );
-  const importedLightThemes = useMemo(
-    () => importedThemes.filter((t) => t.type === "light"),
-    [importedThemes],
   );
 
   // Re-apply theme when system preference changes

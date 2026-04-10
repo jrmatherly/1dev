@@ -48,7 +48,7 @@ import { settingsProjectsSidebarWidthAtom } from "../../../features/agents/atoms
 // --- Detail Panel ---
 function ProjectDetail({ projectId }: { projectId: string }) {
   // Get config for selected project
-  const { data: configData, refetch: refetchConfig } =
+  const { data: configData } =
     trpc.worktreeConfig.get.useQuery({ projectId }, { enabled: !!projectId });
 
   // Save mutation (auto-save, no toast on success — only on error)

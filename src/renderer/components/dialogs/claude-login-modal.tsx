@@ -49,7 +49,7 @@ export function ClaudeLoginModal({
   // Helper to trigger retry after successful auth
   const triggerAuthRetry = () => {
     const pending = appStore.get(pendingAuthRetryMessageAtom);
-    if (pending && pending.provider === "claude-code") {
+    if (pending?.provider === "claude-code") {
       console.log(
         "[ClaudeLoginModal] Auth success - triggering retry for subChatId:",
         pending.subChatId,
@@ -64,11 +64,7 @@ export function ClaudeLoginModal({
   // Helper to clear pending retry (on cancel/close without success)
   const clearPendingRetry = () => {
     const pending = appStore.get(pendingAuthRetryMessageAtom);
-    if (
-      pending &&
-      pending.provider === "claude-code" &&
-      !pending.readyToRetry
-    ) {
+    if (pending?.provider === "claude-code" && !pending.readyToRetry) {
       console.log(
         "[ClaudeLoginModal] Modal closed without success - clearing pending retry",
       );
@@ -97,9 +93,7 @@ export function ClaudeLoginModal({
       await importSystemTokenMutation.mutateAsync();
       handleAuthSuccess();
     } catch (err) {
-      setExistingTokenError(
-        err instanceof Error ? err.message : String(err),
-      );
+      setExistingTokenError(err instanceof Error ? err.message : String(err));
       setIsUsingExistingToken(false);
     }
   };
@@ -154,9 +148,7 @@ export function ClaudeLoginModal({
           {/* Content */}
           <div className="space-y-6">
             <div className="p-4 bg-muted/50 border border-border rounded-lg space-y-2">
-              <p className="text-sm font-medium">
-                Connect via Claude CLI
-              </p>
+              <p className="text-sm font-medium">Connect via Claude CLI</p>
               <p className="text-xs text-muted-foreground">
                 Run{" "}
                 <code className="px-1 py-0.5 bg-background border border-border rounded text-xs font-mono">
@@ -168,9 +160,7 @@ export function ClaudeLoginModal({
 
             {existingTokenError && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <p className="text-sm text-destructive">
-                  {existingTokenError}
-                </p>
+                <p className="text-sm text-destructive">{existingTokenError}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Make sure you have run{" "}
                   <code className="px-1 py-0.5 bg-background border border-border rounded text-xs font-mono">

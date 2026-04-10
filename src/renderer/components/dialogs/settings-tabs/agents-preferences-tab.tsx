@@ -101,7 +101,6 @@ const JETBRAINS: EditorOption[] = [
   { id: "fleet", label: "Fleet" },
   { id: "rustrover", label: "RustRover" },
 ];
-import vscodeBaseIcon from "../../../assets/app-icons/vscode.svg";
 import jetbrainsBaseIcon from "../../../assets/app-icons/jetbrains.svg";
 import { Kbd } from "../../ui/kbd";
 import {
@@ -114,7 +113,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -430,7 +428,7 @@ export function AgentsPreferencesTab() {
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2">
                   <img
-                    src={vscodeBaseIcon}
+                    src={vscodeIcon}
                     alt=""
                     className="h-4 w-4 shrink-0 object-contain"
                   />
