@@ -1,6 +1,6 @@
 ---
 name: release
-description: Guide the full macOS release flow — version bump, binary download, build, sign, notarize, upload, and sync
+description: Guide the GitHub Actions release flow — version bump, tag push, verify CI, publish draft
 disable-model-invocation: true
 ---
 
@@ -10,61 +10,43 @@ Walk through each step, verifying success before proceeding. The canonical relea
 
 ### 1. Version Bump
 ```bash
-npm version patch --no-git-tag-version
+npm version patch --no-git-tag-version   # or minor / major
 ```
 Read `package.json` to confirm the new version number.
 
-### 2. Download AI Binaries
+### 2. Commit + Tag + Push
 ```bash
-bun run claude:download
-bun run codex:download
+git add package.json bun.lock
+git commit -m "chore: bump version to v0.0.XX"
+git tag v0.0.XX
+git push origin main --follow-tags
 ```
-Verify binaries exist in `resources/bin/`.
+The `push: tags: ['v*']` trigger in `.github/workflows/release.yml` fires automatically.
 
-### 3. Build & Package
+### 3. Monitor CI
 ```bash
-bun run build
-bun run package:mac
+gh run list --workflow=release.yml --limit 3
+gh run watch <run-id> --exit-status
 ```
-Check `release/` directory for output artifacts (DMG + ZIP for arm64 and x64).
+The workflow builds installers on macos-15, Ubuntu, and Windows in parallel, then publishes a **draft** GitHub Release with all artifacts.
 
-### 4. Generate Update Manifests
+### 4. Review + Publish
+Go to [Releases](https://github.com/jrmatherly/1dev/releases), find the draft, review the artifacts and auto-generated notes, then click **Publish release** (or use CLI):
 ```bash
-bun run dist:manifest
-```
-Verify `latest-mac.yml` and `latest-mac-x64.yml` were generated in `release/`.
-
-### 5. Upload to CDN
-```bash
-bun run dist:upload
-```
-Uploads artifacts to R2 CDN at `cdn.apollosai.dev/releases/desktop/`.
-
-### 6. Wait for Notarization
-```bash
-xcrun notarytool history --keychain-profile "apollosai-notarize"
-```
-Poll until the latest submission shows "Accepted" (typically 2-5 min). On pre-rebrand dev machines, try `"21st-notarize"` if the profile is not found.
-
-### 7. Staple DMGs
-```bash
-cd release && xcrun stapler staple *.dmg
+gh release edit v0.0.XX --draft=false
 ```
 
-### 8. Re-upload Stapled DMGs
+Once published, `electron-updater`'s GitHub provider will see the release and offer auto-updates to installed users.
+
+### Manual Dispatch (for re-releases or testing)
 ```bash
-bun run dist:upload
+gh workflow run release.yml --ref main --field version=v0.0.XX
 ```
-Re-runs the upload with stapled DMGs. Also upload to GitHub release.
+The tag must already exist.
 
-### 9. Update Changelog
-```bash
-gh release edit v{VERSION} --notes "..."
-```
+### Important Notes
+- **First iteration releases are UNSIGNED** — macOS users need `xattr -d com.apple.quarantine /Applications/1Code.app` after install. Code signing is tracked as a roadmap item.
+- **v0.0.72 users must manually reinstall** — older installs have the dead CDN provider baked in and cannot auto-update. See release.md "First Release After Pipeline Migration" section.
+- **Beta channel is disabled** — `auto-updater.ts` is locked to "latest" channel. Beta support requires `generateUpdatesFilesForAllChannels: true` in the electron-builder config.
 
-### 10. Upload Manifests (triggers auto-updates)
-The manifests (`latest-mac.yml` / `latest-mac-x64.yml`) are uploaded as part of `dist:upload`. **This triggers auto-updates for all existing installs** — only run after notarization, stapling, and re-upload are complete.
-
-Report the final version number and CDN URLs when complete.
-
-See [`docs/operations/release.md`](../../docs/operations/release.md) for the full runbook including troubleshooting, CDN base URL for self-hosted forks, and the complete artifact table.
+See [`docs/operations/release.md`](../../docs/operations/release.md) for the full runbook including troubleshooting, code-signing plan, and the complete artifact table.

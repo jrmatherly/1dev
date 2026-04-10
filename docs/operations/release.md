@@ -5,7 +5,7 @@ icon: rocket
 
 # Release Pipeline {subtitle="Build, publish, and ship 1Code releases via GitHub Actions"}
 
-This document describes the end-to-end release pipeline for 1Code Enterprise Fork. Releases are built by GitHub Actions on `macos-latest`, `ubuntu-latest`, and `windows-latest` runners and published as binary assets on a [GitHub Release](https://github.com/jrmatherly/1dev/releases). Installed apps auto-update via `electron-updater`'s native GitHub provider.
+This document describes the end-to-end release pipeline for 1Code Enterprise Fork. Releases are built by GitHub Actions on `macos-15`, `ubuntu-latest`, and `windows-latest` runners and published as binary assets on a [GitHub Release](https://github.com/jrmatherly/1dev/releases). Installed apps auto-update via `electron-updater`'s native GitHub provider.
 
 ## Architecture
 
@@ -14,7 +14,7 @@ git tag v0.0.73
   ↓ (push origin v0.0.73)
 .github/workflows/release.yml
   ├─ matrix-build (parallel, 3 runners)
-  │   ├─ macos-latest    → release/*.dmg, *.zip, latest-mac.yml, latest-mac-x64.yml
+  │   ├─ macos-15    → release/*.dmg, *.zip, latest-mac.yml, latest-mac-x64.yml
   │   ├─ ubuntu-latest   → release/*.AppImage, *.deb, latest-linux.yml
   │   └─ windows-latest  → release/*.exe, latest.yml
   └─ release (needs: matrix-build)
@@ -110,7 +110,7 @@ Users will see:
 
 - **macOS:** Gatekeeper will refuse to open the unsigned app by default. Workaround after dragging to Applications:
   ```bash
-  xattr -cr /Applications/1Code.app
+  xattr -d com.apple.quarantine /Applications/1Code.app
   ```
 - **Windows:** SmartScreen will warn "Windows protected your PC". Users click "More info" → "Run anyway".
 - **Linux:** No signing required for AppImage/DEB; these run normally.
@@ -142,7 +142,7 @@ Check the job log for the specific error. Common causes:
 
 ### "No such file or directory" on upload step
 
-The upload step uses `if-no-files-found: error`, so if the package step produced no matching files, the artifact upload fails loudly. Check the "List build output" step's output to see what was actually in `release/`.
+The upload step uses `if-no-files-found: warn`, so if the package step produced no matching files for a given glob (expected on cross-platform builds where `.dmg` only exists on macOS, etc.), the step logs a warning rather than failing. Check the "List build output" step's output to see what was actually in `release/`.
 
 ### Workflow succeeds but no Release is created
 

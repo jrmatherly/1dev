@@ -27,7 +27,7 @@ These features run entirely on your machine — no hosted backend required.
 - **Message Queue** — Queue prompts while an agent is working
 - **Plan Mode** — Structured plans with markdown preview before execution
 - **Extended Thinking** — Visual thinking gradient for Claude reasoning
-- **Auto-Updates** — `electron-updater` polling a configurable CDN (self-hosters override `CDN_BASE` in `src/main/lib/auto-updater.ts`)
+- **Auto-Updates** — `electron-updater` polling GitHub Releases for new versions (see [`docs/operations/release.md`](docs/operations/release.md))
 - **Cross Platform** — macOS, Windows, Linux
 
 ### Upstream-dependent features

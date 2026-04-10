@@ -388,6 +388,6 @@ README claims "Start and monitor background agents from your phone." This is the
 
 1. **Immediate (this session):** Use this inventory to drive the README Option 3 rewrite. Every feature marked 🟥/🟨 that touches upstream gets removed from the README Highlights/Features lists. Local features stay.
 2. **Next session:** Resolve the three open investigations (F1, F7, F9).
-3. **Phase 1 of fork roadmap:** Address F8 (subscription stub), F5 (CDN flip), F6 (bundled changelog), F10 (README cleanup) — all are 1-day fixes.
+3. **Phase 1 of fork roadmap:** Address F8 (subscription stub), F6 (bundled changelog), F10 (README cleanup) — all are 1-day fixes. (F5 auto-update channel resolved 2026-04-09 via GitHub Releases migration.)
 4. **Phase 2:** Address F4 (LiteLLM Whisper) alongside the auth migration.
 5. **Phase 3:** Decide F1 / F2 / F3 strategically — these are the "big rocks" and require alignment with the broader fork direction.

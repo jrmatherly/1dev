@@ -33,7 +33,7 @@
 | `index.ts` | App entry — window lifecycle, protocol handlers, auto-update |
 | `auth-manager.ts` | OAuth flow, token refresh, credential management |
 | `auth-store.ts` | Encrypted credential storage via Electron `safeStorage` |
-| `auto-updater.ts` | electron-updater config (CDN_BASE on line 33 = upstream CDN) |
+| `auto-updater.ts` | electron-updater config (github provider, reads app-update.yml baked at build time) |
 | `constants.ts` | App-wide constants |
 | `windows/main.ts` | BrowserWindow creation, IPC handler registration |
 
@@ -175,21 +175,20 @@ Radix-based primitives: accordion, alert-dialog, badge, button, button-group, ca
 | `download-claude-binary.mjs` | Download Claude CLI binary (pinned `2.1.96`). **Verifies SHA-256 + GPG signature** against `manifest.json` (Phase 0 gate #7) |
 | `download-codex-binary.mjs` | Download Codex binary (pinned `0.118.0`). Verifies SHA-256 against GitHub release `asset.digest` |
 | `anthropic-release-pubkey.asc` | Vendored Anthropic GPG release-signing pubkey (fingerprint `31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE`) |
-| `generate-update-manifest.mjs` | Generate `latest-mac.yml` / `latest-mac-x64.yml` |
+| ~~`generate-update-manifest.mjs`~~ | *Deleted* — electron-builder auto-generates manifests with github provider |
 | `generate-icon.mjs` | Generate app icons |
 | `patch-electron-dev.mjs` | Patch Electron for dev mode quirks |
 
 ### Build Pipeline
 ```
 bun run release =
-  rm -rf release →
-  bun i →
-  claude:download (SHA + GPG verified) →
-  codex:download (SHA verified) →
-  build (electron-vite) →
-  package:mac (electron-builder + notarize) →
-  dist:manifest →
-  upload to R2 CDN
+  git tag v0.0.XX && git push --follow-tags →
+  .github/workflows/release.yml triggers →
+  matrix-build (macos-15, ubuntu, windows) →
+    bun install → claude:download → codex:download → build → package:{mac,linux,win} →
+    upload-artifact →
+  release job →
+    download-artifact → softprops/action-gh-release → draft GitHub Release
 ```
 
 ---
