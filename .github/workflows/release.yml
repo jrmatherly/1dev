@@ -70,7 +70,7 @@ jobs:
             name: windows
             build-script: "package:win"
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
 
@@ -88,7 +88,18 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3 libopenjp2-tools rpm libarchive-tools
+          sudo apt-get install -y build-essential python3 libopenjp2-tools libarchive-tools
+
+      - name: "🔧 Install native GPG on Windows"
+        # Git for Windows bundles an MSYS2-compiled gpg that mangles Windows
+        # paths (GNUPGHOME, --homedir, file arguments all get broken by the
+        # MSYS2 POSIX translation layer). Installing Gpg4win provides a
+        # native Windows gpg.exe that handles Windows paths correctly.
+        # The download script also converts paths to MSYS format as a
+        # belt-and-suspenders defense (see download-claude-binary.mjs).
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: choco install gpg4win --yes --no-progress
 
       - name: "⬇️ Install dependencies"
         run: bun install --frozen-lockfile
@@ -114,6 +125,13 @@ jobs:
         run: bun run codex:download $DL_FLAG
 
       - name: "🏗️ Build application"
+        # macOS-15 standard runners have only 7 GB RAM. The renderer build
+        # bundles monaco-editor, mermaid, and shiki (463 output chunks) which
+        # exhausts V8's auto-calculated heap limit (~4-5 GB on 7 GB machines).
+        # Setting max-old-space-size explicitly gives the build enough headroom.
+        # This is safe on all OSes — Linux/Windows have 16 GB and ignore the cap.
+        env:
+          NODE_OPTIONS: "--max-old-space-size=6144"
         run: bun run build
 
       - name: "📦 Package for ${{ matrix.name }} (unsigned)"
@@ -132,9 +150,23 @@ jobs:
         shell: bash
         run: bun run "$BUILD_SCRIPT" -- --publish never
 
-      - name: "📋 List build output"
+      - name: "✅ Verify update manifests exist"
+        # electron-builder generates latest-*.yml manifests from the
+        # build.publish config in package.json. If these are missing, the
+        # auto-updater won't be able to find new versions. Catch this early.
         shell: bash
-        run: ls -lh release/ || true
+        run: |
+          echo "📋 Build output:"
+          ls -lh release/ || true
+          echo ""
+          # Check for update manifests (platform-specific)
+          if [ "${{ matrix.name }}" = "macos" ]; then
+            ls release/latest-mac.yml 2>/dev/null || echo "⚠️ WARNING: latest-mac.yml not found"
+          elif [ "${{ matrix.name }}" = "linux" ]; then
+            ls release/latest-linux.yml 2>/dev/null || echo "⚠️ WARNING: latest-linux.yml not found"
+          elif [ "${{ matrix.name }}" = "windows" ]; then
+            ls release/latest.yml 2>/dev/null || echo "⚠️ WARNING: latest.yml not found"
+          fi
 
       - name: "📤 Upload ${{ matrix.name }} artifacts"
         uses: actions/upload-artifact@v7
@@ -154,6 +186,11 @@ jobs:
   release:
     name: "🚀 Publish GitHub Release"
     needs: matrix-build
+    # Allow partial releases during bootstrap: proceed even if some matrix
+    # legs failed, as long as the job wasn't cancelled. This lets successfully
+    # built platforms (e.g., Linux) be released while others are still being
+    # fixed. Once all platforms are green, tighten this to just `needs:`.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -193,6 +230,21 @@ jobs:
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "📦 Releasing as tag: $TAG"
+
+      - name: "✅ Verify version consistency"
+        # Catch tag/package.json mismatches early — especially for manual
+        # workflow_dispatch runs where the tag is user-provided.
+        shell: bash
+        run: |
+          PKG_VERSION="v$(jq -r .version package.json)"
+          TAG="${{ steps.tag.outputs.tag }}"
+          echo "📦 package.json version: $PKG_VERSION"
+          echo "🏷️  Release tag:          $TAG"
+          if [ "$PKG_VERSION" != "$TAG" ]; then
+            echo "⚠️ WARNING: Version mismatch — package.json=$PKG_VERSION, tag=$TAG"
+            echo "   The published app will report $PKG_VERSION, not $TAG."
+            echo "   Consider re-tagging after bumping package.json."
+          fi
 
       - name: "🚀 Publish GitHub Release"
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
@@ -241,6 +293,9 @@ jobs:
             artifacts/*.exe
             artifacts/*.yml
             artifacts/*.blockmap
-          fail_on_unmatched_files: true
+          # Allow partial releases during bootstrap — if a platform build
+          # failed, its artifacts won't exist. Set to `true` once all
+          # platforms are consistently green.
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -269,12 +269,29 @@ async function verifyManifestSignature(version, manifestBytes) {
   }
 
   // Use a per-run ephemeral GPG home so we don't pollute the user's ~/.gnupg.
-  // We set GNUPGHOME as an env var instead of using --homedir because on
-  // Windows CI (Git Bash), fs.mkdtempSync returns a Windows path that gets
-  // mangled when passed as a --homedir argument through bash, producing
-  // invalid paths like "/d/a/repo/C:\\Users\\...". GNUPGHOME avoids this.
+  //
+  // Windows path handling is a multi-layered problem:
+  //   1. Node's os.tmpdir() returns a Windows-native path (C:\Users\...)
+  //   2. Git for Windows bundles an MSYS2-compiled gpg that mangles Windows
+  //      paths — both via --homedir AND via GNUPGHOME env var. The MSYS2
+  //      runtime prepends the CWD to paths it doesn't recognize as absolute,
+  //      producing invalid paths like "/d/a/repo/C:\\Users\\...".
+  //   3. The CI workflow also installs native Gpg4win as a primary fix, but
+  //      we convert paths to MSYS format here as defense-in-depth in case
+  //      the MSYS2 gpg is found on PATH first.
+  //
+  // The fix: convert Windows paths to MSYS-compatible POSIX format
+  // (C:\Users\... → /c/Users/...) which both MSYS2 and native GPG accept.
   const gpgHome = fs.mkdtempSync(path.join(os.tmpdir(), "claude-gpg-verify-"));
-  const gpgEnv = { ...process.env, GNUPGHOME: gpgHome };
+  // Convert a Windows path to MSYS-compatible POSIX format for GPG.
+  // C:\Users\foo → /c/Users/foo. No-op on non-Windows platforms.
+  const toGpgPath = (p) =>
+    process.platform === "win32"
+      ? "/" + p.replace(/\\/g, "/").replace(/^([A-Za-z]):/, (_, d) => d.toLowerCase())
+      : p;
+
+  const gpgHomeSafe = toGpgPath(gpgHome);
+  const gpgEnv = { ...process.env, GNUPGHOME: gpgHomeSafe };
   try {
     // Set strict permissions to silence "unsafe permissions" warnings.
     // On Windows, chmod is a no-op but doesn't error.
@@ -283,7 +300,7 @@ async function verifyManifestSignature(version, manifestBytes) {
     // Import the vendored public key into the ephemeral keyring.
     execFileSync(
       "gpg",
-      ["--import", ANTHROPIC_RELEASE_PUBKEY_PATH],
+      ["--import", toGpgPath(ANTHROPIC_RELEASE_PUBKEY_PATH)],
       { stdio: "pipe", env: gpgEnv },
     );
 
@@ -322,6 +339,8 @@ async function verifyManifestSignature(version, manifestBytes) {
     }
 
     // Write the manifest and signature to temp files for gpg --verify.
+    // Use the original Windows path for fs operations (Node handles it natively),
+    // but convert to MSYS format for GPG arguments.
     const manifestPath = path.join(gpgHome, "manifest.json");
     const sigPath = path.join(gpgHome, "manifest.json.sig");
     fs.writeFileSync(manifestPath, manifestBytes);
@@ -333,7 +352,7 @@ async function verifyManifestSignature(version, manifestBytes) {
     try {
       execFileSync(
         "gpg",
-        ["--verify", sigPath, manifestPath],
+        ["--verify", toGpgPath(sigPath), toGpgPath(manifestPath)],
         { stdio: "pipe", env: gpgEnv },
       );
     } catch (err) {
