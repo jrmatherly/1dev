@@ -55,26 +55,6 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None (infrastructure already in place via `openspec/specs/feature-flags/spec.md`)
 **Canonical reference:** [`docs/enterprise/upstream-features.md`](../enterprise/upstream-features.md) section F8
 
-### [In Progress] First release build — v0.0.73 end-to-end pipeline test
-
-**Added:** 2026-04-10
-**Status:** v0.0.73 tag pushed 2026-04-10. Linux build **succeeded** (artifacts uploaded). macOS and Windows **failed** — see sub-items below. Run: [24229099621](https://github.com/jrmatherly/1dev/actions/runs/24229099621).
-**Scope:** Push a `v0.0.73` tag to trigger `.github/workflows/release.yml` for the first time on real CI runners. Validates the entire pipeline end-to-end: 3-OS matrix build (macOS arm64+x64 binaries via `--all`, Linux AppImage+DEB, Windows NSIS+portable), artifact handoff via `upload-artifact@v7` → `download-artifact@v8`, and draft GitHub Release creation via `softprops/action-gh-release`.
-**Effort:** Small (two bug fixes + re-tag)
-**Canonical reference:** [`docs/operations/release.md`](../operations/release.md), `.github/workflows/release.yml`
-
-#### Sub-item: Fix Windows GPG path mixing in Claude download script
-
-**Root cause:** `fs.mkdtempSync()` returns Windows path (`C:\Users\...`), but Git Bash on `windows-latest` mixes it with Unix-style prefixes, producing invalid path `/d/a/1dev/1dev/C:\\Users\\...` for `gpg --homedir`. GPG can't create its keyring at that path.
-**Fix:** Normalize temp dir path for the platform before passing to `gpg --homedir`. Options: (a) use `GNUPGHOME` env var instead of `--homedir`, (b) convert via `path.resolve()` + forward-slash normalization on Windows, (c) use `process.platform === "win32"` guard.
-**File:** `scripts/download-claude-binary.mjs:272-280`
-
-#### Sub-item: Fix macOS Codex download HTTP 403
-
-**Root cause:** `release.yml:125` sets `GH_TOKEN: ""` to prevent electron-builder auto-publish, but this blanks the token for ALL steps in the packaging job, including the prior download steps. The Codex download script at `download-codex-binary.mjs:63` uses `process.env.GITHUB_TOKEN` for GitHub API auth. Without it, the `openai/codex` repo returns 403 (rate limit or access restriction).
-**Fix:** Scope `GH_TOKEN: ""` to only the packaging step (move from job-level to step-level env), OR explicitly pass `GITHUB_TOKEN` to the download steps.
-**File:** `.github/workflows/release.yml:119-128`, `scripts/download-codex-binary.mjs:57-65`
-
 ---
 
 ## P2 -- Medium Priority
@@ -219,6 +199,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
+| 2026-04-10 | First successful all-platform release build (v0.0.79) — 7 iterations (v0.0.73–v0.0.79). Fixes: macOS OOM (NODE_OPTIONS=6144MB), Windows GPG (toGpgPath MSYS conversion in download-claude-binary.mjs), Codex 403 (per-platform downloads + retry), partial releases (if: !cancelled()), Chocolatey GPG hangs (removed), timeout 45→60 min, version consistency check, manifest verification | `release.yml`, `scripts/download-claude-binary.mjs` |
 | 2026-04-10 | Tailwind CSS 3.4.19 → 4.2.2 + tailwind-merge 2.6.1 → 3.5.0 — CSS-first config, PostCSS → `@tailwindcss/vite`, `tw-animate-css`, `--tw-ring-*` rewritten to `box-shadow`, 7 false renames fixed (5 initial + 2 caught by code review), 148 files touched by upgrade tool, 10/10 visual QA verified | `upgrade-tailwind-4` archived |
 | 2026-04-10 | Release pipeline — 3-OS matrix release.yml + package.json publish → github provider + CDN_BASE removed from auto-updater.ts + runbook rewrite | F5 auto-update channel resolved (unsigned first iteration) |
 | 2026-04-10 | Vite 6.4.2 → 7.3.2 + @vitejs/plugin-react 4.7 → 5.2 (Phase A) — CJS interop + `import.meta.env` + React dedup verified in build; functional verification via full streaming Claude agent session | `upgrade-vite-8-build-stack` Phase A (15/59 tasks, stays active for Phase B) |

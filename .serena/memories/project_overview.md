@@ -26,7 +26,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **CodeQL:** 19 findings resolved (18 fixed, 1 dismissed as false positive)
 - **12 package upgrades landed** (all deps current as of 2026-04-09)
 - **Release pipeline:** GitHub Actions `release.yml` builds 3-OS matrix (macos-15, ubuntu, windows) and publishes to GitHub Releases. `electron-updater` github provider. Unsigned first iteration. F5 auto-update channel RESOLVED.
-- **Release pipeline status:** First release build attempted (v0.0.73 → v0.0.74 → v0.0.75). Linux succeeds; Windows and macOS have CI issues pending resolution.
+- **Release pipeline status:** First successful all-platform release build: **v0.0.79** (2026-04-10). All 3 OSes pass, draft GitHub Release created with 17 assets. Fixes applied: macOS OOM (NODE_OPTIONS=6144MB), Windows GPG (toGpgPath MSYS conversion), Codex 403 (per-platform downloads + retry). v0.0.73–v0.0.78 failed iterations archived as learning.
 - **1code-update-server:** Dead infrastructure — F5 auto-update resolved via GitHub Releases, K8s manifest research confirmed update server is NOT needed.
 - **New OpenSpec:** `implement-1code-api` (51 tasks, Phase 1: changelog/plan/profile/health endpoints). `services/1code-api/` will be a new top-level directory.
 - **Active OpenSpec changes (2):** `upgrade-vite-8-build-stack` (15/59, Phase A done), `implement-1code-api` (51 tasks, Phase 1).

@@ -20,8 +20,6 @@ export class WindowsPlatformProvider extends BasePlatformProvider {
   getShellConfig(): ShellConfig {
     const powershellPath =
       "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
-    const cmdPath = process.env.COMSPEC || "C:\\Windows\\System32\\cmd.exe";
-
     return {
       executable: process.env.COMSPEC || powershellPath,
       loginArgs: [], // Windows shells don't have login mode like Unix

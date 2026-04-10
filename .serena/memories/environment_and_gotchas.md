@@ -58,9 +58,10 @@
 - `gh auth switch --user jrmatherly` needed for repo admin operations (branch protection, alert dismissal)
 - **Release workflow:** `.github/workflows/release.yml` — tag-push + workflow_dispatch. 3-OS matrix → draft GitHub Release. SHA-pinned `softprops/action-gh-release@153bb8e # v2.6.1`. Bun pinned to 1.3.11. macOS runner pinned to macos-15. Unsigned first iteration (CSC_IDENTITY_AUTO_DISCOVERY=false). macOS downloads both arm64+x64 binaries via `--all` flag.
 - **Dependabot labels:** `dependencies`, `bun`, `docs`, `github-actions` all exist in the repo (created 2026-04-09). Missing labels cause PRs to open un-labeled with an error.
-- **Release build CI gotchas (discovered v0.0.73–v0.0.75):**
-  - **Windows GPG path mixing:** `GNUPGHOME` env var doesn't work in Git Bash — must use `--homedir` with path normalization (`$(cygpath -u "$GNUPGHOME")` or similar).
-  - **Cross-org GITHUB_TOKEN 403:** Default `GITHUB_TOKEN` cannot fetch releases from other orgs (e.g., `openai/codex`). Codex download step needs a PAT or pre-bundled binary.
+- **Release build CI gotchas (resolved v0.0.79, 2026-04-10):**
+  - **Windows GPG path mixing (RESOLVED):** MSYS2-compiled GPG from Git for Windows mangles both `--homedir` and `GNUPGHOME` Windows paths. Fix: `toGpgPath()` in `download-claude-binary.mjs` converts `C:\Users\...` → `/c/Users/...` (MSYS-compatible POSIX format). Chocolatey `gpg4win` and `gnupg` both hang on CI runners (>20 min) — do NOT use.
+  - **Cross-org GITHUB_TOKEN 403 (RESOLVED):** Codex download uses `GITHUB_TOKEN=""` with per-platform downloads (not `--all`) to minimize API calls + retry with exponential backoff (3 attempts, 10s/20s delay).
   - **bun.lock regeneration:** After devDependency changes, `bun.lock` must be regenerated or CI `--frozen-lockfile` fails.
-  - **macOS runner OOM:** Full electron-builder build can OOM on default macOS runners. Needs `NODE_OPTIONS=--max-old-space-size=8192` or a runner with more RAM.
+  - **macOS runner OOM (RESOLVED):** macOS-15 runners have only 7 GB RAM. Fix: `NODE_OPTIONS="--max-old-space-size=6144"` on the build step in `release.yml`. Build produces 463 renderer chunks from monaco/mermaid/shiki.
+  - **Partial releases:** `release.yml` uses `if: !cancelled()` + `fail_on_unmatched_files: false` to allow partial releases during bootstrap. Tighten once all platforms are stable.
 - **`/session-sync` skill:** End-of-task drift sync for CLAUDE.md, Serena memories, roadmap, code-review graph. Run after every significant change instead of typing the full multi-command chain.

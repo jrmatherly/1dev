@@ -63,7 +63,7 @@ bun run claude:download  # Claude CLI binary (pinned 2.1.96)
 bun run codex:download   # Codex binary (pinned 0.118.0)
 ```
 
-Release workflow (GitHub Actions matrix build → draft GitHub Release via `release.yml`): [`docs/operations/release.md`](docs/operations/release.md). First iteration ships unsigned; signing is a follow-on task.
+Release workflow (GitHub Actions 3-OS matrix build → draft GitHub Release via `release.yml`): [`docs/operations/release.md`](docs/operations/release.md). v0.0.79 first successful all-platform build (2026-04-10). Ships unsigned; signing is a follow-on task.
 
 ## Architecture summary
 
@@ -107,7 +107,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **Lint config:** `eslint.config.mjs` — ESLint 10 flat config with `eslint-plugin-sonarjs` v4. Suppressions document why each rule is off for this Electron/React codebase. Run `bun run lint` for project-wide scan.
 - **IDE config:** `.vscode/settings.json` tracked in git — tsgo flag + SonarLint rule suppressions (16 rules disabled project-wide, covering TS/JS/CSS). See file for rationale per rule.
 - **Upgrade tool false renames:** `npx @tailwindcss/upgrade` (and similar bulk-rename tools) can't distinguish CSS classes from identically-named strings in non-CSS contexts (VSCode theme keys, dictionary words, event handler args). Always grep for renamed strings in non-CSS files after running upgrade tools.
-- **CI release gotchas:** (1) `GITHUB_TOKEN` is repo-scoped — sending it as Bearer to cross-org APIs (e.g., `openai/codex`) returns 403; unset for external downloads. (2) Windows GPG in Git Bash mangles `--homedir` paths; use `GNUPGHOME` env var or normalize paths. (3) `bun.lock` must be committed after any `package.json` devDependency change or `--frozen-lockfile` CI fails.
+- **CI release gotchas:** (1) `GITHUB_TOKEN` is repo-scoped — sending it as Bearer to cross-org APIs (e.g., `openai/codex`) returns 403; use per-platform downloads with `GITHUB_TOKEN=""` + retry with backoff. (2) Windows GPG in Git Bash: MSYS2-compiled GPG mangles Windows paths — `download-claude-binary.mjs` `toGpgPath()` converts `C:\...` → `/c/...` (both `--homedir` AND `GNUPGHOME` alone are insufficient; Chocolatey `gpg4win`/`gnupg` installs hang on CI runners). (3) `bun.lock` must be committed after any `package.json` devDependency change or `--frozen-lockfile` CI fails. (4) macOS-15 runners have only 7 GB RAM — `NODE_OPTIONS="--max-old-space-size=6144"` is required on the build step to prevent V8 heap OOM.
 - **Gotchas (tool quirks, macOS base64url, Entra v2 manifest, Flux/GitOps):** [`docs/operations/env-gotchas.md`](docs/operations/env-gotchas.md).
 - **First-install debug:** clear `~/Library/Application\ Support/Agents\ Dev/`, reset Launch Services. Full runbook in [`docs/operations/debugging-first-install.md`](docs/operations/debugging-first-install.md).
 
