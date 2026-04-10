@@ -73,16 +73,16 @@ const ACTION_TO_SHORTCUT_MAP: Record<string, ShortcutActionId> =
  */
 function matchesHotkey(e: KeyboardEvent, hotkey: string): boolean {
   const parts = hotkey.toLowerCase().split("+");
-  const key = parts[parts.length - 1];
-  const modifiers = parts.slice(0, -1);
+  const key = parts.at(-1) ?? "";
+  const modifiers = new Set(parts.slice(0, -1));
 
-  const needsMeta = modifiers.includes("cmd") || modifiers.includes("meta");
-  const needsAlt = modifiers.includes("opt") || modifiers.includes("alt");
-  const needsCtrl = modifiers.includes("ctrl");
-  let needsShift = modifiers.includes("shift");
+  const needsMeta = modifiers.has("cmd") || modifiers.has("meta");
+  const needsAlt = modifiers.has("opt") || modifiers.has("alt");
+  const needsCtrl = modifiers.has("ctrl");
+  let needsShift = modifiers.has("shift");
 
   // "?" requires shift implicitly
-  if (key === "?" && !modifiers.includes("shift")) {
+  if (key === "?" && !modifiers.has("shift")) {
     needsShift = true;
   }
 
@@ -300,7 +300,6 @@ export function useAgentsHotkeys(
         e.preventDefault();
         e.stopPropagation();
         handleHotkeyAction("create-new-agent");
-        return;
       }
     };
 

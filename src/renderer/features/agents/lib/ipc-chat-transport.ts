@@ -583,7 +583,7 @@ export class IPCChatTransport implements ChatTransport<UIMessage> {
    * Looks for parts with type "data-image" that have base64Data
    */
   private extractImages(msg: UIMessage | undefined): ImageAttachment[] {
-    if (!msg || !msg.parts) return [];
+    if (!msg?.parts) return [];
 
     const images: ImageAttachment[] = [];
 

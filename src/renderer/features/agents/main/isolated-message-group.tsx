@@ -13,7 +13,6 @@ import {
 import { MemoizedAssistantMessages } from "./messages-list";
 import {
   extractTextMentions,
-  TextMentionBlocks,
   TextMentionBlock,
 } from "../mentions/render-file-mentions";
 import { AgentImageItem } from "../ui/agent-image-item";

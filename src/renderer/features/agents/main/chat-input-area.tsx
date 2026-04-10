@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { ChevronDown, RefreshCw } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -17,26 +17,13 @@ import {
   AttachIcon,
   CheckIcon,
   IconSpinner,
-  OriginalMCPIcon,
   PlanIcon,
-  SettingsIcon,
 } from "../../../components/ui/icons";
-import { Kbd } from "../../../components/ui/kbd";
 import {
   PromptInput,
   PromptInputActions,
   PromptInputContextItems,
 } from "../../../components/ui/prompt-input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "../../../components/ui/tooltip";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../../components/ui/popover";
 import {
   agentsSettingsDialogActiveTabAtom,
   agentsSettingsDialogOpenAtom,
@@ -51,6 +38,7 @@ import {
   normalizeCustomClaudeConfig,
   selectedOllamaModelAtom,
   showOfflineModeFeaturesAtom,
+  customHotkeysAtom,
 } from "../../../lib/atoms";
 import { trpc } from "../../../lib/trpc";
 import { cn } from "../../../lib/utils";
@@ -100,7 +88,6 @@ import { AgentImageItem } from "../ui/agent-image-item";
 import { AgentPastedTextItem } from "../ui/agent-pasted-text-item";
 import { AgentTextContextItem } from "../ui/agent-text-context-item";
 import { VoiceWaveIndicator } from "../ui/voice-wave-indicator";
-import { McpStatusDot } from "../../../components/dialogs/settings-tabs/agents-mcp-tab";
 import { handlePasteEvent } from "../utils/paste-text";
 import type { PastedTextFile } from "../hooks/use-pasted-text-files";
 import {
@@ -109,7 +96,6 @@ import {
   getAudioFormat,
 } from "../../../lib/hooks/use-voice-recording";
 import { getResolvedHotkey } from "../../../lib/hotkeys";
-import { customHotkeysAtom } from "../../../lib/atoms";
 import { toast } from "sonner";
 
 // Hook to get available models (including offline models if Ollama is available and debug enabled)
@@ -669,18 +655,6 @@ export const ChatInputArea = memo(function ChatInputArea({
     staleTime: 5 * 60 * 1000,
   });
 
-  const [isMcpRefreshing, setIsMcpRefreshing] = useState(false);
-  const isMcpBusy = isMcpLoading || isMcpRefreshing;
-
-  const handleRefreshMcp = useCallback(async () => {
-    setIsMcpRefreshing(true);
-    try {
-      await refetchMcp();
-    } finally {
-      setIsMcpRefreshing(false);
-    }
-  }, [refetchMcp]);
-
   // Extract global MCPs and project-specific MCPs
   const mcpGroups = useMemo(() => {
     if (!allMcpConfig?.groups) return { global: [], local: [] };
@@ -697,16 +671,6 @@ export const ChatInputArea = memo(function ChatInputArea({
       local: localGroup?.mcpServers || [],
     };
   }, [allMcpConfig?.groups, projectPath]);
-
-  const totalMcps = mcpGroups.global.length + mcpGroups.local.length;
-  const connectedMcps =
-    mcpGroups.global.filter((s) => s.status === "connected").length +
-    mcpGroups.local.filter((s) => s.status === "connected").length;
-
-  const handleOpenMcpSettings = useCallback(() => {
-    setSettingsTab("mcp");
-    setSettingsOpen(true);
-  }, [setSettingsTab, setSettingsOpen]);
 
   // Auto-switch model based on network status (only if offline features enabled)
   // Note: When offline, we show Ollama models selector instead of Claude models
@@ -833,7 +797,7 @@ export const ChatInputArea = memo(function ChatInputArea({
 
       if (!voiceMountedRef.current) return;
 
-      if (result.text && result.text.trim()) {
+      if (result.text?.trim()) {
         const current = (editorRef.current?.getValue() || "").trim();
         const transcribed = result.text.trim();
         const needsSpace = current.length > 0 && !/\s$/.test(current);
@@ -887,12 +851,16 @@ export const ChatInputArea = memo(function ChatInputArea({
 
     // Parse hotkey once
     const parts = voiceInputHotkey.split("+").map((p) => p.toLowerCase());
-    const modifiers = parts.filter((p) =>
-      ["cmd", "meta", "ctrl", "opt", "alt", "shift"].includes(p),
-    );
-    const mainKey = parts.find(
-      (p) => !["cmd", "meta", "ctrl", "opt", "alt", "shift"].includes(p),
-    );
+    const MODIFIER_KEYS = new Set([
+      "cmd",
+      "meta",
+      "ctrl",
+      "opt",
+      "alt",
+      "shift",
+    ]);
+    const modifiers = parts.filter((p) => MODIFIER_KEYS.has(p));
+    const mainKey = parts.find((p) => !MODIFIER_KEYS.has(p));
 
     const needsCmd = modifiers.includes("cmd") || modifiers.includes("meta");
     const needsShift = modifiers.includes("shift");
@@ -1318,7 +1286,7 @@ export const ChatInputArea = memo(function ChatInputArea({
         let mentionId: string;
         let mentionPath: string;
 
-        if (projectPath && filePath && filePath.startsWith(projectPath)) {
+        if (projectPath && filePath?.startsWith(projectPath)) {
           // File is inside project - use relative path
           const relativePath = filePath
             .slice(projectPath.length)

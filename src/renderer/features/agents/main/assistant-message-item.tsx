@@ -14,7 +14,6 @@ import {
 import {
   CollapseIcon,
   ExpandIcon,
-  PlanIcon,
 } from "../../../components/ui/icons";
 import { TextShimmer } from "../../../components/ui/text-shimmer";
 import { cn } from "../../../lib/utils";
@@ -167,7 +166,7 @@ function normalizeAcpParts(parts: any[]): any[] {
       // Codex passes command as array ['/bin/zsh', '-lc', 'actual command'] — extract shell string
       if (Array.isArray(enrichedInput.command)) {
         enrichedInput.command =
-          enrichedInput.command[enrichedInput.command.length - 1] || detail;
+          enrichedInput.command.at(-1) || detail;
       } else if (!enrichedInput.command && detail) {
         enrichedInput.command = detail;
       }
@@ -636,13 +635,13 @@ export const AssistantMessageItem = memo(function AssistantMessageItem({
         op.part.state === "input-streaming" || op.part.state === "pending",
     );
 
-    const lastOp = operations[operations.length - 1];
+    const lastOp = operations.at(-1);
 
     return {
       operations,
       hasAnyPlanOperation: true,
       isStreaming,
-      lastOperationType: lastOp.type,
+      lastOperationType: lastOp?.type ?? null,
     };
   }, [messageParts]);
 
@@ -720,7 +719,7 @@ export const AssistantMessageItem = memo(function AssistantMessageItem({
     const collapsedOps = planOpsSummary.operations.filter(
       (op) => op.index < collapseBeforeIndex,
     );
-    return collapsedOps[collapsedOps.length - 1] || null;
+    return collapsedOps.at(-1) ?? null;
   }, [hasPlanInCollapsedSteps, planOpsSummary.operations, collapseBeforeIndex]);
 
   const stepParts = useMemo(() => {

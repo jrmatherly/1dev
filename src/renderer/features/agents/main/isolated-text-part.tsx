@@ -220,7 +220,7 @@ function highlightTextInDom(
   const textNodes: Text[] = [];
   let node: Text | null;
   while ((node = walker.nextNode() as Text | null)) {
-    if (node.nodeValue && node.nodeValue.toLowerCase().includes(lowerSearch)) {
+    if (node.nodeValue?.toLowerCase().includes(lowerSearch)) {
       textNodes.push(node);
     }
   }
@@ -420,10 +420,8 @@ export const IsolatedTextPartsList = memo(function IsolatedTextPartsList({
           if (finalTextIndex !== -1 && i >= finalTextIndex) {
             indices.push(i);
           }
-        } else {
-          if (finalTextIndex === -1 || i < finalTextIndex) {
-            indices.push(i);
-          }
+        } else if (finalTextIndex === -1 || i < finalTextIndex) {
+          indices.push(i);
         }
       }
     }

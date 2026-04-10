@@ -122,9 +122,6 @@ function CodexThinkingSubMenu({
     cancelClose();
     if (triggerRef.current) {
       const triggerRect = triggerRef.current.getBoundingClientRect();
-      const popoverEl = triggerRef.current.closest(
-        "[data-radix-popper-content-wrapper] > *",
-      );
       setSubPos({
         top: triggerRect.top - 4,
         left: triggerRect.right + 6,

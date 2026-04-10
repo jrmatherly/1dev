@@ -226,12 +226,12 @@ import {
   useAgentSubChatStore,
   type SubChatMeta,
 } from "../stores/sub-chat-store";
-import type { DiffViewMode } from "../ui/agent-diff-view";
 import {
   AgentDiffView,
   diffViewModeAtom,
   splitUnifiedDiffByFile,
   type AgentDiffViewRef,
+  type DiffViewMode,
   type ParsedDiffFile,
 } from "../ui/agent-diff-view";
 import { AgentPlanSidebar } from "../ui/agent-plan-sidebar";
@@ -508,10 +508,7 @@ function PlayButton({
         URL.revokeObjectURL(audioRef.current.src);
       }
     }
-    if (
-      mediaSourceRef.current &&
-      mediaSourceRef.current.readyState === "open"
-    ) {
+    if (mediaSourceRef.current?.readyState === "open") {
       try {
         mediaSourceRef.current.endOfStream();
       } catch {
@@ -621,7 +618,6 @@ function PlayButton({
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
 
-    const fetchStartTime = Date.now();
     const response = await apiFetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1224,10 +1220,7 @@ const DiffSidebarContent = memo(function DiffSidebarContent({
   const [changesPanelWidth, setChangesPanelWidth] = useAtom(
     agentsChangesPanelWidthAtom,
   );
-  const [isChangesPanelCollapsed, setIsChangesPanelCollapsed] = useAtom(
-    agentsChangesPanelCollapsedAtom,
-  );
-  const [isResizing, setIsResizing] = useState(false);
+  const [_isResizing, setIsResizing] = useState(false);
 
   // Active tab state (Changes/History) - atom so external components can switch tabs
   const [activeTab, setActiveTab] = useAtom(diffActiveTabAtom);
@@ -1351,14 +1344,6 @@ const DiffSidebarContent = memo(function DiffSidebarContent({
     : prefetchedFileContents;
 
   if (isNarrow) {
-    // Count changed files for collapsed header
-    const changedFilesCount = diffStatus
-      ? (diffStatus.staged?.length || 0) +
-        (diffStatus.unstaged?.length || 0) +
-        (diffStatus.untracked?.length || 0)
-      : 0;
-    const stagedCount = diffStatus?.staged?.length || 0;
-
     // Vertical layout: ChangesPanel on top, diff/file list below
     return (
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
@@ -1940,8 +1925,7 @@ const DiffSidebarRenderer = memo(function DiffSidebarRenderer({
   onDiscardSuccess,
 }: DiffSidebarRendererProps) {
   // Get callbacks and state from context
-  const { handleCloseDiff, viewedCount, handleViewedCountChange } =
-    useDiffState();
+  const { handleCloseDiff, viewedCount } = useDiffState();
 
   const handleReviewWithAI = useCallback(() => {
     if (diffDisplayMode !== "side-peek") {
@@ -2218,7 +2202,6 @@ const ChatViewInner = memo(function ChatViewInner({
   const editorRef = useRef<AgentsMentionsEditorHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const questionRef = useRef<AgentUserQuestionHandle>(null);
-  const prevChatKeyRef = useRef<string | null>(null);
   const prevSubChatIdRef = useRef<string | null>(null);
 
   // Consume pending mentions from external components (e.g. MCP widget in sidebar)
@@ -2232,22 +2215,6 @@ const ChatViewInner = memo(function ChatViewInner({
     setPendingMention(null);
   }, [isActive, pendingMention, setPendingMention]);
 
-  // TTS playback rate state (persists across messages and sessions via localStorage)
-  const [ttsPlaybackRate, setTtsPlaybackRate] = useState<PlaybackSpeed>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("tts-playback-rate");
-      if (saved && PLAYBACK_SPEEDS.includes(Number(saved) as PlaybackSpeed)) {
-        return Number(saved) as PlaybackSpeed;
-      }
-    }
-    return 1;
-  });
-
-  // Save playback rate to localStorage when it changes
-  const handlePlaybackRateChange = useCallback((rate: PlaybackSpeed) => {
-    setTtsPlaybackRate(rate);
-    localStorage.setItem("tts-playback-rate", String(rate));
-  }, []);
 
   // PR creation loading state - from atom to allow resetting after message sent
   const setIsCreatingPr = useSetAtom(isCreatingPrAtom);
@@ -2541,7 +2508,7 @@ const ChatViewInner = memo(function ChatViewInner({
   // Consume pending chat history file when this sub-chat is the target
   useEffect(() => {
     const pending = appStore.get(pendingChatHistoryAtom);
-    if (pending && pending.subChatId === subChatId) {
+    if (pending?.subChatId === subChatId) {
       addChatHistoryFile(pending.file);
       appStore.set(pendingChatHistoryAtom, null);
     }
@@ -2575,10 +2542,6 @@ const ChatViewInner = memo(function ChatViewInner({
   const removeFromQueue = useMessageQueueStore((s) => s.removeFromQueue);
   const popItemFromQueue = useMessageQueueStore((s) => s.popItem);
 
-  // Plan approval pending state (for tool approval loading)
-  const [planApprovalPending, setPlanApprovalPending] = useState<
-    Record<string, boolean>
-  >({});
 
   // Track chat changes for rename trigger reset
   const chatRef = useRef<Chat<any> | null>(null);
@@ -2667,10 +2630,6 @@ const ChatViewInner = memo(function ChatViewInner({
   // Track compacting status from SDK
   const compactingSubChats = useAtomValue(compactingSubChatsAtom);
   const isCompacting = compactingSubChats.has(subChatId);
-
-  // Desktop/fullscreen state for window drag region
-  const isDesktop = useAtomValue(isDesktopAtom);
-  const isFullscreen = useAtomValue(isFullscreenAtom);
 
   // Handler to trigger manual context compaction
   const handleCompact = useCallback(() => {
@@ -3114,11 +3073,9 @@ const ChatViewInner = memo(function ChatViewInner({
       if (pendingQuestions) {
         clearPendingQuestion();
       }
-    } else {
+    } else if (pendingQuestions) {
       // No pending question - clear if belongs to this sub-chat
-      if (pendingQuestions) {
-        clearPendingQuestion();
-      }
+      clearPendingQuestion();
     }
   }, [
     subChatId,
@@ -3250,8 +3207,7 @@ const ChatViewInner = memo(function ChatViewInner({
       const formattedAnswers: Record<string, string> = { ...selectedAnswers };
 
       // 3. Add custom text to the last question as "Other"
-      const lastQuestion =
-        displayQuestions.questions[displayQuestions.questions.length - 1];
+      const lastQuestion = displayQuestions.questions.at(-1);
       if (lastQuestion) {
         const existingAnswer = formattedAnswers[lastQuestion.question];
         if (existingAnswer) {
@@ -3366,29 +3322,6 @@ const ChatViewInner = memo(function ChatViewInner({
     subChatId,
   ]);
 
-  const handlePlanApproval = useCallback(
-    async (toolUseId: string, approved: boolean) => {
-      if (!toolUseId) return;
-      setPlanApprovalPending((prev) => ({ ...prev, [toolUseId]: true }));
-      try {
-        await trpcClient.claude.respondToolApproval.mutate({
-          toolUseId,
-          approved,
-        });
-      } catch (error) {
-        console.error("[plan-approval] Failed to respond:", error);
-        toast.error("Failed to send plan approval. Please try again.");
-      } finally {
-        setPlanApprovalPending((prev) => {
-          const next = { ...prev };
-          delete next[toolUseId];
-          return next;
-        });
-      }
-    },
-    [],
-  );
-
   // Handle plan approval - sends "Build plan" message and switches to agent mode
   const handleApprovePlan = useCallback(() => {
     // Update store mode synchronously BEFORE sending (transport reads from store)
@@ -3462,7 +3395,7 @@ const ChatViewInner = memo(function ChatViewInner({
 
       if (prUrlMatch && prUrlMatch[0] !== detectedPrUrlRef.current) {
         const prUrl = prUrlMatch[0];
-        const prNumber = parseInt(prUrlMatch[1], 10);
+        const prNumber = Number.parseInt(prUrlMatch[1], 10);
 
         // Store to prevent duplicate calls
         detectedPrUrlRef.current = prUrl;
@@ -3597,7 +3530,7 @@ const ChatViewInner = memo(function ChatViewInner({
           const parts = content.split(":");
           if (parts.length >= 3) {
             const filePath = parts[0] || "";
-            const lineNumber = parseInt(parts[1] || "0", 10) || undefined;
+            const lineNumber = Number.parseInt(parts[1] || "0", 10) || undefined;
             const preview = parts[2] || "";
             const encoded = parts.slice(3).join(":");
             let fullText = preview;
@@ -3624,7 +3557,7 @@ const ChatViewInner = memo(function ChatViewInner({
             const filePath = content.slice(pipeIdx + 1);
             const colonIdx = beforePipe.indexOf(":");
             if (colonIdx !== -1) {
-              const size = parseInt(beforePipe.slice(0, colonIdx) || "0", 10);
+              const size = Number.parseInt(beforePipe.slice(0, colonIdx) || "0", 10);
               const preview = beforePipe.slice(colonIdx + 1);
               restoredPastedTexts.push({
                 id: `pasted_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
@@ -4175,7 +4108,7 @@ const ChatViewInner = memo(function ChatViewInner({
     // Expand custom slash commands with arguments (e.g. "/Apex my argument")
     // This mirrors the logic in new-chat-form.tsx
     let finalText = text;
-    const slashMatch = text.match(/^\/(\S+)\s*(.*)$/s);
+    const slashMatch = /^\/(\S+)\s*(.*)$/s.exec(text);
     if (slashMatch) {
       const [, commandName, args] = slashMatch;
       const builtinNames = new Set(
@@ -4527,7 +4460,7 @@ const ChatViewInner = memo(function ChatViewInner({
 
     // Expand custom slash commands with arguments (e.g. "/Apex my argument")
     let finalText = text;
-    const slashMatch = text.match(/^\/(\S+)\s*(.*)$/s);
+    const slashMatch = /^\/(\S+)\s*(.*)$/s.exec(text);
     if (slashMatch) {
       const [, commandName, args] = slashMatch;
       const builtinNames = new Set(
@@ -4637,14 +4570,6 @@ const ChatViewInner = memo(function ChatViewInner({
     );
   };
 
-  // Helper to copy message content
-  const copyMessageContent = (msg: any) => {
-    const textContent = getMessageTextContent(msg);
-    if (textContent) {
-      navigator.clipboard.writeText(stripEmojis(textContent));
-    }
-  };
-
   // Check if there's an unapproved plan (in plan mode with completed ExitPlanMode)
   const hasUnapprovedPlan = useMemo(() => {
     // If already in agent mode, plan is approved (mode is the source of truth)
@@ -4660,7 +4585,7 @@ const ChatViewInner = memo(function ChatViewInner({
           (p: any) => p.type === "tool-ExitPlanMode",
         );
         // Check if ExitPlanMode is completed (has output, even if empty)
-        if (exitPlanPart && exitPlanPart.output !== undefined) {
+        if (exitPlanPart?.output !== undefined) {
           return true;
         }
       }
@@ -5625,7 +5550,7 @@ export function ChatView({
     storedDiffSidebarWidth,
   );
   // Track if all diff files are collapsed/expanded for button disabled states
-  const [diffCollapseState, setDiffCollapseState] = useState({
+  const [_diffCollapseState, setDiffCollapseState] = useState({
     allCollapsed: false,
     allExpanded: true,
   });
@@ -6332,7 +6257,7 @@ export function ChatView({
         );
         setDiffContent(rawDiff);
 
-        if (rawDiff && rawDiff.trim()) {
+        if (rawDiff?.trim()) {
           // Parse diff to get file list and stats (client-side for web)
           console.log("[fetchDiffStats] Parsing diff...");
           const parsedFiles = splitUnifiedDiffByFile(rawDiff);
@@ -7977,21 +7902,6 @@ Make sure to preserve all functionality from both branches when resolving confli
     ],
   );
 
-  // Get or create Chat instance for active sub-chat
-  const activeChat = useMemo(() => {
-    if (!activeSubChatId || !agentChat) {
-      return null;
-    }
-    return getOrCreateChat(activeSubChatId);
-  }, [activeSubChatId, agentChat, getOrCreateChat, chatId, chatWorkingDir]);
-
-  // Check if active sub-chat is the first one (for renaming parent chat)
-  // Use agentSubChats directly to avoid race condition with store initialization
-  const isFirstSubChatActive = useMemo(() => {
-    if (!activeSubChatId) return false;
-    return getFirstSubChatId(agentSubChats) === activeSubChatId;
-  }, [activeSubChatId, agentSubChats]);
-
   // Determine if chat header should be hidden
   const shouldHideChatHeader =
     hideHeader ||
@@ -7999,8 +7909,6 @@ Make sure to preserve all functionality from both branches when resolving confli
       isPreviewSidebarOpen &&
       isDiffSidebarOpen &&
       !isMobileFullscreen);
-
-  // No early return - let the UI render with loading state handled by activeChat check below
 
   return (
     <FileOpenProvider onOpenFile={setFileViewerPath}>

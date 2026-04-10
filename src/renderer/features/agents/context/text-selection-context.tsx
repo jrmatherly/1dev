@@ -154,7 +154,7 @@ function extractDiffLineInfo(element: Element): {
   let type: "old" | "new" | undefined;
 
   if (lineNum) {
-    lineNumber = parseInt(lineNum, 10);
+    lineNumber = Number.parseInt(lineNum, 10);
   }
 
   if (lineType) {

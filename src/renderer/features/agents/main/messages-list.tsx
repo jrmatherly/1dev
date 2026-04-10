@@ -289,14 +289,13 @@ export function useStreamingStatus() {
           store.status === "streaming" || store.status === "submitted";
         const lastMsgId =
           store.messages.length > 0
-            ? store.messages[store.messages.length - 1]?.id
+            ? (store.messages.at(-1)?.id ?? null)
             : null;
 
         if (
-          !cacheRef.current ||
-          cacheRef.current.isStreaming !== isStreaming ||
-          cacheRef.current.status !== store.status ||
-          cacheRef.current.lastMessageId !== lastMsgId
+          cacheRef.current?.isStreaming !== isStreaming ||
+          cacheRef.current?.status !== store.status ||
+          cacheRef.current?.lastMessageId !== lastMsgId
         ) {
           cacheRef.current = {
             isStreaming,
@@ -315,12 +314,11 @@ export function useStreamingStatus() {
       store.status === "streaming" || store.status === "submitted";
     const lastMsgId =
       store.messages.length > 0
-        ? store.messages[store.messages.length - 1]?.id
+        ? (store.messages.at(-1)?.id ?? null)
         : null;
 
     if (
-      cacheRef.current &&
-      cacheRef.current.isStreaming === isStreaming &&
+      cacheRef.current?.isStreaming === isStreaming &&
       cacheRef.current.status === store.status &&
       cacheRef.current.lastMessageId === lastMsgId
     ) {
@@ -365,7 +363,7 @@ function useIsLastMessage(messageId: string) {
       return store.subscribe(() => {
         const lastMsgId =
           store.messages.length > 0
-            ? store.messages[store.messages.length - 1]?.id
+            ? (store.messages.at(-1)?.id ?? null)
             : null;
         const isLast = messageId === lastMsgId;
 
@@ -382,7 +380,7 @@ function useIsLastMessage(messageId: string) {
   const getSnapshot = useCallback(() => {
     const lastMsgId =
       store.messages.length > 0
-        ? store.messages[store.messages.length - 1]?.id
+        ? (store.messages.at(-1)?.id ?? null)
         : null;
     const isLast = messageId === lastMsgId;
     prevIsLastRef.current = isLast;
@@ -409,9 +407,8 @@ function useIsStreaming() {
         const isStreaming =
           store.status === "streaming" || store.status === "submitted";
         if (
-          !cacheRef.current ||
-          cacheRef.current.isStreaming !== isStreaming ||
-          cacheRef.current.status !== store.status
+          cacheRef.current?.isStreaming !== isStreaming ||
+          cacheRef.current?.status !== store.status
         ) {
           cacheRef.current = { isStreaming, status: store.status };
           onStoreChange();
@@ -426,8 +423,7 @@ function useIsStreaming() {
       store.status === "streaming" || store.status === "submitted";
     // Return cached value if it matches current state
     if (
-      cacheRef.current &&
-      cacheRef.current.isStreaming === isStreaming &&
+      cacheRef.current?.isStreaming === isStreaming &&
       cacheRef.current.status === store.status
     ) {
       return cacheRef.current;
@@ -535,7 +531,7 @@ function useMessageWithLastStatus(messageId: string) {
         const currentMsg = store.messages.find((m) => m.id === messageId);
         const lastMsgId =
           store.messages.length > 0
-            ? store.messages[store.messages.length - 1]?.id
+            ? (store.messages.at(-1)?.id ?? null)
             : null;
         const isLast = messageId === lastMsgId;
 
@@ -556,7 +552,7 @@ function useMessageWithLastStatus(messageId: string) {
     const currentMsg = store.messages.find((m) => m.id === messageId);
     const lastMsgId =
       store.messages.length > 0
-        ? store.messages[store.messages.length - 1]?.id
+        ? (store.messages.at(-1)?.id ?? null)
         : null;
     const isLast = messageId === lastMsgId;
 
@@ -781,8 +777,7 @@ export function useMessageGroups() {
 
         // Stabilize assistantMsgIds array
         if (
-          cachedIds &&
-          cachedIds.length === newGroup.assistantMsgIds.length &&
+          cachedIds?.length === newGroup.assistantMsgIds.length &&
           cachedIds.every((id, j) => id === newGroup.assistantMsgIds[j])
         ) {
           newGroup.assistantMsgIds = cachedIds;
@@ -816,8 +811,7 @@ export function useMessageGroups() {
 
       // Stabilize assistantMsgIds array
       if (
-        cachedIds &&
-        cachedIds.length === newGroup.assistantMsgIds.length &&
+        cachedIds?.length === newGroup.assistantMsgIds.length &&
         cachedIds.every((id, j) => id === newGroup.assistantMsgIds[j])
       ) {
         newGroup.assistantMsgIds = cachedIds;
@@ -972,7 +966,7 @@ export function useUserMessageWithAssistants(userMsgId: string) {
         const userMsgIds = store.messages
           .filter((m) => m.role === "user")
           .map((m) => m.id);
-        const isLastGroup = userMsgIds[userMsgIds.length - 1] === userMsgId;
+        const isLastGroup = userMsgIds.at(-1) === userMsgId;
 
         // Check if anything changed
         if (cacheRef.current) {
@@ -1024,7 +1018,7 @@ export function useUserMessageWithAssistants(userMsgId: string) {
     const userMsgIds = store.messages
       .filter((m) => m.role === "user")
       .map((m) => m.id);
-    const isLastGroup = userMsgIds[userMsgIds.length - 1] === userMsgId;
+    const isLastGroup = userMsgIds.at(-1) === userMsgId;
 
     // Return cached value if nothing changed
     if (cacheRef.current) {

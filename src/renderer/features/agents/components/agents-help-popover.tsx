@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from "../../../components/ui/dropdown-menu";
 import { ArrowUpRight } from "lucide-react";
 import { KeyboardIcon } from "../../../components/ui/icons";
@@ -35,9 +34,9 @@ function parseFirstItemFromSection(
     }
     if (inSection && /^###?\s+/.test(line)) break;
     if (inSection) {
-      const bold = line.match(/^[-*]\s+\*\*(.+?)\*\*/);
+      const bold = /^[-*]\s+\*\*(.+?)\*\*/.exec(line);
       if (bold) return bold[1];
-      const plain = line.match(/^[-*]\s+(.+)/);
+      const plain = /^[-*]\s+(.+)/.exec(line);
       if (plain) return plain[1].replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").trim();
     }
   }

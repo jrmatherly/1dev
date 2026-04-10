@@ -13,11 +13,8 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { IconSpinner } from "../../../components/ui/icons";
-import type { SlashCommandOption, SlashTriggerPayload } from "./types";
-import {
-  filterBuiltinCommands,
-  BUILTIN_SLASH_COMMANDS,
-} from "./builtin-commands";
+import type { SlashCommandOption } from "./types";
+import { filterBuiltinCommands } from "./builtin-commands";
 import type { AgentMode } from "../atoms";
 
 interface AgentsSlashCommandProps {
@@ -78,9 +75,6 @@ export const AgentsSlashCommand = memo(function AgentsSlashCommand({
     }));
   }, [fileCommands]);
 
-  // State for loading command content
-  const [isLoadingContent, setIsLoadingContent] = useState(false);
-
   // tRPC utils for fetching command content
   const trpcUtils = trpc.useUtils();
 
@@ -95,7 +89,6 @@ export const AgentsSlashCommand = memo(function AgentsSlashCommand({
 
       // For custom commands, fetch the prompt content from filesystem
       if (option.path) {
-        setIsLoadingContent(true);
         try {
           const result = await trpcUtils.commands.getContent.fetch({
             path: option.path,
@@ -111,8 +104,6 @@ export const AgentsSlashCommand = memo(function AgentsSlashCommand({
           console.error("Failed to fetch slash command content:", error);
           // Still close the dropdown even on error
           onClose();
-        } finally {
-          setIsLoadingContent(false);
         }
       } else {
         // Fallback - just call onSelect without prompt

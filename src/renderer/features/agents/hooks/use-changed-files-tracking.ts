@@ -8,6 +8,14 @@ import {
 // import { REPO_ROOT_PATH } from "@/lib/codesandbox-constants"
 const REPO_ROOT_PATH = "/workspace"; // Desktop mock
 
+const ROOT_INDICATORS = new Set([
+  "apps",
+  "packages",
+  "src",
+  "lib",
+  "components",
+]);
+
 interface MessagePart {
   type: string;
   input?: {
@@ -60,9 +68,8 @@ export function useChangedFilesTracking(
 
       // Handle worktree paths: /Users/.../.1code/worktrees/{chatId}/{subChatId}/relativePath
       // Extract everything after the subChatId directory
-      const worktreeMatch = filePath.match(
-        /\.1code\/worktrees\/[^/]+\/[^/]+\/(.+)$/,
-      );
+      const worktreeMatch =
+        /\.1code\/worktrees\/[^/]+\/[^/]+\/(.+)$/.exec(filePath);
       if (worktreeMatch) {
         return worktreeMatch[1];
       }
@@ -70,8 +77,7 @@ export function useChangedFilesTracking(
       // Heuristic: find common root directories
       if (filePath.startsWith("/")) {
         const parts = filePath.split("/");
-        const rootIndicators = ["apps", "packages", "src", "lib", "components"];
-        const rootIndex = parts.findIndex((p) => rootIndicators.includes(p));
+        const rootIndex = parts.findIndex((p) => ROOT_INDICATORS.has(p));
         if (rootIndex > 0) {
           return parts.slice(rootIndex).join("/");
         }

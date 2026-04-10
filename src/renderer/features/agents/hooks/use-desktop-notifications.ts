@@ -92,21 +92,19 @@ export function useDesktopNotifications() {
         }
 
         // set up a timer to show the pending notification after throttle period
-        if (!throttleTimer.current) {
-          throttleTimer.current = setTimeout(() => {
-            throttleTimer.current = null;
-            if (pendingNotification.current) {
-              const pending = pendingNotification.current;
-              pendingNotification.current = null;
-              // Directly send notification without recursive call to avoid re-throttling
-              lastNotificationTime.current = Date.now();
-              window.desktopApi?.showNotification({
-                title: pending.title,
-                body: pending.body,
-              });
-            }
-          }, NOTIFICATION_THROTTLE_MS - timeSinceLastNotification);
-        }
+        throttleTimer.current ??= setTimeout(() => {
+          throttleTimer.current = null;
+          if (pendingNotification.current) {
+            const pending = pendingNotification.current;
+            pendingNotification.current = null;
+            // Directly send notification without recursive call to avoid re-throttling
+            lastNotificationTime.current = Date.now();
+            window.desktopApi?.showNotification({
+              title: pending.title,
+              body: pending.body,
+            });
+          }
+        }, NOTIFICATION_THROTTLE_MS - timeSinceLastNotification);
         return;
       }
 

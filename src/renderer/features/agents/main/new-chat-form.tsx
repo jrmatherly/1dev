@@ -1,7 +1,7 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { AlignJustify, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -44,11 +44,9 @@ import {
   getNextMode,
   type AgentMode,
 } from "../atoms";
-import { defaultAgentModeAtom } from "../../../lib/atoms";
 import { ProjectSelector } from "../components/project-selector";
 import { WorkModeSelector } from "../components/work-mode-selector";
 // import { selectedTeamIdAtom } from "@/lib/atoms/team"
-import { atom } from "jotai";
 const selectedTeamIdAtom = atom<string | null>(null);
 import {
   agentsSettingsDialogOpenAtom,
@@ -58,6 +56,7 @@ import {
   codexApiKeyAtom,
   codexOnboardingCompletedAtom,
   customClaudeConfigAtom,
+  defaultAgentModeAtom,
   extendedThinkingEnabledAtom,
   hiddenModelsAtom,
   normalizeCodexApiKey,
@@ -116,7 +115,6 @@ import {
   generateDraftId,
   deleteNewChatDraft,
   markDraftVisible,
-  type DraftProject,
 } from "../lib/drafts";
 import {
   CLAUDE_MODELS,
@@ -184,8 +182,7 @@ export function NewChatForm({
 }: NewChatFormProps = {}) {
   // UNCONTROLLED: just track if editor has content for send button
   const [hasContent, setHasContent] = useState(false);
-  const [selectedTeamId] = useAtom(selectedTeamIdAtom);
-  const [selectedChatId, setSelectedChatId] = useAtom(selectedAgentChatIdAtom);
+  const [, setSelectedChatId] = useAtom(selectedAgentChatIdAtom);
   const setSelectedChatIsRemote = useSetAtom(selectedChatIsRemoteAtom);
   const setChatSourceMode = useSetAtom(chatSourceModeAtom);
   const [selectedDraftId, setSelectedDraftId] = useAtom(selectedDraftIdAtom);
@@ -258,7 +255,6 @@ export function NewChatForm({
   const setSettingsDialogOpen = useSetAtom(agentsSettingsDialogOpenAtom);
   const setSettingsActiveTab = useSetAtom(agentsSettingsDialogActiveTabAtom);
   const setJustCreatedIds = useSetAtom(justCreatedIdsAtom);
-  const [repoSearchQuery, setRepoSearchQuery] = useState("");
   const [createBranchDialogOpen, setCreateBranchDialogOpen] = useState(false);
 
   // Worktree config banner state
@@ -288,23 +284,10 @@ export function NewChatForm({
     worktreeConfigData &&
     !worktreeConfigData.config;
 
-  const handleDismissWorktreeBanner = () => {
-    setWorktreeBannerDismissed(true);
-    try {
-      localStorage.setItem("worktree-banner-dismissed", "true");
-    } catch {}
-  };
-
   const handleConfigureWorktree = () => {
     // Open the projects settings tab
     setSettingsActiveTab("projects");
     setSettingsDialogOpen(true);
-  };
-  // Parse owner/repo from GitHub URL
-  const parseGitHubUrl = (url: string) => {
-    const match = url.match(/(?:github\.com\/)?([^\/]+)\/([^\/\s#?]+)/);
-    if (!match) return null;
-    return `${match[1]}/${match[2].replace(/\.git$/, "")}`;
   };
   const enabledAgents = useMemo(
     () => agents.filter((agent) => !agent.disabled),
@@ -454,7 +437,6 @@ export function NewChatForm({
     hasCustomClaudeConfig,
     selectedModel,
   ]);
-  const [repoPopoverOpen, setRepoPopoverOpen] = useState(false);
   const [branchPopoverOpen, setBranchPopoverOpen] = useState(false);
   const [lastSelectedBranches, setLastSelectedBranches] = useAtom(
     lastSelectedBranchesAtom,
@@ -593,7 +575,7 @@ export function NewChatForm({
         audio: base64,
         format,
       });
-      if (result.text && result.text.trim()) {
+      if (result.text?.trim()) {
         const currentValue = editorRef.current?.getValue() || "";
         // Clean transcribed text - remove any remaining whitespace issues
         const transcribed = result.text
@@ -626,12 +608,16 @@ export function NewChatForm({
 
     // Parse hotkey once
     const parts = voiceHotkey.split("+").map((p) => p.toLowerCase());
-    const modifiers = parts.filter((p) =>
-      ["cmd", "meta", "ctrl", "opt", "alt", "shift"].includes(p),
-    );
-    const mainKey = parts.find(
-      (p) => !["cmd", "meta", "ctrl", "opt", "alt", "shift"].includes(p),
-    );
+    const MODIFIER_KEYS = new Set([
+      "cmd",
+      "meta",
+      "ctrl",
+      "opt",
+      "alt",
+      "shift",
+    ]);
+    const modifiers = parts.filter((p) => MODIFIER_KEYS.has(p));
+    const mainKey = parts.find((p) => !MODIFIER_KEYS.has(p));
 
     const needsCmd = modifiers.includes("cmd") || modifiers.includes("meta");
     const needsShift = modifiers.includes("shift");
@@ -756,15 +742,8 @@ export function NewChatForm({
     return repos.filter((r) => r.sandbox_status === "ready");
   }, [repos, debugMode.enabled, debugMode.simulateNoReadyRepos]);
 
-  const notReadyRepos = useMemo(
-    () => repos.filter((r) => r.sandbox_status !== "ready"),
-    [repos],
-  );
-
   // Use state to avoid hydration mismatch
-  const [resolvedRepo, setResolvedRepo] = useState<(typeof repos)[0] | null>(
-    null,
-  );
+  const [, setResolvedRepo] = useState<(typeof repos)[0] | null>(null);
 
   // Derive selected repo from saved or first available (client-side only)
   // Now includes all repos, not just ready ones
@@ -1037,26 +1016,6 @@ export function NewChatForm({
     };
   }, []);
 
-  // Filter all repos by search (combined list) and sort by preview status
-  const filteredRepos = repos
-    .filter(
-      (repo) =>
-        repo.name.toLowerCase().includes(repoSearchQuery.toLowerCase()) ||
-        repo.full_name.toLowerCase().includes(repoSearchQuery.toLowerCase()),
-    )
-    .sort((a, b) => {
-      // 1. Repos with preview (sandbox_status === "ready") come first
-      const aHasPreview = a.sandbox_status === "ready";
-      const bHasPreview = b.sandbox_status === "ready";
-      if (aHasPreview && !bHasPreview) return -1;
-      if (!aHasPreview && bHasPreview) return 1;
-
-      // 2. Sort by last commit date (pushed_at) - most recent first
-      const aDate = a.pushed_at ? new Date(a.pushed_at).getTime() : 0;
-      const bDate = b.pushed_at ? new Date(b.pushed_at).getTime() : 0;
-      return bDate - aDate;
-    });
-
   // Create chat mutation (real tRPC)
   const utils = trpc.useUtils();
   const createChatMutation = trpc.chats.create.useMutation({
@@ -1147,7 +1106,7 @@ export function NewChatForm({
 
     // Check if message is a slash command with arguments (e.g. "/hello world")
     // Note: 's' flag makes '.' match newlines, so multi-line arguments are captured
-    const slashMatch = message.match(/^\/(\S+)\s*(.*)$/s);
+    const slashMatch = /^\/(\S+)\s*(.*)$/s.exec(message);
     if (slashMatch) {
       const [, commandName, args] = slashMatch;
 
@@ -1594,8 +1553,7 @@ export function NewChatForm({
         // Check if file is inside the project
         if (
           validatedProject?.path &&
-          filePath &&
-          filePath.startsWith(validatedProject.path)
+          filePath?.startsWith(validatedProject.path)
         ) {
           // Project file: use relative path with file:local: prefix
           const relativePath = filePath
