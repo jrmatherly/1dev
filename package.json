@@ -18,13 +18,11 @@
     "package:win": "electron-builder --win",
     "package:linux": "electron-builder --linux",
     "dist": "electron-builder",
-    "dist:manifest": "node scripts/generate-update-manifest.mjs",
-    "dist:upload": "node scripts/upload-release.mjs",
     "claude:download": "node scripts/download-claude-binary.mjs --version=2.1.96",
     "claude:download:all": "node scripts/download-claude-binary.mjs --version=2.1.96 --all",
     "codex:download": "node scripts/download-codex-binary.mjs --version=0.118.0",
     "codex:download:all": "node scripts/download-codex-binary.mjs --version=0.118.0 --all",
-    "release": "rm -rf release && bun i && bun run claude:download && bun run codex:download && bun run build && bun run package:mac && bun run dist:manifest",
+    "release": "rm -rf release && bun i && bun run claude:download && bun run codex:download && bun run build && bun run package:mac",
     "release:dev": "rm -rf release && bun run claude:download && bun run codex:download && bun run build && bun run package:mac && rm -rf node_modules && bun i",
     "icon:generate": "node scripts/generate-icon.mjs",
     "db:generate": "drizzle-kit generate",
@@ -259,8 +257,9 @@
       "uninstallerIcon": "build/icon.ico"
     },
     "publish": {
-      "provider": "generic",
-      "url": "https://cdn.apollosai.dev/releases/desktop"
+      "provider": "github",
+      "owner": "jrmatherly",
+      "repo": "1dev"
     }
   },
   "pnpm": {

@@ -202,26 +202,24 @@ Hold-to-talk dictation. The voice router has TWO code paths:
 
 ---
 
-### F5. Auto-Update Channel ⬜ P3 (already documented in CONTRIBUTING.md)
+### F5. Auto-Update Channel ✅ RESOLVED 2026-04-09
+
+**Status:** **Resolved** — migrated to `electron-updater`'s native `github` provider. Updates now flow from GitHub Releases on `jrmatherly/1dev`.
 
 **What it does today:**
-`electron-updater` polls `https://cdn.21st.dev/releases/desktop/latest-mac.yml` on startup and on window focus. Downloads ZIP payloads to the user's machine and installs on quit. **The mechanism works in any build** — only the URL is upstream-controlled.
+`electron-updater` reads update manifests (`latest-mac.yml`, `latest.yml`, `latest-linux.yml`) from the GitHub Releases API on startup and on window focus. Release artifacts are built by `.github/workflows/release.yml` on all 3 operating systems via matrix and published as binary assets on a tag-driven GitHub Release.
 
 **Code locations:**
-- `src/main/lib/auto-updater.ts:33` — `const CDN_BASE = "https://cdn.21st.dev/releases/desktop"`
-- `src/main/lib/auto-updater.ts:109` — `autoUpdater.setFeedURL(...)`
-- `src/main/index.ts:27,677` — wires `checkForUpdates` into menu/window-focus events
+- `package.json` `build.publish` — `provider: "github"`, `owner: "jrmatherly"`, `repo: "1dev"`
+- `src/main/lib/auto-updater.ts` — no runtime `setFeedURL` needed; `electron-updater` reads the feed from `app-update.yml` baked in at build time
+- `.github/workflows/release.yml` — CI release pipeline (triggers on `push: tags: ['v*']` + `workflow_dispatch`)
+- `docs/operations/release.md` — the release runbook
 
-**Dependency type:** `electron-updater` with a hardcoded CDN base.
+**Original analysis (kept for history):**
+Previously we considered two restore approaches — (A) self-hosted R2/S3/MinIO with `CDN_BASE` flip, or (B) GitHub Releases via `electron-updater`'s `github` provider. We chose **Option B** on 2026-04-09 because it eliminates CDN ops entirely and works out-of-the-box with `electron-updater` without requiring a personal access token (public releases only).
 
-**What breaks when upstream is retired:**
-- Users still receive updates from `cdn.21st.dev` until 21st stops publishing manifests there. After that, updates silently fail (the `update-not-available` event fires).
-
-**Candidate restore approaches:**
-- **Option A — Self-host releases on R2/S3/MinIO:** Change `CDN_BASE` to the fork's CDN. Re-implement `bun run dist:upload` to push there instead of the upstream CDN. Lowest cost, highest leverage.
-- **Option B — GitHub Releases-backed updater:** `electron-updater` supports a `github` provider directly. Cuts CDN ops entirely. Requires public GitHub releases or a personal access token in the app.
-
-**Recommended:** Option A. Already noted in `CONTRIBUTING.md` feature matrix that self-hosters need to flip `CDN_BASE`.
+**Open follow-ups (tracked in roadmap):**
+- First-iteration releases are **unsigned** on all 3 OSes. Signing is a hardening task once Apple Developer ID + Windows EV cert secrets are provisioned.
 
 ---
 
@@ -363,7 +361,7 @@ README claims "Start and monitor background agents from your phone." This is the
 | F2 | Automations & Inbox | 🟨 P1 | features/automations/* | **Self-host** tRPC service behind Envoy Gateway (Phase 2) |
 | F3 | Remote Agent Chats / Teams | 🟨 P1 | remote-api.ts, agents-beta-tab.tsx | Stub to single-tenant local (Phase 1/2) |
 | F4 | Voice Transcription | 🟨 P1 | voice.ts | Route through LiteLLM Whisper (Phase 2, aligned with auth migration) |
-| F5 | Auto-Update Channel | ⬜ P3 | auto-updater.ts | Flip `CDN_BASE` to self-hosted R2/S3/MinIO (Phase 2) |
+| F5 | Auto-Update Channel | ✅ RESOLVED | auto-updater.ts, release.yml | Migrated to `electron-updater` github provider (2026-04-09); unsigned builds pending cert secrets |
 | F6 | Changelog Display | ⬜ P3 | agents-help-popover.tsx | **Move to `getApiBaseUrl()`** + self-hosted changelog endpoint behind Envoy Gateway (Phase 2) |
 | F7 | Plugin Viewer | 🟩 P3 | (none — local-only) | **No restoration needed** — investigated 2026-04-08, feature is local-only. One README line correction. |
 | F8 | Subscription Tier Gating | 🟨 P1 | voice.ts, auth-manager.ts | Stub to `true` interim → remove end-state (Phase 1) |

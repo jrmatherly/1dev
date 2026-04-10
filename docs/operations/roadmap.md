@@ -83,6 +83,22 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None
 **Canonical reference:** PR #11, CI run 24224043794
 
+### [Ready] Code-sign release builds
+
+**Added:** 2026-04-10
+**Scope:** The `.github/workflows/release.yml` first iteration ships **unsigned** installers with `CSC_IDENTITY_AUTO_DISCOVERY: "false"` explicitly set. Users see Gatekeeper (macOS) / SmartScreen (Windows) warnings. To enable signing: (1) provision Apple Developer ID certificate, export as `.p12`, base64-encode, set as `CSC_LINK` + `CSC_KEY_PASSWORD` repo secrets; (2) set `APPLE_ID`, `APPLE_ID_PASSWORD`, `APPLE_TEAM_ID` for notarization; (3) acquire a Windows EV (or OV) cert, set as `WINDOWS_CSC_LINK` + `WINDOWS_CSC_KEY_PASSWORD`; (4) remove the `CSC_IDENTITY_AUTO_DISCOVERY: "false"` override from release.yml; (5) add `notarize: true` or equivalent to the macOS leg. `gh secret list` currently shows zero secrets — all signing infrastructure is greenfield.
+**Effort:** Medium (1-2d cert procurement + 1d workflow hardening)
+**Prereqs:** Apple Developer Program membership, Windows code-signing cert provisioned
+**Canonical reference:** `docs/operations/release.md` "Code Signing (Not Yet Enabled)" section
+
+### [Blocked] Build Kubernetes server images to GHCR
+
+**Added:** 2026-04-10
+**Scope:** `deploy/kubernetes/1code-api/app/helmrelease.yaml` and `deploy/kubernetes/1code-update-server/app/helmrelease.yaml` reference container images `${IMAGE_REGISTRY}/1code-api:${IMAGE_TAG}` and `${IMAGE_REGISTRY}/1code-update-server:${IMAGE_TAG}`. These images **do not exist yet** — there are no Dockerfiles in the repo, and the source code for these services is not present either. Once the services are implemented (likely in a separate repo or as new top-level directories here), a GitHub Actions workflow can use `docker/build-push-action` to publish them to `ghcr.io/jrmatherly/1code-api` and `ghcr.io/jrmatherly/1code-update-server`. Pattern: `on: push: tags + workflow_dispatch`, matches `release.yml` trigger style. Each `HelmRelease` is already Flux-ready (uses `OCIRepository` for the Helm chart; only the application container image needs to be built and pushed). The envoy-auth-policy directory is YAML-only and needs no image build.
+**Effort:** Blocked (depends on implementing the services themselves)
+**Prereqs:** `1code-api` source code + Dockerfile, `1code-update-server` source code + Dockerfile (nginx/caddy-based, simpler)
+**Canonical reference:** `deploy/kubernetes/1code-api/app/helmrelease.yaml`, `deploy/kubernetes/1code-update-server/app/helmrelease.yaml`, `deploy/README.md`
+
 ---
 
 ## P3 -- Low Priority / Opportunistic
@@ -155,6 +171,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
+| 2026-04-10 | Release pipeline — 3-OS matrix release.yml + package.json publish → github provider + CDN_BASE removed from auto-updater.ts + runbook rewrite | F5 auto-update channel resolved (unsigned first iteration) |
 | 2026-04-10 | Vite 6.4.2 → 7.3.2 + @vitejs/plugin-react 4.7 → 5.2 (Phase A) — CJS interop + `import.meta.env` + React dedup verified in build; functional verification via full streaming Claude agent session | `upgrade-vite-8-build-stack` Phase A (15/59 tasks, stays active for Phase B) |
 | 2026-04-10 | TypeScript 5.9.3 → 6.0.2 upgrade (tsconfig `types[]` explicit, `noUncheckedSideEffectImports: false`, tsgo 7.0.0-dev; baseline unchanged at 80) | `upgrade-typescript-6` archived |
 | 2026-04-09 | Electron 40 → 41 upgrade (Chromium 146, Node.js 24.14, V8 14.6) | `upgrade-electron-41` committed + pushed (auto-updater pending packaged-build smoke test) |

@@ -29,9 +29,6 @@ function initAutoUpdaterConfig() {
   autoUpdater.autoRunAppAfterInstall = true; // Restart app after install
 }
 
-// CDN base URL for updates
-const CDN_BASE = "https://cdn.apollosai.dev/releases/desktop";
-
 // Minimum interval between update checks (prevent spam on rapid focus/blur)
 const MIN_CHECK_INTERVAL = 60 * 1000; // 1 minute
 let lastCheckTime = 0;
@@ -104,18 +101,11 @@ export async function initAutoUpdater(getWindows: () => BrowserWindow[]) {
   autoUpdater.allowDowngrade = false;
   log.info(`[AutoUpdater] Using update channel: ${savedChannel}`);
 
-  // Configure feed URL to point to R2 CDN
-  // Note: We use a custom request headers to bypass CDN cache
-  autoUpdater.setFeedURL({
-    provider: "generic",
-    url: CDN_BASE,
-  });
-
-  // Add cache-busting to update requests
-  autoUpdater.requestHeaders = {
-    "Cache-Control": "no-cache, no-store, must-revalidate",
-    Pragma: "no-cache",
-  };
+  // Feed URL is auto-configured by electron-updater from `app-update.yml`
+  // (baked into the packaged app at build time from package.json
+  // `build.publish`, which is provider:"github"). No runtime setFeedURL
+  // is needed; electron-updater's GitHub provider talks directly to the
+  // GitHub Releases API and honors GitHub's own cache headers.
 
   // Event: Checking for updates
   autoUpdater.on("checking-for-update", () => {
@@ -184,7 +174,7 @@ export async function initAutoUpdater(getWindows: () => BrowserWindow[]) {
   // Register IPC handlers
   registerIpcHandlers();
 
-  log.info("[AutoUpdater] Initialized with feed URL:", CDN_BASE);
+  log.info("[AutoUpdater] Initialized — feed URL auto-configured from app-update.yml (GitHub provider)");
 }
 
 /**
@@ -197,27 +187,16 @@ function registerIpcHandlers() {
       log.info("[AutoUpdater] Skipping update check in dev mode");
       return null;
     }
+    // `force` used to trigger cache-busting against the legacy Cloudflare
+    // CDN. The GitHub provider reads from the GitHub Releases API which
+    // doesn't have stale edge caches, so we just log the intent and run a
+    // normal check. The parameter is kept for IPC compatibility; remove
+    // once the renderer stops passing it.
+    if (force) {
+      log.info("[AutoUpdater] Force check requested (no cache-bust needed with GitHub provider)");
+    }
     try {
-      // If force is true, add cache-busting timestamp to URL
-      if (force) {
-        const cacheBuster = `?t=${Date.now()}`;
-        autoUpdater.setFeedURL({
-          provider: "generic",
-          url: `${CDN_BASE}${cacheBuster}`,
-        });
-        log.info(
-          "[AutoUpdater] Force check with cache-busting:",
-          `${CDN_BASE}${cacheBuster}`,
-        );
-      }
       const result = await autoUpdater.checkForUpdates();
-      // Reset feed URL back to normal after force check
-      if (force) {
-        autoUpdater.setFeedURL({
-          provider: "generic",
-          url: CDN_BASE,
-        });
-      }
       return result?.updateInfo || null;
     } catch (error) {
       log.error("[AutoUpdater] Check failed:", error);

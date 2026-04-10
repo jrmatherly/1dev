@@ -62,7 +62,7 @@ bun run claude:download  # Claude CLI binary (pinned 2.1.96)
 bun run codex:download   # Codex binary (pinned 0.118.0)
 ```
 
-Release workflow, notarization, and CDN upload: [`docs/operations/release.md`](docs/operations/release.md).
+Release workflow (GitHub Actions matrix build → draft GitHub Release via `release.yml`): [`docs/operations/release.md`](docs/operations/release.md). First iteration ships unsigned; signing is a follow-on task.
 
 ## Architecture summary
 

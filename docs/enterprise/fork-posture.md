@@ -23,7 +23,7 @@ icon: git-branch
 | Identity provider | Microsoft Entra ID |
 | API gateway + auth | Envoy Gateway (dual-auth pattern) |
 | Cluster | Talos Kubernetes (Flux/GitOps managed) |
-| Update CDN | Self-hosted R2/S3 at `cdn.apollosai.dev` |
+| Update channel | GitHub Releases via `electron-updater` github provider (landed 2026-04-09) |
 
 ## What's Upstream-Dependent
 

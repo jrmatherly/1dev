@@ -1,0 +1,230 @@
+# Release workflow for the 1Code enterprise fork.
+#
+# Builds desktop installers (macOS, Linux, Windows) and publishes them as
+# binary assets on a GitHub Release tied to the git tag.
+#
+# Architecture:
+#   1. matrix-build: builds installers in parallel on macos-latest,
+#      ubuntu-latest, and windows-latest. Each job uploads its artifacts
+#      to the workflow cache via actions/upload-artifact.
+#   2. release: downloads all 3 OS artifact bundles and publishes them as
+#      a single GitHub Release (softprops/action-gh-release).
+#
+# Triggers:
+#   - push: tags: ['v*']   — standard release path (git tag drives version)
+#   - workflow_dispatch    — manual escape hatch for testing or re-runs
+#
+# Signing status:
+#   First iteration ships UNSIGNED artifacts on all 3 OSes. Users will see
+#   Gatekeeper (macOS) and SmartScreen (Windows) warnings but installers
+#   will work. Code signing is a follow-on hardening task once cert secrets
+#   (Apple Developer ID, Windows EV) are provisioned via `gh secret set`.
+#
+# Auto-update provider:
+#   package.json `build.publish.provider` is `github`, so electron-builder
+#   auto-generates `latest-mac.yml`, `latest.yml`, and `latest-linux.yml`
+#   during the package step and uploads them alongside the installers.
+#   `electron-updater` in the installed app reads these manifests from the
+#   GitHub Releases API and handles auto-updates natively.
+#
+# Security notes:
+#   - Only pinned action versions (no @latest).
+#   - All trusted `${{ github.* }}` values are passed through `env:` blocks
+#     before being referenced in shell commands (injection-safe pattern).
+#   - Top-level permissions minimized; release job upgrades to contents:write
+#     only in its own scope.
+
+name: "🚀 Release"
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., v0.0.73). Required for workflow_dispatch; must match an existing tag or will tag HEAD."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  matrix-build:
+    name: "📦 Build ${{ matrix.os }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            name: macos
+            build-script: "package:mac"
+          - os: ubuntu-latest
+            name: linux
+            build-script: "package:linux"
+          - os: windows-latest
+            name: windows
+            build-script: "package:win"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "📦 Install Bun"
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: "📦 Install Node 24"
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: "🔧 Install Linux system build deps"
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 libopenjp2-tools rpm libarchive-tools
+
+      - name: "⬇️ Install dependencies"
+        run: bun install --frozen-lockfile
+
+      - name: "⬇️ Download Claude CLI binary (pinned)"
+        run: bun run claude:download
+
+      - name: "⬇️ Download Codex binary (pinned)"
+        run: bun run codex:download
+
+      - name: "🏗️ Build application"
+        run: bun run build
+
+      - name: "📦 Package for ${{ matrix.name }} (unsigned)"
+        # First iteration: explicitly disable signing to avoid CI failures
+        # when the Apple/Windows cert secrets are not provisioned.
+        # See docs/operations/release.md "Code Signing" section for the
+        # plan to enable signed builds in a follow-on iteration.
+        env:
+          # Disable macOS signing + notarization autodetect
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # Disable electron-builder auto-publish during package step.
+          # The release job handles publishing via softprops/action-gh-release
+          # instead, so matrix legs produce artifacts without contents:write.
+          GH_TOKEN: ""
+          BUILD_SCRIPT: ${{ matrix.build-script }}
+        shell: bash
+        run: bun run "$BUILD_SCRIPT" -- --publish never
+
+      - name: "📋 List build output"
+        shell: bash
+        run: ls -lh release/ || true
+
+      - name: "📤 Upload ${{ matrix.name }} artifacts"
+        uses: actions/upload-artifact@v7
+        with:
+          name: installers-${{ matrix.name }}
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.AppImage
+            release/*.deb
+            release/*.exe
+            release/*.yml
+            release/*.blockmap
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: "🚀 Publish GitHub Release"
+    needs: matrix-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "📥 Download all OS artifacts"
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          pattern: installers-*
+          merge-multiple: true
+
+      - name: "📋 List downloaded artifacts"
+        shell: bash
+        run: ls -lh artifacts/
+
+      - name: "🏷️  Resolve release tag"
+        id: tag
+        env:
+          # Trusted values routed through env: to avoid inline interpolation
+          # in the shell script (injection-safe pattern).
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          DISPATCH_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG="$DISPATCH_VERSION"
+          else
+            TAG="$REF_NAME"
+          fi
+          if [ -z "$TAG" ]; then
+            echo "❌ Could not resolve release tag"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "📦 Releasing as tag: $TAG"
+
+      - name: "🚀 Publish GitHub Release"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "1Code ${{ steps.tag.outputs.tag }}"
+          draft: true
+          prerelease: ${{ contains(steps.tag.outputs.tag, '-beta') || contains(steps.tag.outputs.tag, '-rc') || contains(steps.tag.outputs.tag, '-alpha') }}
+          generate_release_notes: true
+          body: |
+            ## 1Code ${{ steps.tag.outputs.tag }}
+
+            Desktop installers for macOS, Linux, and Windows.
+
+            > ⚠️ **Unsigned builds** — first iteration ships without code signing.
+            > You will see Gatekeeper (macOS) or SmartScreen (Windows) warnings.
+            > Code signing will be enabled in a follow-on iteration once
+            > Apple Developer ID and Windows EV certificates are provisioned.
+            >
+            > **macOS unsigned install:** `xattr -cr /Applications/1Code.app`
+            > after dragging to Applications.
+
+            ### Auto-update
+
+            Existing installs will auto-update via `electron-updater`'s
+            GitHub provider, reading `latest-mac.yml`, `latest.yml`, and
+            `latest-linux.yml` from this Release.
+
+            ### Artifacts
+
+            | Platform | File |
+            |---|---|
+            | macOS arm64 | `1Code-*.arm64.dmg`, `1Code-*.arm64-mac.zip` |
+            | macOS Intel | `1Code-*.dmg`, `1Code-*-mac.zip` |
+            | Linux | `1Code-*.AppImage`, `1code-desktop_*_amd64.deb` |
+            | Windows | `1Code-Setup-*.exe` (NSIS), `1Code-*-portable.exe` |
+
+            See [`docs/operations/release.md`](https://github.com/jrmatherly/1dev/blob/main/docs/operations/release.md) for the release runbook.
+          files: |
+            artifacts/*.dmg
+            artifacts/*.zip
+            artifacts/*.AppImage
+            artifacts/*.deb
+            artifacts/*.exe
+            artifacts/*.yml
+            artifacts/*.blockmap
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
