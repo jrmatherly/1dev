@@ -271,7 +271,6 @@ function createCodeComponent(
         return (
           <MermaidBlock
             code={codeContent.replace(/\n$/, "")}
-            size={size}
             isStreaming={isStreaming}
           />
         );

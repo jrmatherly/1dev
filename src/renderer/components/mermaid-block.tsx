@@ -18,16 +18,14 @@ import {
   useControls,
 } from "react-zoom-pan-pinch";
 import { cn } from "../lib/utils";
-import { Dialog, DialogContent, DialogPortal, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogPortal, DialogTitle } from "./ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 // Lazy load mermaid to avoid bundle size impact (~500KB)
 let mermaidPromise: Promise<typeof import("mermaid")> | null = null;
 const getMermaid = () => {
-  if (!mermaidPromise) {
-    mermaidPromise = import("mermaid");
-  }
+  mermaidPromise ??= import("mermaid");
   return mermaidPromise;
 };
 
@@ -54,7 +52,6 @@ const cleanupMermaidErrors = () => {
 
 interface MermaidBlockProps {
   code: string;
-  size?: "sm" | "md" | "lg";
   isStreaming?: boolean;
 }
 
@@ -462,9 +459,11 @@ const MermaidBlockInner = memo(function MermaidBlockInner({
           )}
 
           {renderState.status === "success" && (
-            <div
+            <button
+              type="button"
               className={cn(
                 "mermaid-diagram w-full overflow-x-auto cursor-pointer",
+                "bg-transparent border-none p-0 text-left",
                 "[&_svg]:max-w-full [&_svg]:h-auto [&_svg]:mx-auto",
               )}
               onClick={openFullscreen}
@@ -606,7 +605,7 @@ function getBlockId(code: string): string {
 
 // Exported component that handles streaming state
 // When streaming, shows placeholder. When done, renders the diagram.
-export function MermaidBlock({ code, isStreaming = false }: MermaidBlockProps) {
+export function MermaidBlock({ code, isStreaming = false }: Readonly<MermaidBlockProps>) {
   const blockId = getBlockId(code);
   const codeComplete = looksComplete(code);
 
