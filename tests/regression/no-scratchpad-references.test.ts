@@ -91,7 +91,12 @@ function* walkFiles(dir: string): Generator<string> {
 }
 
 describe("no-scratchpad-references", () => {
-  test("tracked files must not reference .scratchpad/ paths", () => {
+  // Timeout raised to 15s (was bun:test default 5s) because this test walks
+  // the entire repository synchronously (~2,900+ markdown files alone as of
+  // 2026-04-10), reading each file to scan for `.scratchpad/` string matches.
+  // On cold filesystem caches or post-`bun install` runs the walk can exceed
+  // 5s. 15s gives comfortable headroom without masking a real regression.
+  test("tracked files must not reference .scratchpad/ paths", { timeout: 15000 }, () => {
     const violations: { file: string; line: number; snippet: string }[] = [];
 
     for (const fullPath of walkFiles(REPO_ROOT)) {
