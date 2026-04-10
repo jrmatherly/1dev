@@ -15,7 +15,7 @@
 - Top-level `permissions: { contents: read }`
 
 ## Key Version Pins
-- Electron 40.8.5 (EOL 2026-06-30), electron-vite 5.0.0, Vite 6.x
+- Electron 41.2.0 (EOL 2026-08-25, upgraded 2026-04-09), electron-vite 5.0.0, Vite 6.x
 - Tailwind 3.x, shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0
 - @azure/msal-node ^5.1.2 (upgraded from 3.8.x), @azure/msal-node-extensions ^5.1.2
 - @types/node ^24, @swc/core ^1 (electron-vite 5 peer dep)

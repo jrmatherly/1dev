@@ -18,7 +18,7 @@ drizzle/       — 9 database migration files
 - `lib/credential-store.ts` — Unified 3-tier credential encryption
 - `lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (wired into auth-manager)
 - `lib/terminal/session.ts` — **Lazy import** for node-pty (prevents crash if native module fails)
-- `lib/db/schema/index.ts` — Drizzle schema (8 tables, incl. feature_flag_overrides)
+- `lib/db/schema/index.ts` — Drizzle schema (7 tables, incl. feature_flag_overrides)
 - `lib/trpc/routers/index.ts` — 22 routers in `createAppRouter` (incl. enterprise-auth)
 - `lib/trpc/routers/enterprise-auth.ts` — Enterprise auth tRPC router (signIn/signOut/getStatus/refreshToken)
 - `lib/feature-flags.ts` — Type-safe feature flags backed by DB table

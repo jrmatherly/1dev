@@ -79,14 +79,6 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ## P3 -- Low Priority / Opportunistic
 
-### [Ready] Electron 40 → 41 upgrade
-
-**Added:** 2026-04-09
-**Scope:** Bump Electron from 40.8.5 to 41.2.0 (Chromium 146, Node.js 24.14). No breaking API changes affect codebase. Native modules (better-sqlite3, node-pty) require rebuild. Electron 40 EOL is 2026-06-30; upgrade extends support to 2026-08-25.
-**Effort:** Small
-**Prereqs:** None
-**Canonical reference:** `openspec/changes/upgrade-electron-41/proposal.md`
-
 ### [Ready] TypeScript 5 → 6 upgrade
 
 **Added:** 2026-04-09
@@ -136,10 +128,27 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 ### [Deferred] Prepare for Electron 42 breaking changes
 
 **Added:** 2026-04-09
-**Scope:** Electron 42 will change dialog default directories (pass explicit `defaultPath`), migrate macOS notifications to `UNNotification`, and move Electron binary download from `postinstall` to on-demand. Prep work after Electron 41 upgrade lands.
+**Scope:** Three prep items unlocked now that Electron 41 is landed:
+1. **Dialog default directory** — Electron 42 changes `showOpenDialog` to default to Downloads. 3 call sites need explicit `defaultPath`: `src/main/lib/trpc/routers/projects.ts:64`, `:379`, `:501`.
+2. **macOS notifications → `UNNotification`** — Codebase uses the legacy Notification API at `src/main/windows/main.ts:131-162` including a `notification.on("click")` handler. App is already code-signed; verify `UNNotification` behavioral compatibility.
+3. **Electron binary download** — Moves from `postinstall` to on-demand. May affect CI cache strategy and `bun install` timing.
 **Effort:** Small
-**Prereqs:** `upgrade-electron-41` complete
+**Prereqs:** `upgrade-electron-41` complete (✅ landed 2026-04-09)
 **Canonical reference:** `openspec/changes/upgrade-electron-41/proposal.md` (Prepare-now section)
+
+### [Research] Eliminate `gray-matter` eval warning
+
+**Added:** 2026-04-09
+**Scope:** The electron-vite build emits a Rollup warning for `node_modules/gray-matter/lib/engines.js (43:13): Use of eval ... is strongly discouraged as it poses security risks`. `gray-matter@4.0.3` is used in 4 main-process files for parsing YAML frontmatter from Claude Code commands, agents, skills, and plugins: `src/main/lib/trpc/routers/commands.ts` (3 sites), `agent-utils.ts`, `skills.ts`, `plugins.ts` (3 sites). All call sites use the default `matter(content)` form with only YAML frontmatter. Options to research before acting:
+1. **Restrict to YAML engine only** via `matter(content, { engines: { yaml: ... } })` — least invasive, may not silence Rollup warning since the eval code path still exists in the bundled source
+2. **Replace with `front-matter`** (jxson, zero deps, YAML-only, no eval) — drop-in-ish, API differs (`{ attributes, body }` vs `{ data, content }`)
+3. **Replace with `vfile-matter`** (unified ecosystem, YAML-only)
+4. **Fork/patch `gray-matter`** — last resort, creates maintenance burden
+
+Research must establish: exact usage at each call site (are any relying on non-YAML engines?), whether Option 1 actually silences the warning (spike), transitive dep reduction (`js-yaml`, `kind-of`, `section-matter`, `strip-bom-string`, `argparse`, `sprintf-js`, `esprima` all drop out under Options 2/3), and whether any frontmatter files use YAML features the replacement doesn't support (anchors, tags, multi-doc).
+**Effort:** Small-Medium (1-2h research + 1h migration)
+**Prereqs:** None
+**Canonical reference:** Rollup warning in `bun run build` output; gray-matter source at `node_modules/gray-matter/lib/engines.js:43`
 
 ### [Cleanup] Dependabot comment refresh
 
@@ -154,6 +163,8 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
+| 2026-04-09 | Electron 40 → 41 upgrade (Chromium 146, Node.js 24.14, V8 14.6) | `upgrade-electron-41` (26/27 tasks; auto-updater pending packaged-build smoke test) |
+| 2026-04-09 | Analytics dual-import warning fix | static `setOptOut` import in `windows/main.ts:16` |
 | 2026-04-09 | login.html brand refresh (21ST to 1Code logo) | `7c8d884` |
 | 2026-04-09 | Electron 39.8.7 to 40.8.5 upgrade | `upgrade-electron-40` archived |
 | 2026-04-09 | mock-api.ts Phase 1 timestamp fossil retirement | `retire-mock-api-translator` archived |

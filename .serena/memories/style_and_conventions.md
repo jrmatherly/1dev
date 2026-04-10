@@ -13,7 +13,7 @@
 - Zod for runtime validation on tRPC procedure inputs
 - Type inference preferred over explicit annotations
 - `tsgo` used instead of `tsc` — faster but has known gaps with mapped-type recursion
-- Current baseline: ~86 pre-existing errors (stored in `.claude/.tscheck-baseline`)
+- Current baseline: 80 pre-existing errors (stored in `.claude/.tscheck-baseline`)
 
 ## State Management
 - **Jotai**: UI state (selected chat, sidebar, preview)

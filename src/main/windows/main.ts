@@ -13,6 +13,7 @@ import {
 import { join } from "path";
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from "fs";
 import { createIPCHandler } from "trpc-electron/main";
+import { setOptOut } from "../lib/analytics";
 import { createAppRouter } from "../lib/trpc/routers";
 import { getAuthManager, handleAuthCode, getBaseUrl } from "../index";
 import { registerGitWatcherIPC } from "../lib/git/watcher";
@@ -302,8 +303,7 @@ function registerIpcHandlers(): void {
   });
 
   // Analytics
-  ipcMain.handle("analytics:set-opt-out", async (_event, optedOut: boolean) => {
-    const { setOptOut } = await import("../lib/analytics");
+  ipcMain.handle("analytics:set-opt-out", (_event, optedOut: boolean) => {
     setOptOut(optedOut);
   });
 

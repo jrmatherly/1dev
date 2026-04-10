@@ -71,7 +71,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **[Codebase layout](docs/architecture/codebase-layout.md)** — full tree of `src/main/`, `src/preload/`, `src/renderer/`
 - **[Database (Drizzle + SQLite)](docs/architecture/database.md)** — 7 tables at `{userData}/data/agents.db`, auto-migration
 - **[tRPC routers](docs/architecture/trpc-routers.md)** — 22 routers in `createAppRouter` (21 feature routers + 1 git router)
-- **[Tech stack](docs/architecture/tech-stack.md)** — Electron 40 / React 19 / TypeScript 5 / Tailwind 3 / Bun
+- **[Tech stack](docs/architecture/tech-stack.md)** — Electron 41 / React 19 / TypeScript 5 / Tailwind 3 / Bun
 - **[Upstream boundary](docs/architecture/upstream-boundary.md)** — `remoteTrpc.*` call sites and F-entry coverage
 
 **Key integration files:**
