@@ -18,8 +18,8 @@
 // the docs site build).
 
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -34,21 +34,32 @@ if (process.env.VERCEL) {
 
 const NATIVE_MODULES = ["better-sqlite3", "node-pty", "keytar"];
 
-const electronRebuildBin = join(
-  root,
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "electron-rebuild.cmd" : "electron-rebuild",
-);
+// Resolve @electron/rebuild's CLI via node module resolution rather than the
+// .bin/ symlink. This works across bun, npm, pnpm, and Windows where bun may
+// not have created the .bin/electron-rebuild.cmd shim yet at postinstall time.
+const require = createRequire(import.meta.url);
 
-if (!existsSync(electronRebuildBin)) {
-  console.error(
-    `[rebuild-native-modules] electron-rebuild not found at ${electronRebuildBin}`,
+let electronRebuildCli;
+try {
+  // Resolve @electron/rebuild's main entry, then derive the CLI path relative
+  // to it. The package exports its main as `lib/main.js` and its CLI as
+  // `lib/cli.js` in the same directory. We can't use
+  // `require.resolve("@electron/rebuild/package.json")` because the package's
+  // `exports` field doesn't list `./package.json`.
+  const main = require.resolve("@electron/rebuild");
+  // main = .../node_modules/@electron/rebuild/lib/main.js
+  electronRebuildCli = join(dirname(main), "cli.js");
+} catch (err) {
+  // If @electron/rebuild isn't installed yet (e.g. first-time install on an
+  // env without devDeps), skip rather than hard-fail. The install step should
+  // run this again once devDeps are present.
+  console.warn(
+    `[rebuild-native-modules] @electron/rebuild not resolvable: ${err.message}`,
   );
-  console.error(
-    "[rebuild-native-modules] Ensure @electron/rebuild is installed.",
+  console.warn(
+    "[rebuild-native-modules] Skipping native rebuild. If you're running `bun install` for the first time, this is expected; re-run `bun install` once devDeps are present.",
   );
-  process.exit(1);
+  process.exit(0);
 }
 
 console.log(
@@ -56,10 +67,11 @@ console.log(
 );
 
 try {
-  execFileSync(electronRebuildBin, ["-f", "-w", NATIVE_MODULES.join(",")], {
-    stdio: "inherit",
-    cwd: root,
-  });
+  execFileSync(
+    process.execPath,
+    [electronRebuildCli, "-f", "-w", NATIVE_MODULES.join(",")],
+    { stdio: "inherit", cwd: root },
+  );
 } catch (err) {
   console.error("[rebuild-native-modules] Rebuild failed:", err.message);
   process.exit(1);
