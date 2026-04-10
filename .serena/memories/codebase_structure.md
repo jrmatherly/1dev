@@ -41,9 +41,14 @@ brand-identity, feature-flags, claude-code-auth-import, documentation-site,
 credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime
 
 ## Active OpenSpec Changes (3)
-upgrade-electron-41 (26/27, committed+pushed), upgrade-tailwind-4,
+upgrade-electron-41 (26/27, committed+pushed), upgrade-tailwind-4 (54/64, Section 8 visual QA pending),
 upgrade-vite-8-build-stack
 (upgrade-typescript-6 archived 2026-04-10)
+
+## IDE Configuration
+.vscode/settings.json — tracked in git (`.gitignore` uses `!.vscode/settings.json`).
+Contains: tsgo native preview flag, SonarLint rule suppressions (5 rules
+disabled project-wide: S6478, S7764, S7781, S7735, S3358).
 
 ## Regression Tests (14 guards, 58 tests across 14 files)
 auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted,

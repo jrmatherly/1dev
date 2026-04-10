@@ -40,6 +40,12 @@
 - **Tier C (attribution — PRESERVED):** only at allowlisted positions per the spec
 - Enforced by `tests/regression/brand-sweep-complete.test.ts`
 
+## SonarLint Configuration
+- `.vscode/settings.json` tracked in git with 5 rule suppressions
+- S6478 (nested components), S7764 (window vs globalThis), S7781 (replace vs replaceAll), S7735 (negated conditions), S3358 (nested ternary) — all investigated and deliberately suppressed
+- `// NOSONAR` inline comment for one-off suppressions (e.g., djb2 `charCodeAt` in chat-markdown-renderer.tsx)
+- S7758 (`charCodeAt→codePointAt`) is WRONG for hash functions — do NOT apply
+
 ## Quality Gates (no formatter, no linter)
 - No Prettier, ESLint, or Biome configured
 - Four automated quality gates + docs build (5 in CI)
