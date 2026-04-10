@@ -1,7 +1,7 @@
 # Environment Notes and Gotchas
 
 ## Quality Gates — ALL REQUIRED
-- `bun run ts:check` — tsgo (baseline: 54 errors in `.claude/.tscheck-baseline`, improved from 80 after SonarLint remediation 2026-04-10)
+- `bun run ts:check` — tsgo (baseline: 38 errors in `.claude/.tscheck-baseline`, reduced from 54 via Cluster A `DiffStateContextValue` + Cluster C `reposData` stub typing + SonarLint remediation 2026-04-10)
 - `bun run build` — electron-vite 5 build
 - `bun test` — 14 regression guards + 5 service test files = 75 tests, ~2.5s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
@@ -29,7 +29,7 @@
 
 ## Upgrade Blockers (as of 2026-04-10)
 - **Vite pin (7.x, was 6.x):** Phase A Vite 7.3.2 landed 2026-04-10; Phase B Vite 8 blocked on `electron-vite 6.0.0` stable (currently beta-only `6.0.0-beta.0`)
-- **Shiki 4.0.2 (resolved 2026-04-10):** upgraded from 3.x via `upgrade-shiki-4` OpenSpec change. The `@pierre/diffs` peer-dep block on shiki 3.x was worked around — see the archived change proposal for details
+- **Shiki 4.0.2 (resolved 2026-04-10):** upgraded from 3.x via `upgrade-shiki-4` OpenSpec change. The `@pierre/diffs` pins shiki as regular `dependency` (not `peerDependency`) so Bun installs a nested duplicate `shiki@3.23.0` under `@pierre/diffs/node_modules/` while top-level advances to `4.0.2`. Archived as `upgrade-shiki-4` with `shiki-highlighter` baseline spec (6 requirements). PR #11 merge commit `6136048`
 - **~~TypeScript 6.0 risk~~** ✅ **RESOLVED 2026-04-10:** Upgraded to TS 6.0.2. tsconfig now has explicit `types: ["node", "better-sqlite3", "diff", "react", "react-dom"]` and `noUncheckedSideEffectImports: false`. Baseline unchanged at 80, zero new errors. tsgo upgraded to 7.0.0-dev.
 - **~~Tailwind 4 risk~~** ✅ **RESOLVED 2026-04-10:** Upgraded to TW 4.2.2. `--tw-ring-*` block rewritten to plain CSS `box-shadow`. Escaped hover selectors verified functional (TW4 keeps same class name format). 5 false renames by upgrade tool fixed (`blur`→`blur-sm`, `outline`→`outline-solid` in non-Tailwind contexts). Visual QA completed (10/10 tasks verified, 2 additional false renames fixed by code review). Change archived.
 

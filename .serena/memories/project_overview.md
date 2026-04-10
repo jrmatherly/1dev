@@ -29,13 +29,13 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Release pipeline status:** Current: **v0.0.81** (2026-04-10) — quality/reliability + build-system patch: TS baseline 54→38 (Cluster A `DiffStateContextValue` + Cluster C `reposData` stub typing), keytar arm64 rebuild postinstall fix (dlopen crash on Apple Silicon, extracted to `scripts/rebuild-native-modules.mjs`), Windows electron-rebuild resolution via `require.resolve` (not .bin/ symlink), Codex downloader rewritten to skip `api.github.com` (pinned SHA256 hashes + direct release-asset URLs, eliminates macOS unauth rate-limit 403s), Shiki 3.x → 4.0.2 upgrade via `upgrade-shiki-4` OpenSpec, 400+ SonarLint remediations. **v0.0.80 was deleted** after Windows postinstall + macOS Codex 403 failures; v0.0.81 supersedes it. v0.0.79 was the first successful all-platform build (fixes: macOS OOM NODE_OPTIONS=6144MB, Windows GPG toGpgPath MSYS conversion). v0.0.73–v0.0.78 failed iterations archived as learning.
 - **1code-update-server:** Dead infrastructure — F5 auto-update resolved via GitHub Releases, K8s manifest research confirmed update server is NOT needed.
 - **1code-api service:** Phase 1 implemented and ARCHIVED 2026-04-10 — `services/1code-api/` with Fastify+tRPC+Drizzle/PostgreSQL. Endpoints: health, changelog, plan, profile (all verified end-to-end in Docker against Postgres 18). Container: `ghcr.io/jrmatherly/1code-api` via `.github/workflows/container-build.yml` (multi-arch + Cosign + SLSA + SBOM, verified via workflow dispatch run 24257380731). Dead `1code-update-server` K8s manifests deleted. `self-hosted-api` promoted to baseline spec (7 requirements). Also upgraded deps: drizzle-orm 0.44.2→0.45.2 (CVE-2026-39356 HIGH fix, GitHub alert #19 auto-resolved), zod 3→4, typescript 5→6, tRPC 11.1→11.16.
-- **Active OpenSpec changes (2):** `upgrade-vite-8-build-stack` (15/59, Phase A done), `upgrade-electron-41` (26/27, ready to archive).
-- **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → Vite8-B+Shiki4 (blocked on `electron-vite 6.0.0` stable)
+- **Active OpenSpec changes (2):** `upgrade-vite-8-build-stack` (15/50, Phase A done, Shiki section removed), `upgrade-electron-41` (26/27, ready to archive).
+- **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → ~~Shiki4~~ ✅ → Vite8-B (blocked on `electron-vite 6.0.0` stable)
 - **Archived:** `upgrade-tailwind-4` (visual QA complete), `upgrade-typescript-6`, `upgrade-electron-41`, `migrate-mock-api-consumers`, `wire-enterprise-auth` (36/36 tasks complete) + 8 other Phase 0 changes
 
 ## Architecture (3-tier)
 - CLAUDE.md is a 125-line thin index (links, doesn't contain content)
 - `docs/` is the canonical source of truth (Operations tab has roadmap)
 - `.claude/rules/` has 9 behavioral rules (2 global + 7 path-scoped)
-- `openspec/specs/` has 9 capability specs (incl. `enterprise-auth-wiring`)
+- `openspec/specs/` has 11 capability specs (59 requirements; incl. `enterprise-auth-wiring`, `self-hosted-api`, `shiki-highlighter`)
 - Skills/agents read from canonical docs, not CLAUDE.md

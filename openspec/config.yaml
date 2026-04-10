@@ -12,7 +12,7 @@ context: |
   tRPC routers: 22 in createAppRouter (21 feature + 1 git), incl. enterpriseAuth
   Upstream boundary: remoteTrpc.* and fetch(${apiUrl}/) calls hit 1code.dev — must be replaced
   Brand taxonomy: Tier A/B/C per openspec/specs/brand-identity/spec.md
-  Baseline specs: 9 capabilities, 45 requirements in openspec/specs/
+  Baseline specs: 11 capabilities, 59 requirements in openspec/specs/
   Phase 0: 15/15 hard gates complete. Enterprise auth wired (enterpriseAuthEnabled flag).
   K8s deployment: deploy/kubernetes/ — 3 components with ${PLACEHOLDER} substitution
 
