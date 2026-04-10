@@ -55,16 +55,17 @@ Because `@pierre/diffs@1.1.x` declares `shiki: ^3.0.0` and `@shikijs/transformer
 - **THEN** the diff renders with syntax-highlighted additions/deletions
 - **AND** no shiki-related errors appear in the dev console
 
-### Requirement: Renderer bundle size regression is bounded
+### Requirement: Renderer build succeeds after the upgrade
 
-The renderer's production bundle size SHALL NOT regress by more than 10% as a result of the dual-version shiki install. Measured by `du -sh out/renderer/assets/` after `bun run build`.
+The renderer `bun run build` SHALL exit successfully after the dual-version shiki install. Bundle size impact of the dual-version install is explicitly accepted without a fixed size threshold — this is a local-first desktop app with no production web traffic, so bundle size is not a load-bearing quality metric for this change.
 
-#### Scenario: Renderer bundle grows by less than 10% after upgrade
+#### Scenario: Renderer build exits successfully
 
-- **GIVEN** a baseline `out/renderer/assets/` size measured on `main` before the upgrade
-- **WHEN** the upgrade lands and `bun run build` is run on the post-upgrade tree
-- **THEN** `du -sh out/renderer/assets/` reports a size no greater than 110% of the baseline
-- **AND** the delta is documented in the change's `tasks.md` under the bundle validation phase
+- **GIVEN** the shiki 4 upgrade is applied (top-level shiki@4.x, nested @pierre/diffs/shiki@3.x)
+- **WHEN** `bun run build` is executed on the upgraded tree
+- **THEN** the build exits with status 0
+- **AND** electron-vite produces main (CJS), preload (CJS), and renderer (ESM) outputs
+- **AND** no shiki-related build errors are emitted
 
 ### Requirement: Node runtime floor matches Shiki 4 requirements
 
@@ -79,11 +80,11 @@ The project's Node runtime floor SHALL be Node 20 or later, matching Shiki 4.0.0
 
 ### Requirement: All six quality gates pass after the upgrade
 
-The project's six quality gates (`bun run ts:check`, `bun run lint`, `bun run build`, `bun test`, `bun audit`, `cd docs && bun run build`) SHALL all pass after the shiki 4 upgrade lands on `main`.
+The project's six quality gates from CLAUDE.md §Commands (`bun run ts:check`, `bun run lint`, `bun run build`, `bun test`, `bun audit`, `cd docs && bun run build`) SHALL all pass after the shiki 4 upgrade lands on `main`. Of these, 5 are CI-enforced (`ts:check`, `build`, `test`, `audit`, `docs-build`) and 1 (`lint`) is locally-enforced via a PostToolUse hook.
 
 #### Scenario: Quality gates pass on the upgrade commit
 
 - **GIVEN** the shiki 4 upgrade PR has been merged to `main`
 - **WHEN** all six quality gates are executed on the merge commit
 - **THEN** every gate exits with status 0
-- **AND** `bun run ts:check` reports a count less than or equal to the `.claude/.tscheck-baseline` value (currently 45, reduced from 54 via commit `46f49a4` on 2026-04-10)
+- **AND** `bun run ts:check` reports a count less than or equal to the `.claude/.tscheck-baseline` value (currently 38, re-read at execution time as the baseline shifts independently as other TS fixes land)
