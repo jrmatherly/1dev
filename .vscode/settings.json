@@ -88,6 +88,14 @@
     // S4666: "Duplicate CSS selector" — 1 in agents-styles.css.
     // Two `[data-agents-page]` blocks are in different logical sections (theme
     // overrides vs scrollbar styles) with disjoint properties. Intentional separation.
-    "css:S4666": { "level": "off" }
+    "css:S4666": { "level": "off" },
+
+    // S7764/S3358 JavaScript variants — same rules as typescript:S7764 and
+    // typescript:S3358 above, but SonarLint reports inline <script> blocks in
+    // .html files under the javascript: prefix. Suppressing for the same reasons:
+    // window is canonical in Electron renderer, nested ternaries are readable
+    // in theme-detection code.
+    "javascript:S7764": { "level": "off" },
+    "javascript:S3358": { "level": "off" }
   }
 }
