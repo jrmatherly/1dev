@@ -1087,16 +1087,13 @@ interface DiffSidebarContentProps {
     deletions: number;
   }) => void;
   diffContent: string | null;
-  parsedFileDiffs: unknown;
+  parsedFileDiffs: ParsedDiffFile[] | null;
   prefetchedFileContents: Record<string, string> | undefined;
-  setDiffCollapseState: (state: Map<string, boolean>) => void;
-  diffViewRef: React.RefObject<{
-    expandAll: () => void;
-    collapseAll: () => void;
-    getViewedCount: () => number;
-    markAllViewed: () => void;
-    markAllUnviewed: () => void;
-  } | null>;
+  setDiffCollapseState: (state: {
+    allCollapsed: boolean;
+    allExpanded: boolean;
+  }) => void;
+  diffViewRef: React.RefObject<AgentDiffViewRef | null>;
   agentChat: { prUrl?: string; prNumber?: number } | null | undefined;
   // Real-time sidebar width for responsive layout during resize
   sidebarWidth: number;
