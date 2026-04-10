@@ -129,6 +129,14 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 > **2026-04-10:** Shiki 3→4 was previously bundled into this item but has been completed separately via `upgrade-shiki-4` (merged as PR #11). See the Recently Completed table below.
 
+### [Blocked] Collapse shiki dual-version install
+
+**Added:** 2026-04-10
+**Scope:** The successful `upgrade-shiki-4` change (PR #11) installed `shiki@4.0.2` at top-level while accepting a nested `shiki@3.23.0` under `@pierre/diffs/node_modules/`. This dual-version install adds ~16 MB to `node_modules` on disk. When `@pierre/diffs` publishes a version that declares `shiki: ^4.0.0` in its dependencies, the nested copy can be eliminated, collapsing to a single shiki 4.x tree. Action: file an issue on `@pierre/diffs` GitHub asking for shiki 4 support, then upgrade `@pierre/diffs` once released.
+**Effort:** Small (monitor upstream + 1-line version bump once unblocked)
+**Prereqs:** `@pierre/diffs` publishes a shiki-4-compatible release
+**Canonical reference:** `openspec/specs/shiki-highlighter/spec.md` §"Dual-version coexistence" requirement, PR #11
+
 ### [Ready] Dependency caching for release workflow
 
 **Added:** 2026-04-10
