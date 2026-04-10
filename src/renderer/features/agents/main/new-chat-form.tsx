@@ -723,7 +723,19 @@ export function NewChatForm({
 
   // Fetch repos from team
   // Desktop: no remote repos, we use local projects
-  const reposData = { repositories: [] };
+  // Type the stub so downstream repo.id/name/full_name/sandbox_status accesses
+  // type-check correctly (otherwise TS infers `never[]` from the empty array).
+  // Fields mirror `SavedRepo` so setLastSelectedRepo() call sites narrow
+  // sandbox_status to the expected literal union, and the `as (typeof repos)[0]`
+  // cast at line ~759 stays sound.
+  type DesktopRepo = {
+    id: string;
+    name: string;
+    full_name: string;
+    sandbox_status?: "not_setup" | "in_progress" | "ready" | "error";
+    isPublicImport?: boolean;
+  };
+  const reposData: { repositories: DesktopRepo[] } = { repositories: [] };
   const isLoadingRepos = false;
 
   // Memoize repos arrays to prevent useEffect from running on every keystroke
