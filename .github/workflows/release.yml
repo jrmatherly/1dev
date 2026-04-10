@@ -90,18 +90,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential python3 libopenjp2-tools libarchive-tools
 
-      - name: "🔧 Install native GPG on Windows"
-        # Git for Windows bundles an MSYS2-compiled gpg that mangles Windows
-        # paths (GNUPGHOME, --homedir, file arguments all get broken by the
-        # MSYS2 POSIX translation layer). Installing GnuPG (CLI-only, ~5 MB)
-        # provides a native Windows gpg.exe that handles Windows paths correctly.
-        # NOTE: Use `gnupg` not `gpg4win` — gpg4win is a full GUI suite (~30 MB)
-        # that hangs during install on CI runners (observed: >35 min timeout).
-        # The download script also converts paths to MSYS format as a
-        # belt-and-suspenders defense (see download-claude-binary.mjs).
-        if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: choco install gnupg --yes --no-progress
+      # NOTE: No separate GPG install needed on Windows. The download script
+      # converts all paths to MSYS-compatible POSIX format (/c/Users/... instead
+      # of C:\Users\...) via toGpgPath() in download-claude-binary.mjs, which
+      # makes the MSYS2-compiled GPG bundled with Git for Windows work correctly.
+      # Previous attempts to install native GPG via Chocolatey (gpg4win, gnupg)
+      # both hung indefinitely on CI runners (>20 min with no progress).
 
       - name: "⬇️ Install dependencies"
         run: bun install --frozen-lockfile
