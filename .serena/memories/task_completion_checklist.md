@@ -1,7 +1,7 @@
 # Task Completion Checklist
 
 ## Required — All Quality Gates
-1. `bun run ts:check` — baseline 63 errors (`.claude/.tscheck-baseline`, improved from 80 after SonarLint remediation 2026-04-10), only fail if count increases
+1. `bun run ts:check` — baseline 54 errors (`.claude/.tscheck-baseline`, improved from 80 → 63 → 54 via successive SonarLint remediation passes 2026-04-10), only fail if count increases
 2. `bun run build` — electron-vite build
 3. `bun test` — 14 regression guards + 5 service tests = 75 tests across 19 files
 4. `bun audit` — focus on NEW advisories only
