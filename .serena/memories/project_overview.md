@@ -5,7 +5,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 
 ## Tech Stack
 - Electron ~41.2.0 (Node.js 24.14, Chromium 146, V8 14.6), electron-vite 5, electron-builder 26
-- React 19.2.5, TypeScript 6.0.2 (upgraded from 5.9.3 on 2026-04-10), Tailwind CSS 3, Bun
+- React 19.2.5, TypeScript 6.0.2 (upgraded from 5.9.3 on 2026-04-10), Tailwind CSS 4, Bun
 - @anthropic-ai/claude-agent-sdk 0.2.97, Codex CLI 0.118.0, Ollama
 - 7 Drizzle tables, 22 tRPC routers (incl. enterprise-auth), better-sqlite3, node-pty (lazy-loaded)
 - 14 regression guards, 58 tests
@@ -26,9 +26,9 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **CodeQL:** 19 findings resolved (18 fixed, 1 dismissed as false positive)
 - **12 package upgrades landed** (all deps current as of 2026-04-09)
 - **Release pipeline:** GitHub Actions `release.yml` builds 3-OS matrix (macos-15, ubuntu, windows) and publishes to GitHub Releases. `electron-updater` github provider. Unsigned first iteration. F5 auto-update channel RESOLVED.
-- **Active OpenSpec changes (2):** `upgrade-tailwind-4`, `upgrade-vite-8-build-stack` (15/59, Phase A done). `upgrade-electron-41` ready to archive (26/27).
+- **Active OpenSpec changes (1):** `upgrade-vite-8-build-stack` (15/59, Phase A done). `upgrade-electron-41` ready to archive (26/27).
 - **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → Vite8-B+Shiki4 (blocked on `electron-vite 6.0.0` stable)
-- **Archived:** `upgrade-typescript-6`, `migrate-mock-api-consumers`, `wire-enterprise-auth` (36/36 tasks complete) + 8 other Phase 0 changes
+- **Archived:** `upgrade-tailwind-4`, `upgrade-typescript-6`, `migrate-mock-api-consumers`, `wire-enterprise-auth` (36/36 tasks complete) + 8 other Phase 0 changes
 
 ## Architecture (3-tier)
 - CLAUDE.md is a 125-line thin index (links, doesn't contain content)

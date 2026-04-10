@@ -1,8 +1,8 @@
-@import './agents-styles.css' layer(base);
+@import "./agents-styles.css" layer(base);
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@import 'tw-animate-css';
+@import "tw-animate-css";
 
 @plugin '@tailwindcss/typography';
 

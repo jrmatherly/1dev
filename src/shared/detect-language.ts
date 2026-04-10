@@ -44,6 +44,6 @@ const extensionMap: Record<string, string> = {
 };
 
 export function detectLanguage(filePath: string): string {
-  const ext = filePath.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
+  const ext = /\.[^.]+$/.exec(filePath.toLowerCase())?.[0] || "";
   return extensionMap[ext] || "plaintext";
 }

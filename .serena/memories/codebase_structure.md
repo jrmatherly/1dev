@@ -40,10 +40,9 @@ drizzle/       — 9 database migration files
 brand-identity, feature-flags, claude-code-auth-import, documentation-site,
 credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime
 
-## Active OpenSpec Changes (3)
-upgrade-electron-41 (26/27, committed+pushed), upgrade-tailwind-4 (54/64, Section 8 visual QA pending),
-upgrade-vite-8-build-stack
-(upgrade-typescript-6 archived 2026-04-10)
+## Active OpenSpec Changes (2)
+upgrade-electron-41 (26/27, committed+pushed), upgrade-vite-8-build-stack (15/59, Phase A done)
+(upgrade-typescript-6, upgrade-tailwind-4 archived 2026-04-10)
 
 ## IDE Configuration
 .vscode/settings.json — tracked in git (`.gitignore` uses `!.vscode/settings.json`).

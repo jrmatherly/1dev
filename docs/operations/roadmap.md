@@ -132,7 +132,7 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Added:** 2026-04-09
 **Scope:** Vite 8 (Rolldown replaces esbuild+Rollup) + electron-vite 6.0 + plugin-react 6.0 + Shiki 3→4. Critical CJS validation needed: `__dirname`, `require()`, dynamic `import()`, `import.meta.env`. Shiki blocked on `@pierre/diffs` updating both `shiki` and `@shikijs/transformers` to `^4.0.0`.
 **Effort:** Medium-Large
-**Prereqs:** Tailwind 4 completed 2026-04-10; Phase B blocked on electron-vite 6.0.0 stable; Shiki blocked on `@pierre/diffs` (PR #11 CI passing — may be mergeable standalone, see `[Research] Re-evaluate Shiki 4` entry)
+**Prereqs:** Tailwind 4 completed + archived 2026-04-10; Phase B blocked on electron-vite 6.0.0 stable; Shiki blocked on `@pierre/diffs` (PR #11 CI passing — may be mergeable standalone, see `[Research] Re-evaluate Shiki 4` entry)
 **Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md` (Phase B + Shiki tasks)
 
 ### [Ready] Dependency caching for release workflow
@@ -193,7 +193,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 ### [Cleanup] Dependabot comment refresh
 
 **Added:** 2026-04-09
-**Scope:** Update `.github/dependabot.yml` comments and `.claude/skills/verify-pin/SKILL.md` to reflect current pin reasons. Partially superseded (`upgrade-typescript-6` archived 2026-04-10, `upgrade-electron-41` ready to archive); `upgrade-tailwind-4` and `upgrade-vite-8-build-stack` still active.
+**Scope:** Update `.github/dependabot.yml` comments and `.claude/skills/verify-pin/SKILL.md` to reflect current pin reasons. Partially superseded (`upgrade-typescript-6` archived 2026-04-10, `upgrade-electron-41` ready to archive, `upgrade-tailwind-4` archived 2026-04-10); `upgrade-vite-8-build-stack` still active (Phase B blocked).
 **Effort:** Trivial
 **Prereqs:** None
 
@@ -203,7 +203,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
-| 2026-04-10 | Tailwind CSS 3.4.19 → 4.2.2 + tailwind-merge 2.6.1 → 3.5.0 — CSS-first config, PostCSS → `@tailwindcss/vite`, `tw-animate-css`, `--tw-ring-*` rewritten to `box-shadow`, 5 false renames fixed, 148 files touched by upgrade tool | `upgrade-tailwind-4` (Section 8 visual QA pending) |
+| 2026-04-10 | Tailwind CSS 3.4.19 → 4.2.2 + tailwind-merge 2.6.1 → 3.5.0 — CSS-first config, PostCSS → `@tailwindcss/vite`, `tw-animate-css`, `--tw-ring-*` rewritten to `box-shadow`, 7 false renames fixed (5 initial + 2 caught by code review), 148 files touched by upgrade tool, 10/10 visual QA verified | `upgrade-tailwind-4` archived |
 | 2026-04-10 | Release pipeline — 3-OS matrix release.yml + package.json publish → github provider + CDN_BASE removed from auto-updater.ts + runbook rewrite | F5 auto-update channel resolved (unsigned first iteration) |
 | 2026-04-10 | Vite 6.4.2 → 7.3.2 + @vitejs/plugin-react 4.7 → 5.2 (Phase A) — CJS interop + `import.meta.env` + React dedup verified in build; functional verification via full streaming Claude agent session | `upgrade-vite-8-build-stack` Phase A (15/59 tasks, stays active for Phase B) |
 | 2026-04-10 | TypeScript 5.9.3 → 6.0.2 upgrade (tsconfig `types[]` explicit, `noUncheckedSideEffectImports: false`, tsgo 7.0.0-dev; baseline unchanged at 80) | `upgrade-typescript-6` archived |

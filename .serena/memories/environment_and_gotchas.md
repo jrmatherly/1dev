@@ -22,7 +22,7 @@
 
 ## Key Version Pins
 - Electron 41.2.0 (EOL 2026-08-25, upgraded 2026-04-09), electron-vite 5.0.0, Vite 7.3.2 (upgraded from 6.4.2 on 2026-04-10, Phase A of upgrade-vite-8-build-stack)
-- Tailwind 4.2.2 (upgraded from 3.4.19 on 2026-04-10; CSS-first config, `@tailwindcss/vite` plugin, `tw-animate-css`, `tailwind-merge` 3.5.0), shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0
+- Tailwind 4.2.2 (upgraded from 3.4.19 on 2026-04-10; CSS-first config, `@tailwindcss/vite` plugin, `tw-animate-css`, `tailwind-merge` 3.5.0; **no longer a version pin** — removed from `pinned-deps.md`), shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0
 - @azure/msal-node ^5.1.2 (upgraded from 3.8.x), @azure/msal-node-extensions ^5.1.2
 - @types/node ^24, @swc/core ^1 (electron-vite 5 peer dep)
 - `build.externalizeDeps` config in electron.vite.config.ts (replaced `externalizeDepsPlugin`)

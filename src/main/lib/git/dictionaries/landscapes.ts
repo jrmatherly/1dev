@@ -106,7 +106,7 @@ export const landscapes: string[] = [
   "haze",
   "horizon",
   "mist",
-  "shadow-sm",
+  "shadow",
   "snow",
   "storm",
   "sunset",

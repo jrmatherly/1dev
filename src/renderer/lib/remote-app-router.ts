@@ -24,7 +24,7 @@ import type {
   TRPCBuiltRouter,
   TRPCMutationProcedure,
   TRPCQueryProcedure,
-} from "@trpc/server"
+} from "@trpc/server";
 import type {
   Automation,
   AutomationDetail,
@@ -36,175 +36,175 @@ import type {
   RemoteChatWithSubChats,
   Team,
   UpdateAutomationInput,
-} from "./remote-types"
+} from "./remote-types";
 
 // ---------------------------------------------------------------------------
 // teams.* procedures
 // ---------------------------------------------------------------------------
 type TeamsRecord = {
   getUserTeams: TRPCQueryProcedure<{
-    meta: unknown
-    input: void
-    output: Team[]
-  }>
-}
+    meta: unknown;
+    input: void;
+    output: Team[];
+  }>;
+};
 
 // ---------------------------------------------------------------------------
 // agents.* procedures
 // ---------------------------------------------------------------------------
 type AgentsRecord = {
   getAgentChats: TRPCQueryProcedure<{
-    meta: unknown
-    input: { teamId: string }
-    output: RemoteChat[]
-  }>
+    meta: unknown;
+    input: { teamId: string };
+    output: RemoteChat[];
+  }>;
   getAgentChat: TRPCQueryProcedure<{
-    meta: unknown
-    input: { chatId: string }
-    output: RemoteChatWithSubChats
-  }>
+    meta: unknown;
+    input: { chatId: string };
+    output: RemoteChatWithSubChats;
+  }>;
   getArchivedChats: TRPCQueryProcedure<{
-    meta: unknown
-    input: { teamId: string }
-    output: RemoteChat[]
-  }>
+    meta: unknown;
+    input: { teamId: string };
+    output: RemoteChat[];
+  }>;
   archiveChat: TRPCMutationProcedure<{
-    meta: unknown
-    input: { chatId: string }
-    output: void
-  }>
+    meta: unknown;
+    input: { chatId: string };
+    output: void;
+  }>;
   archiveChatsBatch: TRPCMutationProcedure<{
-    meta: unknown
-    input: { chatIds: string[] }
-    output: { archivedCount: number }
-  }>
+    meta: unknown;
+    input: { chatIds: string[] };
+    output: { archivedCount: number };
+  }>;
   restoreChat: TRPCMutationProcedure<{
-    meta: unknown
-    input: { chatId: string }
-    output: void
-  }>
+    meta: unknown;
+    input: { chatId: string };
+    output: void;
+  }>;
   renameSubChat: TRPCMutationProcedure<{
-    meta: unknown
-    input: { subChatId: string; name: string }
-    output: void
-  }>
+    meta: unknown;
+    input: { subChatId: string; name: string };
+    output: void;
+  }>;
   renameChat: TRPCMutationProcedure<{
-    meta: unknown
-    input: { chatId: string; name: string }
-    output: void
-  }>
+    meta: unknown;
+    input: { chatId: string; name: string };
+    output: void;
+  }>;
   getAgentsSubscription: TRPCQueryProcedure<{
-    meta: unknown
-    input: void
-    output: { type: string }
-  }>
-}
+    meta: unknown;
+    input: void;
+    output: { type: string };
+  }>;
+};
 
 // ---------------------------------------------------------------------------
 // automations.* procedures
 // ---------------------------------------------------------------------------
 type InboxChatsResponse = {
-  chats: InboxChat[]
-}
+  chats: InboxChat[];
+};
 
 type AutomationsRecord = {
   getInboxUnreadCount: TRPCQueryProcedure<{
-    meta: unknown
-    input: { teamId: string }
-    output: { count: number }
-  }>
+    meta: unknown;
+    input: { teamId: string };
+    output: { count: number };
+  }>;
   listAutomations: TRPCQueryProcedure<{
-    meta: unknown
-    input: { teamId: string }
-    output: Automation[]
-  }>
+    meta: unknown;
+    input: { teamId: string };
+    output: Automation[];
+  }>;
   getAutomation: TRPCQueryProcedure<{
-    meta: unknown
-    input: { automationId: string }
-    output: AutomationDetail
-  }>
+    meta: unknown;
+    input: { automationId: string };
+    output: AutomationDetail;
+  }>;
   listExecutions: TRPCQueryProcedure<{
-    meta: unknown
-    input: { automationId: string; limit: number; offset: number }
-    output: { executions: AutomationExecution[]; total: number }
-  }>
+    meta: unknown;
+    input: { automationId: string; limit: number; offset: number };
+    output: { executions: AutomationExecution[]; total: number };
+  }>;
   createAutomation: TRPCMutationProcedure<{
-    meta: unknown
-    input: CreateAutomationInput
-    output: void
-  }>
+    meta: unknown;
+    input: CreateAutomationInput;
+    output: void;
+  }>;
   updateAutomation: TRPCMutationProcedure<{
-    meta: unknown
-    input: UpdateAutomationInput
-    output: void
-  }>
+    meta: unknown;
+    input: UpdateAutomationInput;
+    output: void;
+  }>;
   deleteAutomation: TRPCMutationProcedure<{
-    meta: unknown
-    input: { automationId: string }
-    output: void
-  }>
+    meta: unknown;
+    input: { automationId: string };
+    output: void;
+  }>;
   getInboxChats: TRPCQueryProcedure<{
-    meta: unknown
-    input: { teamId: string; limit: number }
-    output: InboxChatsResponse
-  }>
+    meta: unknown;
+    input: { teamId: string; limit: number };
+    output: InboxChatsResponse;
+  }>;
   markInboxItemRead: TRPCMutationProcedure<{
-    meta: unknown
-    input: { executionId: string }
-    output: void
-  }>
+    meta: unknown;
+    input: { executionId: string };
+    output: void;
+  }>;
   markAllInboxItemsRead: TRPCMutationProcedure<{
-    meta: unknown
-    input: { teamId: string }
-    output: void
-  }>
-}
+    meta: unknown;
+    input: { teamId: string };
+    output: void;
+  }>;
+};
 
 // ---------------------------------------------------------------------------
 // github.* procedures
 // ---------------------------------------------------------------------------
 type GithubRecord = {
   getConnectionStatus: TRPCQueryProcedure<{
-    meta: unknown
-    input: { teamId: string }
-    output: ConnectionStatus
-  }>
-}
+    meta: unknown;
+    input: { teamId: string };
+    output: ConnectionStatus;
+  }>;
+};
 
 // ---------------------------------------------------------------------------
 // linear.* procedures
 // ---------------------------------------------------------------------------
 type LinearRecord = {
   getIntegration: TRPCQueryProcedure<{
-    meta: unknown
-    input: { teamId: string }
-    output: ConnectionStatus
-  }>
-}
+    meta: unknown;
+    input: { teamId: string };
+    output: ConnectionStatus;
+  }>;
+};
 
 // ---------------------------------------------------------------------------
 // Combined router record
 // ---------------------------------------------------------------------------
 type AppRouterRecord = {
-  teams: TeamsRecord
-  agents: AgentsRecord
-  automations: AutomationsRecord
-  github: GithubRecord
-  linear: LinearRecord
-}
+  teams: TeamsRecord;
+  agents: AgentsRecord;
+  automations: AutomationsRecord;
+  github: GithubRecord;
+  linear: LinearRecord;
+};
 
 // ---------------------------------------------------------------------------
 // Root types — must match the remote server's tRPC config.
 // `transformer: true` is required because the remote server uses SuperJSON.
 // ---------------------------------------------------------------------------
 type AppRootTypes = {
-  ctx: object
-  meta: object
-  errorShape: { message: string; code: number }
-  transformer: true
-}
+  ctx: object;
+  meta: object;
+  errorShape: { message: string; code: number };
+  transformer: true;
+};
 
 // ---------------------------------------------------------------------------
 // The AppRouter type — satisfies AnyRouter, usable with createTRPCClient<>
 // ---------------------------------------------------------------------------
-export type AppRouter = TRPCBuiltRouter<AppRootTypes, AppRouterRecord>
+export type AppRouter = TRPCBuiltRouter<AppRootTypes, AppRouterRecord>;

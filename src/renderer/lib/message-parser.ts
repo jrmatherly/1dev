@@ -270,7 +270,9 @@ export type SubChatStreamFields = {
  */
 export function parseAndNormalizeChat<T extends AnyObj>(
   chat: T | null | undefined,
-): (T & ChatSandboxFields & { subChats?: Array<AnyObj & SubChatStreamFields> }) | null {
+):
+  | (T & ChatSandboxFields & { subChats?: Array<AnyObj & SubChatStreamFields> })
+  | null {
   if (!chat) return null;
   const typedChat = chat as AnyObj;
   const result = {
@@ -285,7 +287,8 @@ export function parseAndNormalizeChat<T extends AnyObj>(
       stream_id: null as string | null,
     })),
   };
-  return result as unknown as T & ChatSandboxFields & {
-    subChats?: Array<AnyObj & SubChatStreamFields>;
-  };
+  return result as unknown as T &
+    ChatSandboxFields & {
+      subChats?: Array<AnyObj & SubChatStreamFields>;
+    };
 }

@@ -260,7 +260,7 @@ function normalizeCodexToolInput(
   if (descriptor.canonicalToolName === "Bash") {
     if (Array.isArray(normalizedInput.command)) {
       normalizedInput.command =
-        normalizedInput.command[normalizedInput.command.length - 1] ||
+        normalizedInput.command.at(-1) ||
         descriptor.detail;
     } else if (!normalizedInput.command && descriptor.detail) {
       normalizedInput.command = descriptor.detail;
