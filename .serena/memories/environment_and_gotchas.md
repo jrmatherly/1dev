@@ -11,8 +11,14 @@
 - GitHub Actions: 5 parallel jobs aggregated by `CI Status` check
 - Branch protection on main: required CI status, admin bypass, no force push
 - Concurrency: `cancel-in-progress: true` per PR
-- `actions/checkout@v6`, `oven-sh/setup-bun@v2`
+- `actions/checkout@v6`, `oven-sh/setup-bun@v2`, `actions/setup-node@v6` (docs-build only)
 - Top-level `permissions: { contents: read }`
+- **ts:check is baseline-aware in CI** (fixed 2026-04-09 commit 064dfc2): CI reads `.claude/.tscheck-baseline`, runs tsgo, counts matching errors, fails only if `ACTUAL > BASELINE`. Prints ratchet hint if count drops.
+- **docs-build job pins Node 24** explicitly (fixed 2026-04-09): `oven-sh/setup-bun@v2` does NOT install Node — it only installs Bun. xyd-js requires Node >= 22, so docs-build has an explicit `actions/setup-node@v6` step. **Action pinned to v6** (not v4) because `actions/setup-node@v4` declares `using: node20` in its action.yml which triggers GitHub's Node 20 deprecation warning.
+- **ci.yml triggers:** `pull_request` + `workflow_dispatch` only, never `push`. Use `gh workflow run ci.yml --ref main` to baseline-test main (CodeQL is the only push-triggered workflow).
+- **Useful gh commands:** `gh run view <id> --json jobs --jq '.jobs[] | {name, conclusion}'` for per-job status without log spelunking. `gh run view <id> --log-failed` for targeted failure logs. `gh pr comment <#> --body "@dependabot recreate"` to refresh a Dependabot PR against current main.
+- **Dependabot labels must exist in the repo first** — `dependabot.yml` declares `dependencies`, `bun`, `docs`, `github-actions`; all 4 labels were created 2026-04-09. Missing labels cause PRs to open un-labeled AND emit a "labels could not be found" error on every PR.
+- **Action runtime ≠ installed Node**: JS actions declare their own runtime Node in `action.yml` (`using: node20` or `node24`) — independent of the Node version they install for user scripts. Check action.yml source-of-truth: `curl -s https://raw.githubusercontent.com/<org>/<repo>/<ref>/action.yml | grep 'using:'`.
 
 ## Key Version Pins
 - Electron 41.2.0 (EOL 2026-08-25, upgraded 2026-04-09), electron-vite 5.0.0, Vite 7.3.2 (upgraded from 6.4.2 on 2026-04-10, Phase A of upgrade-vite-8-build-stack)

@@ -48,9 +48,19 @@
 - `/upstream-boundary-check` — Verify `remoteTrpc.*` / `fetch(${apiUrl}/...)` additions have F-entry coverage
 
 ## Claude Code Rules (auto-loaded)
-- Global: `.claude/rules/scratchpad.md`
-- Path-scoped: `.claude/rules/{auth-env-vars,credential-storage,database,openspec,testing,tscheck-baseline,upstream-boundary}.md`
+- Global: `.claude/rules/scratchpad.md`, `.claude/rules/roadmap.md`
+- Path-scoped: `.claude/rules/{auth-env-vars,credential-storage,database,openspec,testing,tscheck-baseline,upstream-boundary,vite-config}.md`
 - Index: `.claude/rules/README.md`
+
+## GitHub / CI Forensics
+- `gh workflow run ci.yml --ref main` — Trigger manual CI dispatch on main (CI normally only runs on PRs)
+- `gh run list --workflow=ci.yml --limit 10` — Filter to CI runs only
+- `gh run view <id> --json jobs --jq '.jobs[] | {name, conclusion}'` — Per-job status without log noise
+- `gh run view <id> --log-failed` — Only failing step logs
+- `gh run watch <id> --exit-status` — Wait for a run to finish and surface exit code
+- `gh pr comment <#> --body "@dependabot recreate"` — Refresh a Dependabot PR against current main
+- `gh label create <name> --color <hex> --description "<text>"` — Create labels before Dependabot needs them
+- `gh label list --limit 100 --json name` — Verify all expected labels exist
 
 ## Serena MCP
 - `mcp__serena__activate_project` with `project: "ai-coding-cli"` — required before read/write memories

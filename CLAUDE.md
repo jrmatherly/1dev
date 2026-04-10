@@ -101,8 +101,8 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 ## Dev environment quick reference
 
 - **Dev auth bypass:** Set `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` to skip login in dev mode (only works when `!app.isPackaged`). Required because the upstream OAuth backend is dead and Envoy Gateway auth isn't deployed yet.
-- **TS baseline:** ~80 pre-existing errors (reduced from 86 during mock-api Phase 2). Only worry about new errors your changes introduce. See [`.claude/rules/tscheck-baseline.md`](.claude/rules/tscheck-baseline.md).
-- **Version pins (load-bearing):** Vite 6.x, Tailwind 3.x, Shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0, `@xyd-js/cli` `0.0.0-build-1202121-20260121231224`. See [`docs/conventions/pinned-deps.md`](docs/conventions/pinned-deps.md) for why each one is pinned.
+- **TS baseline:** 80 pre-existing errors, enforced **both** locally (PostToolUse hook) **and in CI** (`ci.yml` reads `.claude/.tscheck-baseline` and fails if count exceeds it). Only new errors fail gates. See [`.claude/rules/tscheck-baseline.md`](.claude/rules/tscheck-baseline.md).
+- **Version pins (load-bearing):** Vite 7.x, Tailwind 3.x, Shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0, `@xyd-js/cli` `0.0.0-build-1202121-20260121231224`. See [`docs/conventions/pinned-deps.md`](docs/conventions/pinned-deps.md) for why each one is pinned.
 - **Gotchas (tool quirks, macOS base64url, Entra v2 manifest, Flux/GitOps):** [`docs/operations/env-gotchas.md`](docs/operations/env-gotchas.md).
 - **First-install debug:** clear `~/Library/Application\ Support/Agents\ Dev/`, reset Launch Services. Full runbook in [`docs/operations/debugging-first-install.md`](docs/operations/debugging-first-install.md).
 

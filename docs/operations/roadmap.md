@@ -75,6 +75,14 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None (each root cause is independent)
 **Canonical reference:** [`docs/conventions/tscheck-baseline.md`](../conventions/tscheck-baseline.md)
 
+### [Research] Re-evaluate Shiki 4 upgrade tractability
+
+**Added:** 2026-04-09
+**Scope:** PR #11 (shiki 3.23.0 → 4.0.2) now passes **all 5 CI quality gates** on main after CI workflow fixes (run `24224043794`, 2026-04-10). Previous blocker assumption was `@pierre/diffs` pinning `shiki: ^3.0.0` AND `@shikijs/transformers: ^3.0.0`, which would create an unresolvable peer-dep conflict. CI passing suggests either (a) `@pierre/diffs` has relaxed its peer-dep range, (b) bun's resolver is handling the dual-version scenario gracefully, or (c) the peer-dep conflict is non-fatal at build time. Investigate: run `bun info @pierre/diffs peerDependencies`, check if shiki 3 and 4 both ship in `node_modules`, dev-test syntax highlighting in the renderer to verify no runtime breakage. May be mergeable standalone, separating it from the Vite 8 + electron-vite 6 Phase B work.
+**Effort:** Small (2-4h investigation + merge decision)
+**Prereqs:** None
+**Canonical reference:** PR #11, CI run 24224043794
+
 ---
 
 ## P3 -- Low Priority / Opportunistic
@@ -137,7 +145,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 ### [Cleanup] Dependabot comment refresh
 
 **Added:** 2026-04-09
-**Scope:** Update `.github/dependabot.yml` comments and `.claude/skills/verify-pin/SKILL.md` to reflect current pin reasons. Will be largely superseded when the upgrade OpenSpec changes (`upgrade-electron-41`, `upgrade-typescript-6`, `upgrade-tailwind-4`, `upgrade-vite-8-build-stack`) are archived.
+**Scope:** Update `.github/dependabot.yml` comments and `.claude/skills/verify-pin/SKILL.md` to reflect current pin reasons. Partially superseded (`upgrade-typescript-6` archived 2026-04-10, `upgrade-electron-41` ready to archive); `upgrade-tailwind-4` and `upgrade-vite-8-build-stack` still active.
 **Effort:** Trivial
 **Prereqs:** None
 
