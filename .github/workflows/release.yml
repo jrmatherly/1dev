@@ -60,7 +60,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
+          - os: macos-15
             name: macos
             build-script: "package:mac"
           - os: ubuntu-latest
@@ -134,7 +134,7 @@ jobs:
             release/*.exe
             release/*.yml
             release/*.blockmap
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
 
   release:
@@ -181,7 +181,7 @@ jobs:
           echo "📦 Releasing as tag: $TAG"
 
       - name: "🚀 Publish GitHub Release"
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: "1Code ${{ steps.tag.outputs.tag }}"
@@ -198,8 +198,10 @@ jobs:
             > Code signing will be enabled in a follow-on iteration once
             > Apple Developer ID and Windows EV certificates are provisioned.
             >
-            > **macOS unsigned install:** `xattr -cr /Applications/1Code.app`
-            > after dragging to Applications.
+            > **macOS unsigned install:** after dragging to Applications, run:
+            > `xattr -d com.apple.quarantine /Applications/1Code.app`
+            > This removes only the quarantine flag (not all xattrs). Only run
+            > this if you trust the source of this download (this GitHub Release).
 
             ### Auto-update
 
@@ -225,6 +227,6 @@ jobs:
             artifacts/*.exe
             artifacts/*.yml
             artifacts/*.blockmap
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

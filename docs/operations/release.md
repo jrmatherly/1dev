@@ -91,6 +91,17 @@ Each release produces the following files as GitHub Release assets:
 
 The feed URL is **not** set at runtime. Instead, `electron-builder` bakes `app-update.yml` into the packaged app during `bun run package:*`, using the `build.publish` config from `package.json` (`provider: "github"`, `owner: "jrmatherly"`, `repo: "1dev"`). Changes to the `publish` config require a rebuild; they are not hot-reloadable on installed apps.
 
+## First Release After Pipeline Migration (v0.0.72 → v0.0.73)
+
+> **Important:** Existing v0.0.72 installs (and any earlier version) have `app-update.yml` baked in with `provider: "generic", url: "https://cdn.apollosai.dev/releases/desktop"`. That CDN is dead. When v0.0.73 is released via the new GitHub Releases pipeline, **those installs will NOT auto-update** — they'll keep polling the dead CDN and silently fail.
+>
+> **Users must manually download v0.0.73** from the GitHub Release page to get the new auto-update feed. After that one-time reinstall, all future releases will auto-update normally.
+>
+> **Recommended user-notification strategy:**
+> - Pin a GitHub Issue linking to the v0.0.73 release page
+> - Add a note in the release notes: "Users on v0.0.72 or earlier must manually download this release"
+> - If you have analytics on installed-version distribution, consider an Entra-notification or email broadcast
+
 ## Code Signing (Not Yet Enabled)
 
 > ⚠️ **First-iteration releases are UNSIGNED** on all 3 operating systems.

@@ -5,8 +5,6 @@ import {
   type UpdateInfo,
   type ProgressInfo,
 } from "electron-updater";
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
 
 /**
  * IMPORTANT: Do NOT use lazy/dynamic imports for electron-updater!
@@ -33,37 +31,14 @@ function initAutoUpdaterConfig() {
 const MIN_CHECK_INTERVAL = 60 * 1000; // 1 minute
 let lastCheckTime = 0;
 
-// Update channel preference file
-const CHANNEL_PREF_FILE = "update-channel.json";
-
-type UpdateChannel = "latest" | "beta";
-
-function getChannelPrefPath(): string {
-  return join(app.getPath("userData"), CHANNEL_PREF_FILE);
-}
-
-function getSavedChannel(): UpdateChannel {
-  try {
-    const prefPath = getChannelPrefPath();
-    if (existsSync(prefPath)) {
-      const data = JSON.parse(readFileSync(prefPath, "utf-8"));
-      if (data.channel === "beta" || data.channel === "latest") {
-        return data.channel;
-      }
-    }
-  } catch {
-    // Ignore read errors, fall back to default
-  }
-  return "latest";
-}
-
-function saveChannel(channel: UpdateChannel): void {
-  try {
-    writeFileSync(getChannelPrefPath(), JSON.stringify({ channel }), "utf-8");
-  } catch (error) {
-    log.error("[AutoUpdater] Failed to save channel preference:", error);
-  }
-}
+// Channel is always "latest" for this iteration. Beta channel support
+// was removed because electron-builder requires `generateUpdatesFilesForAllChannels: true`
+// in package.json build config to emit beta-mac.yml manifests, AND
+// electron-updater's GitHub provider's default path hits /releases/latest
+// which skips prereleases — making the beta channel silently 404.
+// See: https://www.electron.build/tutorials/release-using-channels
+// Re-add when the beta channel can be supported end-to-end (manifest
+// generation + allowPrerelease + UI toggle).
 
 let getAllWindows: (() => BrowserWindow[]) | null = null;
 
@@ -93,13 +68,10 @@ export async function initAutoUpdater(getWindows: () => BrowserWindow[]) {
   // Initialize config
   initAutoUpdaterConfig();
 
-  // Set update channel from saved preference
-  const savedChannel = getSavedChannel();
-  autoUpdater.channel = savedChannel;
-  // electron-updater auto-sets allowDowngrade=true when channel is changed.
-  // We never want to offer a downgrade (e.g. beta 0.0.60-beta.5 when stable is 0.0.62).
+  // Hard-lock to "latest" channel (see comment at top of file for why beta
+  // channel is disabled).
+  autoUpdater.channel = "latest";
   autoUpdater.allowDowngrade = false;
-  log.info(`[AutoUpdater] Using update channel: ${savedChannel}`);
 
   // Feed URL is auto-configured by electron-updater from `app-update.yml`
   // (baked into the packaged app at build time from package.json
@@ -231,33 +203,9 @@ function registerIpcHandlers() {
     };
   });
 
-  // Set update channel (latest = stable only, beta = stable + beta)
-  ipcMain.handle("update:set-channel", async (_event, channel: string) => {
-    if (channel !== "latest" && channel !== "beta") {
-      log.warn(`[AutoUpdater] Invalid channel: ${channel}`);
-      return false;
-    }
-    log.info(`[AutoUpdater] Switching update channel to: ${channel}`);
-    autoUpdater.channel = channel;
-    // electron-updater auto-sets allowDowngrade=true when channel is changed.
-    // We never want to offer a downgrade — only show updates newer than current version.
-    autoUpdater.allowDowngrade = false;
-    saveChannel(channel);
-    // Check for updates immediately with new channel
-    if (app.isPackaged) {
-      try {
-        await autoUpdater.checkForUpdates();
-      } catch (error) {
-        log.error("[AutoUpdater] Post-channel-switch check failed:", error);
-      }
-    }
-    return true;
-  });
-
-  // Get current update channel
-  ipcMain.handle("update:get-channel", () => {
-    return getSavedChannel();
-  });
+  // Beta channel IPC handlers (update:set-channel, update:get-channel) were
+  // removed because the beta channel is broken — see comment at top of file.
+  // No renderer callers exist (confirmed via grep 2026-04-10).
 }
 
 /**
