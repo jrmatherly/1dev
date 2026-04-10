@@ -269,16 +269,22 @@ async function verifyManifestSignature(version, manifestBytes) {
   }
 
   // Use a per-run ephemeral GPG home so we don't pollute the user's ~/.gnupg.
+  // We set GNUPGHOME as an env var instead of using --homedir because on
+  // Windows CI (Git Bash), fs.mkdtempSync returns a Windows path that gets
+  // mangled when passed as a --homedir argument through bash, producing
+  // invalid paths like "/d/a/repo/C:\\Users\\...". GNUPGHOME avoids this.
   const gpgHome = fs.mkdtempSync(path.join(os.tmpdir(), "claude-gpg-verify-"));
+  const gpgEnv = { ...process.env, GNUPGHOME: gpgHome };
   try {
     // Set strict permissions to silence "unsafe permissions" warnings.
+    // On Windows, chmod is a no-op but doesn't error.
     fs.chmodSync(gpgHome, 0o700);
 
     // Import the vendored public key into the ephemeral keyring.
     execFileSync(
       "gpg",
-      ["--homedir", gpgHome, "--import", ANTHROPIC_RELEASE_PUBKEY_PATH],
-      { stdio: "pipe" },
+      ["--import", ANTHROPIC_RELEASE_PUBKEY_PATH],
+      { stdio: "pipe", env: gpgEnv },
     );
 
     // Verify the imported key fingerprint matches the hardcoded constant.
@@ -287,13 +293,11 @@ async function verifyManifestSignature(version, manifestBytes) {
     const fingerprintOutput = execFileSync(
       "gpg",
       [
-        "--homedir",
-        gpgHome,
         "--with-colons",
         "--fingerprint",
         "security@anthropic.com",
       ],
-      { stdio: "pipe" },
+      { stdio: "pipe", env: gpgEnv },
     ).toString();
 
     // Parse `gpg --with-colons` output: lines starting with "fpr:" contain
@@ -329,8 +333,8 @@ async function verifyManifestSignature(version, manifestBytes) {
     try {
       execFileSync(
         "gpg",
-        ["--homedir", gpgHome, "--verify", sigPath, manifestPath],
-        { stdio: "pipe" },
+        ["--verify", sigPath, manifestPath],
+        { stdio: "pipe", env: gpgEnv },
       );
     } catch (err) {
       const stderr = (err.stderr || Buffer.alloc(0)).toString();

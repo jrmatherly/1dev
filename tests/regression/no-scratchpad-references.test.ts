@@ -29,6 +29,7 @@ const ALLOWLIST = new Set([
   ".serena/memories/codebase_structure.md", // describes .scratchpad/ in the directory tree
   "openspec/specs/documentation-site/spec.md", // defines the no-scratchpad-references rule itself
   "tests/regression/no-scratchpad-references.test.ts", // this file — contains the detection pattern
+  "eslint.config.mjs", // ESLint ignore pattern for .scratchpad/ directory
 ]);
 
 /**

@@ -55,13 +55,25 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None (infrastructure already in place via `openspec/specs/feature-flags/spec.md`)
 **Canonical reference:** [`docs/enterprise/upstream-features.md`](../enterprise/upstream-features.md) section F8
 
-### [Ready] First release build — v0.0.73 end-to-end pipeline test
+### [In Progress] First release build — v0.0.73 end-to-end pipeline test
 
 **Added:** 2026-04-10
-**Scope:** Push a `v0.0.73` tag to trigger `.github/workflows/release.yml` for the first time on real CI runners. Validates the entire pipeline end-to-end: 3-OS matrix build (macOS arm64+x64 binaries via `--all`, Linux AppImage+DEB, Windows NSIS+portable), artifact handoff via `upload-artifact@v7` → `download-artifact@v8`, and draft GitHub Release creation via `softprops/action-gh-release`. After verifying the draft, publish it and pin a GitHub Issue notifying v0.0.72 users to manually reinstall (documented in `docs/operations/release.md` "First Release After Pipeline Migration" section). **This is the single most important next step** — all other release-pipeline work is blocked until the first real build succeeds.
-**Effort:** Small (version bump + tag push + monitor + publish)
-**Prereqs:** None (release.yml is committed and reviewed)
+**Status:** v0.0.73 tag pushed 2026-04-10. Linux build **succeeded** (artifacts uploaded). macOS and Windows **failed** — see sub-items below. Run: [24229099621](https://github.com/jrmatherly/1dev/actions/runs/24229099621).
+**Scope:** Push a `v0.0.73` tag to trigger `.github/workflows/release.yml` for the first time on real CI runners. Validates the entire pipeline end-to-end: 3-OS matrix build (macOS arm64+x64 binaries via `--all`, Linux AppImage+DEB, Windows NSIS+portable), artifact handoff via `upload-artifact@v7` → `download-artifact@v8`, and draft GitHub Release creation via `softprops/action-gh-release`.
+**Effort:** Small (two bug fixes + re-tag)
 **Canonical reference:** [`docs/operations/release.md`](../operations/release.md), `.github/workflows/release.yml`
+
+#### Sub-item: Fix Windows GPG path mixing in Claude download script
+
+**Root cause:** `fs.mkdtempSync()` returns Windows path (`C:\Users\...`), but Git Bash on `windows-latest` mixes it with Unix-style prefixes, producing invalid path `/d/a/1dev/1dev/C:\\Users\\...` for `gpg --homedir`. GPG can't create its keyring at that path.
+**Fix:** Normalize temp dir path for the platform before passing to `gpg --homedir`. Options: (a) use `GNUPGHOME` env var instead of `--homedir`, (b) convert via `path.resolve()` + forward-slash normalization on Windows, (c) use `process.platform === "win32"` guard.
+**File:** `scripts/download-claude-binary.mjs:272-280`
+
+#### Sub-item: Fix macOS Codex download HTTP 403
+
+**Root cause:** `release.yml:125` sets `GH_TOKEN: ""` to prevent electron-builder auto-publish, but this blanks the token for ALL steps in the packaging job, including the prior download steps. The Codex download script at `download-codex-binary.mjs:63` uses `process.env.GITHUB_TOKEN` for GitHub API auth. Without it, the `openai/codex` repo returns 403 (rate limit or access restriction).
+**Fix:** Scope `GH_TOKEN: ""` to only the packaging step (move from job-level to step-level env), OR explicitly pass `GITHUB_TOKEN` to the download steps.
+**File:** `.github/workflows/release.yml:119-128`, `scripts/download-codex-binary.mjs:57-65`
 
 ---
 
@@ -115,13 +127,17 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** Apple Developer Program membership, Windows code-signing cert provisioned
 **Canonical reference:** `docs/operations/release.md` "Code Signing (Not Yet Enabled)" section
 
-### [Blocked] Build Kubernetes server images to GHCR
+### [Ready] K8s manifest CI + container image pipeline (phased)
 
-**Added:** 2026-04-10
-**Scope:** `deploy/kubernetes/1code-api/app/helmrelease.yaml` and `deploy/kubernetes/1code-update-server/app/helmrelease.yaml` reference container images `${IMAGE_REGISTRY}/1code-api:${IMAGE_TAG}` and `${IMAGE_REGISTRY}/1code-update-server:${IMAGE_TAG}`. These images **do not exist yet** — there are no Dockerfiles in the repo, and the source code for these services is not present either. Once the services are implemented (likely in a separate repo or as new top-level directories here), a GitHub Actions workflow can use `docker/build-push-action` to publish them to `ghcr.io/jrmatherly/1code-api` and `ghcr.io/jrmatherly/1code-update-server`. Pattern: `on: push: tags + workflow_dispatch`, matches `release.yml` trigger style. Each `HelmRelease` is already Flux-ready (uses `OCIRepository` for the Helm chart; only the application container image needs to be built and pushed). The envoy-auth-policy directory is YAML-only and needs no image build.
-**Effort:** Blocked (depends on implementing the services themselves)
-**Prereqs:** `1code-api` source code + Dockerfile, `1code-update-server` source code + Dockerfile (nginx/caddy-based, simpler)
-**Canonical reference:** `deploy/kubernetes/1code-api/app/helmrelease.yaml`, `deploy/kubernetes/1code-update-server/app/helmrelease.yaml`, `deploy/README.md`
+**Added:** 2026-04-10 (rescoped from "Build Kubernetes server images to GHCR")
+**Scope:** Three phases for the `deploy/kubernetes/` manifests and associated services:
+- **Phase 1 (Ready):** Manifest validation CI — `deploy-validate.yml` workflow triggered on PRs touching `deploy/`. Tools: `kubeconform` (schema), `kustomize build` (render), optional Kyverno policy checks. No containers needed.
+- **Phase 2 (Blocked):** Container image build — Dockerfiles for `1code-api` (backend) and `1code-update-server` (nginx static). Multi-arch via `docker/build-push-action` + GHCR. Cosign keyless signing. Unified `v*` tag with desktop release. Blocked on implementing the services.
+- **Phase 3 (Deferred):** OCI artifact packaging — `flux push artifact` to publish manifests as OCI artifacts for air-gapped/immutable delivery. Post-GA optimization.
+**Effort:** Small (Phase 1), Large (Phase 2, requires implementing services), Medium (Phase 3)
+**Prereqs:** Phase 1: none. Phase 2: `1code-api` source + Dockerfile, `1code-update-server` source + Dockerfile. Phase 3: Phase 2 complete.
+**Research:** Deployment engineer research completed 2026-04-10 — recommends GitRepository → OCI hybrid, kubeconform + Kyverno validation, Cosign keyless signing, unified semver tagging.
+**Canonical reference:** `deploy/README.md`, `deploy/kubernetes/*/app/helmrelease.yaml`
 
 ---
 
