@@ -52,8 +52,8 @@
 
 - [x] 8.1 Create `services/1code-api/Dockerfile` — multi-stage build: `bun install` → `bun build` → distroless/node runtime image
 - [x] 8.2 Add `.dockerignore` for `services/1code-api/` (node_modules, tests, changelog dev files)
-- [ ] 8.3 Test local build: `docker build -t 1code-api:local -f services/1code-api/Dockerfile .`
-- [ ] 8.4 Test local run: `docker run -p 8000:8000 -e DEV_BYPASS_AUTH=true 1code-api:local` and verify health endpoint
+- [x] 8.3 Test local build: `docker build -t 1code-api:local -f services/1code-api/Dockerfile .`
+- [x] 8.4 Test local run: `docker run -p 8000:8000 -e DEV_BYPASS_AUTH=true 1code-api:local` and verify health endpoint
 
 ## 9. GitHub Actions Container Build Workflow
 
@@ -73,7 +73,7 @@
 
 ## 11. Integration Verification
 
-- [ ] 11.1 Run all 5 quality gates: `bun run ts:check`, `bun run build`, `bun test`, `bun audit`, `cd docs && bun run build`
+- [x] 11.1 Run all 5 quality gates: `bun run ts:check`, `bun run build`, `bun test`, `bun audit`, `cd docs && bun run build`
 - [ ] 11.2 Verify the container image is accessible in GHCR: `docker pull ghcr.io/jrmatherly/1code-api:v0.0.XX`
 - [x] 11.3 Document deployment steps in `services/1code-api/README.md` — local dev, Docker, Kubernetes
 

@@ -10,10 +10,14 @@ interface ChangelogEntry {
   body: string;
 }
 
-const CHANGELOG_DIR = resolve(
-  import.meta.dirname ?? new URL(".", import.meta.url).pathname,
-  "../../changelog",
-);
+/**
+ * Resolve the changelog directory relative to the current working directory.
+ * In production the container sets WORKDIR=/app so changelog/ sits at /app/changelog.
+ * In local dev (bun run dev) the cwd is services/1code-api/ so the path is ./changelog.
+ * Override with CHANGELOG_DIR env var if needed.
+ */
+const CHANGELOG_DIR = process.env.CHANGELOG_DIR
+  ?? resolve(process.cwd(), "changelog");
 
 const MAX_PER_PAGE = 50;
 const DEFAULT_PER_PAGE = 10;

@@ -8,7 +8,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - React 19.2.5, TypeScript 6.0.2 (upgraded from 5.9.3 on 2026-04-10), Tailwind CSS 4, Bun
 - @anthropic-ai/claude-agent-sdk 0.2.97, Codex CLI 0.118.0, Ollama
 - 7 Drizzle tables, 22 tRPC routers (incl. enterprise-auth), better-sqlite3, node-pty (lazy-loaded)
-- 14 regression guards, 58 tests
+- 14 regression guards + 5 service tests = 75 tests across 19 files
 
 ## Current State (2026-04-10)
 - **Phase 0:** 15/15 hard gates complete

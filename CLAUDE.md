@@ -95,7 +95,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **`services/1code-api/`** — Self-hosted backend API (Fastify + tRPC + Drizzle/PostgreSQL). Replaces upstream `1code.dev`. Container built via `.github/workflows/container-build.yml` → `ghcr.io/jrmatherly/1code-api`. See [`services/1code-api/README.md`](services/1code-api/README.md).
 - **`deploy/`** — Kubernetes deployment manifests (Flux v2). Components: `1code-api`, `envoy-auth-policy`. All values use `${PLACEHOLDER}` substitution. See [`deploy/README.md`](deploy/README.md).
 - **`openspec/`** — OpenSpec 1.2.0 change proposals and 9 capability specs (45 requirements). See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
-- **`tests/regression/`** — 14 bun:test regression guards (58 tests). See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
+- **`tests/regression/`** — 14 bun:test regression guards (58 tests) + 5 service tests in `services/1code-api/tests/`. See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
 - **`.scratchpad/`** — Ephemeral local-only notes (gitignored). Never referenced from tracked files.
 
 **Deployment target cluster repo:** `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos K8s, Envoy Gateway, LiteLLM, OIDC stack). Coordinate cross-repo for auth/backend work. See [`docs/operations/cluster-access.md`](docs/operations/cluster-access.md).
@@ -103,7 +103,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 ## Dev environment quick reference
 
 - **Dev auth bypass:** Set `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` to skip login in dev mode (only works when `!app.isPackaged`). Required because the upstream OAuth backend is dead and Envoy Gateway auth isn't deployed yet.
-- **TS baseline:** 80 pre-existing errors, enforced **both** locally (PostToolUse hook) **and in CI** (`ci.yml` reads `.claude/.tscheck-baseline` and fails if count exceeds it). Only new errors fail gates. See [`.claude/rules/tscheck-baseline.md`](.claude/rules/tscheck-baseline.md).
+- **TS baseline:** 63 pre-existing errors, enforced **both** locally (PostToolUse hook) **and in CI** (`ci.yml` reads `.claude/.tscheck-baseline` and fails if count exceeds it). Only new errors fail gates. See [`.claude/rules/tscheck-baseline.md`](.claude/rules/tscheck-baseline.md).
 - **Version pins (load-bearing):** Vite 7.x, Shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0, `@xyd-js/cli` `0.0.0-build-1202121-20260121231224`. See [`docs/conventions/pinned-deps.md`](docs/conventions/pinned-deps.md) for why each one is pinned.
 - **Lint config:** `eslint.config.mjs` — ESLint 10 flat config with `eslint-plugin-sonarjs` v4. Suppressions document why each rule is off for this Electron/React codebase. Run `bun run lint` for project-wide scan.
 - **IDE config:** `.vscode/settings.json` tracked in git — tsgo flag + SonarLint rule suppressions (16 rules disabled project-wide, covering TS/JS/CSS). See file for rationale per rule.
