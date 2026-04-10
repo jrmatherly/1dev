@@ -68,13 +68,13 @@ The renderer's production bundle size SHALL NOT regress by more than 10% as a re
 
 ### Requirement: Node runtime floor matches Shiki 4 requirements
 
-The project's Node runtime floor SHALL be Node 20 or later, matching Shiki 4.0.0's minimum requirement. The project currently uses Node 24 in CI and development.
+The project's Node runtime floor SHALL be Node 20 or later, matching Shiki 4.0.0's minimum requirement. The project currently pins Node 24 in CI and development.
 
-#### Scenario: CI runs on Node 20 or later
+#### Scenario: CI runs on Node 24 (matching the current pin)
 
 - **GIVEN** Shiki 4.0.0 dropped support for Node v18
 - **WHEN** the CI workflow runs `bun run build`
-- **THEN** the `docs-build` job's `actions/setup-node@v6` step installs Node 22 or later
+- **THEN** the `docs-build` job's `actions/setup-node@v6` step installs Node 24 (matching the explicit `node-version: "24"` pin in `.github/workflows/ci.yml` and `release.yml`)
 - **AND** no Shiki runtime version check errors are emitted
 
 ### Requirement: All six quality gates pass after the upgrade
@@ -86,4 +86,4 @@ The project's six quality gates (`bun run ts:check`, `bun run lint`, `bun run bu
 - **GIVEN** the shiki 4 upgrade PR has been merged to `main`
 - **WHEN** all six quality gates are executed on the merge commit
 - **THEN** every gate exits with status 0
-- **AND** `bun run ts:check` reports a count less than or equal to the `.claude/.tscheck-baseline` value (currently 54)
+- **AND** `bun run ts:check` reports a count less than or equal to the `.claude/.tscheck-baseline` value (currently 45, reduced from 54 via commit `46f49a4` on 2026-04-10)
