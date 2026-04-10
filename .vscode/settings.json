@@ -4,8 +4,22 @@
   "js/ts.experimental.useTsgo": true,
   "mirrord.promptUsingBinary": false,
 
-  // SonarLint rule suppressions — rules that conflict with codebase conventions.
-  // Each rule was investigated (2026-04-10 session) and deliberately skipped.
+  // ──────────────────────────────────────────────────────────────────────
+  // SONARLINT RULE SUPPRESSIONS
+  //
+  // IMPORTANT: SonarLint's "sonarlint.rules" setting has scope "application",
+  // which means VS Code IGNORES it in workspace settings (.vscode/settings.json).
+  // It only takes effect in your User settings.
+  //
+  // To apply these suppressions:
+  //   1. Open Command Palette (Cmd+Shift+P)
+  //   2. Run "Preferences: Open User Settings (JSON)"
+  //   3. Copy the "sonarlint.rules" block below into your User settings
+  //
+  // This file is tracked in git as documentation of which rules are
+  // suppressed and why. Each rule was investigated on 2026-04-10 and
+  // deliberately skipped — see inline comments for rationale.
+  // ──────────────────────────────────────────────────────────────────────
   "sonarlint.rules": {
     // S6478: "Move component out of parent" — 44 nested components in
     // chat-markdown-renderer.tsx. This is a deliberate architecture choice;
