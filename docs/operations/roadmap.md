@@ -55,9 +55,33 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None (infrastructure already in place via `openspec/specs/feature-flags/spec.md`)
 **Canonical reference:** [`docs/enterprise/upstream-features.md`](../enterprise/upstream-features.md) section F8
 
+### [Ready] First release build — v0.0.73 end-to-end pipeline test
+
+**Added:** 2026-04-10
+**Scope:** Push a `v0.0.73` tag to trigger `.github/workflows/release.yml` for the first time on real CI runners. Validates the entire pipeline end-to-end: 3-OS matrix build (macOS arm64+x64 binaries via `--all`, Linux AppImage+DEB, Windows NSIS+portable), artifact handoff via `upload-artifact@v7` → `download-artifact@v8`, and draft GitHub Release creation via `softprops/action-gh-release`. After verifying the draft, publish it and pin a GitHub Issue notifying v0.0.72 users to manually reinstall (documented in `docs/operations/release.md` "First Release After Pipeline Migration" section). **This is the single most important next step** — all other release-pipeline work is blocked until the first real build succeeds.
+**Effort:** Small (version bump + tag push + monitor + publish)
+**Prereqs:** None (release.yml is committed and reviewed)
+**Canonical reference:** [`docs/operations/release.md`](../operations/release.md), `.github/workflows/release.yml`
+
 ---
 
 ## P2 -- Medium Priority
+
+### [Ready] SLSA provenance attestation for release artifacts
+
+**Added:** 2026-04-10
+**Scope:** Add `permissions: id-token: write` to the release job in `release.yml` and call `actions/attest@v2` (or `actions/attest-build-provenance@v4`) after downloading artifacts, before `softprops/action-gh-release`. This gives users `gh attestation verify` against published installers — a cryptographic chain from GitHub OIDC to the binary, compensating for unsigned builds. Zero secrets required, ~10 lines of YAML. Identified by the 5-reviewer parallel audit (Security finding ME-002, Ecosystem Gap 1).
+**Effort:** Small (30 min)
+**Prereqs:** First release build succeeds (`v0.0.73`)
+**Canonical reference:** [`actions/attest-build-provenance`](https://github.com/actions/attest-build-provenance), Security review finding ME-002
+
+### [Ready] Archive `upgrade-electron-41` OpenSpec change
+
+**Added:** 2026-04-10
+**Scope:** Run `/opsx:archive upgrade-electron-41` to sync the `electron-runtime` delta spec to the baseline and move the change to `openspec/changes/archive/`. 26/27 tasks complete; Task 5.3 (auto-updater end-to-end) is moot now that the update pipeline itself was rebuilt with the GitHub provider migration. The archive will promote the `MODIFIED` spec requirements to the `electron-runtime` baseline under `openspec/specs/`.
+**Effort:** Trivial (10 min)
+**Prereqs:** None
+**Canonical reference:** `openspec/changes/upgrade-electron-41/`, `.claude/rules/openspec.md`
 
 ### [Deferred] mock-api.ts Phase 3 -- delete remaining F-entry stubs
 
@@ -110,6 +134,22 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Effort:** Medium-Large
 **Prereqs:** Tailwind 4 completed 2026-04-10; Phase B blocked on electron-vite 6.0.0 stable; Shiki blocked on `@pierre/diffs` (PR #11 CI passing — may be mergeable standalone, see `[Research] Re-evaluate Shiki 4` entry)
 **Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md` (Phase B + Shiki tasks)
+
+### [Ready] Dependency caching for release workflow
+
+**Added:** 2026-04-10
+**Scope:** Add `actions/cache@v4` to `.github/workflows/release.yml` matrix-build job: cache `~/.bun/install/cache` keyed on `${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}`, and optionally cache the Electron download at `~/Library/Caches/electron` / `~/.cache/electron` / `%LOCALAPPDATA%\electron\Cache`. Saves 3-5 min per matrix leg, reduces macOS runner billing (10x Linux rate). Identified by CI/CD reviewer (Operational Concern #1) and Ecosystem reviewer (Gap 2).
+**Effort:** Small (15 min)
+**Prereqs:** First release build succeeds (`v0.0.73`)
+**Canonical reference:** CI/CD review finding, [GitHub dependency caching docs](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching)
+
+### [Deferred] Beta channel support for auto-updater
+
+**Added:** 2026-04-10
+**Scope:** The beta channel code path was removed from `auto-updater.ts` in commit `09c8e5a` because it was architecturally broken: `electron-builder` doesn't emit `beta-mac.yml` without `generateUpdatesFilesForAllChannels: true` in `package.json > build`, and `electron-updater`'s GitHub provider `/releases/latest` endpoint skips prereleases. To restore: (1) add `generateUpdatesFilesForAllChannels: true` to `build` config, (2) set `autoUpdater.allowPrerelease = true` when `channel === "beta"`, (3) re-add `update:set-channel` / `update:get-channel` IPC handlers + channel preference file, (4) add a UI toggle in settings, (5) tag beta releases as `v0.0.XX-beta.N`. See [electron-builder channels tutorial](https://www.electron.build/tutorials/release-using-channels).
+**Effort:** Medium (1-2 days — code + UI + testing)
+**Prereqs:** Code-sign release builds (beta users especially need trust signals)
+**Canonical reference:** Architecture review finding C1, `src/main/lib/auto-updater.ts` top-of-file comment
 
 ### [Ready] Electron Fuses enablement
 
