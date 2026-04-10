@@ -79,22 +79,22 @@ export function getDisplayPath(filePath: string, projectPath?: string): string {
     }
   }
   // Handle worktree paths: /.1code/worktrees/{chatId}/{subChatId}/relativePath
-  const worktreeMatch = filePath.match(
-    /\.1code\/worktrees\/[^/]+\/[^/]+\/(.+)$/,
-  );
+  const worktreeRegex = /\.1code\/worktrees\/[^/]+\/[^/]+\/(.+)$/;
+  const worktreeMatch = worktreeRegex.exec(filePath);
   if (worktreeMatch) {
     return worktreeMatch[1];
   }
   // Handle claude-sessions paths: .../claude-sessions/{sessionId}/{folder}/{file}
-  const sessionMatch = filePath.match(/claude-sessions\/[^/]+\/(.+)$/);
+  const sessionRegex = /claude-sessions\/[^/]+\/(.+)$/;
+  const sessionMatch = sessionRegex.exec(filePath);
   if (sessionMatch) {
     return sessionMatch[1];
   }
   if (filePath.startsWith("/")) {
     const parts = filePath.split("/");
-    const rootIndicators = ["apps", "packages", "src", "lib", "components"];
+    const rootIndicators = new Set(["apps", "packages", "src", "lib", "components"]);
     const rootIndex = parts.findIndex((p: string) =>
-      rootIndicators.includes(p),
+      rootIndicators.has(p),
     );
     if (rootIndex > 0) {
       return parts.slice(rootIndex).join("/");
@@ -353,7 +353,7 @@ export const AgentToolRegistry: Record<string, ToolMeta> = {
       // Replace absolute paths that look like project paths with relative versions
       normalized = normalized.replace(
         /\/(?:Users|home|root)\/[^\s"']+/g,
-        (match) => {
+        (match: string) => {
           return getDisplayPath(match);
         },
       );

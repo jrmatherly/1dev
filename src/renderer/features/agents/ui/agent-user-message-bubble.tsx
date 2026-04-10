@@ -24,6 +24,8 @@ interface AgentUserMessageBubbleProps {
     data?: {
       filename?: string;
       url?: string;
+      base64Data?: string;
+      mediaType?: string;
     };
   }>;
   /** If true, renders only images and text - no TextMentionBlocks (they're rendered by parent) */
@@ -59,7 +61,7 @@ function highlightTextInDom(
   const textNodes: Text[] = [];
   let node: Text | null;
   while ((node = walker.nextNode() as Text | null)) {
-    if (node.nodeValue && node.nodeValue.toLowerCase().includes(lowerSearch)) {
+    if (node.nodeValue?.toLowerCase().includes(lowerSearch)) {
       textNodes.push(node);
     }
   }
@@ -104,12 +106,12 @@ function highlightTextInDom(
       if (parent) {
         fragments.forEach((frag) => {
           if (typeof frag === "string") {
-            parent.insertBefore(document.createTextNode(frag), textNode);
+            textNode.before(document.createTextNode(frag));
           } else {
-            parent.insertBefore(frag, textNode);
+            textNode.before(frag);
           }
         });
-        parent.removeChild(textNode);
+        textNode.remove();
       }
     }
 

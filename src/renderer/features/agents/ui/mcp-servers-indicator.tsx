@@ -251,9 +251,8 @@ export const McpServersIndicator = memo(function McpServersIndicator({
           </p>
         </div>
 
-        <div
+        <ul
           className="max-h-64 overflow-y-auto py-1"
-          role="list"
           aria-labelledby="mcp-servers-title"
         >
           {sessionInfo.mcpServers.map((server, index) => {
@@ -262,7 +261,7 @@ export const McpServersIndicator = memo(function McpServersIndicator({
             const hasTools = tools.length > 0;
 
             return (
-              <div key={server.name} role="listitem">
+              <li key={server.name} className="list-none">
                 {/* Server row */}
                 <button
                   ref={(el) => {
@@ -325,28 +324,26 @@ export const McpServersIndicator = memo(function McpServersIndicator({
 
                 {/* Tools list (expanded) */}
                 {isExpanded && hasTools && (
-                  <div
+                  <ul
                     id={`tools-${server.name}`}
                     className="pl-8 pr-3 py-1 space-y-0.5"
-                    role="list"
                     aria-label={`Tools for ${server.name}`}
                   >
                     {tools.map((tool: string) => (
-                      <div
+                      <li
                         key={tool}
-                        className="text-xs text-muted-foreground py-0.5 truncate"
+                        className="text-xs text-muted-foreground py-0.5 truncate list-none"
                         title={tool}
-                        role="listitem"
                       >
                         {tool}
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
 
         {/* Plugins section */}
         {sessionInfo.plugins && sessionInfo.plugins.length > 0 && (
@@ -356,21 +353,20 @@ export const McpServersIndicator = memo(function McpServersIndicator({
                 Plugins
               </h4>
             </div>
-            <div className="pb-1" role="list" aria-labelledby="plugins-title">
+            <ul className="pb-1" aria-labelledby="plugins-title">
               {sessionInfo.plugins.map((plugin) => (
-                <div
+                <li
                   key={plugin.path}
-                  className="px-3 py-1.5 text-sm flex items-center gap-2"
-                  role="listitem"
+                  className="px-3 py-1.5 text-sm flex items-center gap-2 list-none"
                 >
                   <span
                     className="w-2 h-2 rounded-full bg-green-500"
                     aria-label="Active"
                   />
                   <span className="truncate">{plugin.name}</span>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </>
         )}
 
