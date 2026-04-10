@@ -63,6 +63,31 @@
     // `rawInput.args as AnyRecord` is required because TS loses type-guard narrowing
     // when the guard result is stored in an intermediate variable (`hasArgsWrapper`).
     // SonarLint doesn't model TS narrowing limitations — this is a false positive.
-    "typescript:S4325": { "level": "off" }
+    "typescript:S4325": { "level": "off" },
+
+    // S6551: "Object stringification" — 1 occurrence in remote-trpc.ts.
+    // `input.toString()` only reached for URL/Request objects which have
+    // meaningful toString() implementations. False positive.
+    "typescript:S6551": { "level": "off" },
+
+    // S7787: "Empty export" — 1 occurrence in wdyr.ts.
+    // `export {}` is required to force module scope so `import.meta.env`
+    // works in a side-effect-only file. Standard TS idiom.
+    "typescript:S7787": { "level": "off" },
+
+    // S6571: "Literal overridden by string in union" — 2 in diff-view-highlighter.ts.
+    // `"class" | "style" | string` is a documentation pattern that hints expected
+    // values to IDE autocomplete while accepting any string. Intentional.
+    "typescript:S6571": { "level": "off" },
+
+    // S6564: "Redundant type alias" — 1 in message-parser.ts.
+    // `MessagePart = AnyObj` is a semantic alias used in 10+ places. Removing it
+    // would hurt readability by losing the domain-specific name.
+    "typescript:S6564": { "level": "off" },
+
+    // S4666: "Duplicate CSS selector" — 1 in agents-styles.css.
+    // Two `[data-agents-page]` blocks are in different logical sections (theme
+    // overrides vs scrollbar styles) with disjoint properties. Intentional separation.
+    "css:S4666": { "level": "off" }
   }
 }

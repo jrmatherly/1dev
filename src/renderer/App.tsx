@@ -56,9 +56,6 @@ function AppContent() {
   const anthropicOnboardingCompleted = useAtomValue(
     anthropicOnboardingCompletedAtom,
   );
-  const setAnthropicOnboardingCompleted = useSetAtom(
-    anthropicOnboardingCompletedAtom,
-  );
   const apiKeyOnboardingCompleted = useAtomValue(apiKeyOnboardingCompletedAtom);
   const setApiKeyOnboardingCompleted = useSetAtom(
     apiKeyOnboardingCompletedAtom,
@@ -107,7 +104,7 @@ function AppContent() {
 
   // Check if user has existing CLI config (API key or proxy)
   // Based on PR #29 by @sa4hnd
-  const { data: cliConfig, isLoading: isLoadingCliConfig } =
+  const { data: cliConfig } =
     trpc.claudeCode.hasExistingCliConfig.useQuery();
 
   // Migration: If user already completed Anthropic onboarding but has no billing method set,

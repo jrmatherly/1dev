@@ -160,10 +160,10 @@ export function hexToHSL(
 
   // Handle 8-char hex with alpha
   if (hex.length === 8) {
-    const alpha = parseInt(hex.slice(6, 8), 16) / 255;
-    const fgR = parseInt(hex.slice(0, 2), 16);
-    const fgG = parseInt(hex.slice(2, 4), 16);
-    const fgB = parseInt(hex.slice(4, 6), 16);
+    const alpha = Number.parseInt(hex.slice(6, 8), 16) / 255;
+    const fgR = Number.parseInt(hex.slice(0, 2), 16);
+    const fgG = Number.parseInt(hex.slice(2, 4), 16);
+    const fgB = Number.parseInt(hex.slice(4, 6), 16);
 
     if (preserveAlpha && alpha < 1) {
       // Preserve alpha in output (for selection backgrounds, etc.)
@@ -174,9 +174,9 @@ export function hexToHSL(
     } else if (backgroundHex && alpha < 1) {
       // Blend with background for solid color output
       const bg = backgroundHex.replace(/^#/, "");
-      const bgR = parseInt(bg.slice(0, 2), 16);
-      const bgG = parseInt(bg.slice(2, 4), 16);
-      const bgB = parseInt(bg.slice(4, 6), 16);
+      const bgR = Number.parseInt(bg.slice(0, 2), 16);
+      const bgG = Number.parseInt(bg.slice(2, 4), 16);
+      const bgB = Number.parseInt(bg.slice(4, 6), 16);
 
       // Alpha compositing: result = fg * alpha + bg * (1 - alpha)
       r = (fgR * alpha + bgR * (1 - alpha)) / 255;
@@ -189,9 +189,9 @@ export function hexToHSL(
       b = fgB / 255;
     }
   } else {
-    r = parseInt(hex.slice(0, 2), 16) / 255;
-    g = parseInt(hex.slice(2, 4), 16) / 255;
-    b = parseInt(hex.slice(4, 6), 16) / 255;
+    r = Number.parseInt(hex.slice(0, 2), 16) / 255;
+    g = Number.parseInt(hex.slice(2, 4), 16) / 255;
+    b = Number.parseInt(hex.slice(4, 6), 16) / 255;
   }
 
   const max = Math.max(r, g, b);
@@ -243,9 +243,9 @@ export function isLightColor(hex: string): boolean {
     hex = hex.slice(0, 6);
   }
 
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
+  const r = Number.parseInt(hex.slice(0, 2), 16);
+  const g = Number.parseInt(hex.slice(2, 4), 16);
+  const b = Number.parseInt(hex.slice(4, 6), 16);
 
   // Calculate perceived brightness using ITU-R BT.709 coefficients
   const brightness = r * 0.2126 + g * 0.7152 + b * 0.0722;

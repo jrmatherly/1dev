@@ -114,7 +114,7 @@ function processAST(ast: Root): {
   const loopAST = (nodes: SyntaxNode[], wrapper?: SyntaxNode) => {
     nodes.forEach((node) => {
       if (node.type === "text") {
-        if (node.value.indexOf("\n") === -1) {
+        if (!node.value.includes("\n")) {
           const valueLength = node.value.length;
           if (!syntaxObj[lineNumber]) {
             node.startIndex = 0;
@@ -288,9 +288,7 @@ let highlighterPromise: Promise<DiffHighlighter> | null = null;
  * Get or create the custom diff highlighter
  */
 export async function getDiffHighlighter(): Promise<DiffHighlighter> {
-  if (!highlighterPromise) {
-    highlighterPromise = createCustomDiffHighlighter();
-  }
+  highlighterPromise ??= createCustomDiffHighlighter();
   return highlighterPromise;
 }
 

@@ -29,8 +29,8 @@ function migrateFromNumericWindowId(
     if (!storageKey) continue;
 
     // Check if this key matches pattern: <number>:<originalKey>
-    const match = storageKey.match(/^(\d+):(.+)$/);
-    if (match && match[2] === key) {
+    const match = /^(\d+):(.+)$/.exec(storageKey);
+    if (match?.[2] === key) {
       const value = localStorage.getItem(storageKey);
       if (value !== null) {
         console.log(

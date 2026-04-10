@@ -18,8 +18,8 @@ let highlighterPromise: Promise<shiki.Highlighter> | null = null;
 const HIGHLIGHT_CACHE_MAX_SIZE = 500;
 
 class LRUCache<K, V> {
-  private cache = new Map<K, V>();
-  private maxSize: number;
+  private readonly cache = new Map<K, V>();
+  private readonly maxSize: number;
 
   constructor(maxSize: number) {
     this.maxSize = maxSize;
@@ -114,12 +114,10 @@ const THEME_TO_SHIKI_MAP: Record<string, shiki.BundledTheme> = {
  * Get or create the Shiki highlighter instance
  */
 export async function getHighlighter(): Promise<shiki.Highlighter> {
-  if (!highlighterPromise) {
-    highlighterPromise = shiki.createHighlighter({
-      themes: DEFAULT_THEMES,
-      langs: SUPPORTED_LANGUAGES,
-    });
-  }
+  highlighterPromise ??= shiki.createHighlighter({
+    themes: DEFAULT_THEMES,
+    langs: SUPPORTED_LANGUAGES,
+  });
   return highlighterPromise;
 }
 
@@ -277,7 +275,7 @@ export async function highlightCode(
   });
 
   // Extract just the code content from shiki's output (remove wrapper)
-  const match = html.match(/<code[^>]*>([\s\S]*?)<\/code>/);
+  const match = /<code[^>]*>([\s\S]*?)<\/code>/.exec(html);
   const result = match ? match[1] : code;
 
   // Cache the result

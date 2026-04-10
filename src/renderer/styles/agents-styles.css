@@ -172,7 +172,6 @@ body:has([data-agents-page]) [data-sonner-toast] {
 [data-agents-page] [data-chat-item],
 [data-agents-page] [data-subchat-index] {
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
   /* Disable 300ms tap delay on mobile */
   touch-action: manipulation;
 }

@@ -17,7 +17,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useTheme } from "next-themes";
 import type { ITheme } from "xterm";
 
@@ -39,8 +39,6 @@ import { extractTerminalTheme } from "./terminal-theme-mapper";
 import {
   BUILTIN_THEMES,
   getBuiltinThemeById,
-  DEFAULT_DARK_THEME_ID,
-  DEFAULT_LIGHT_THEME_ID,
 } from "./builtin-themes";
 
 /**
@@ -138,7 +136,7 @@ interface VSCodeThemeProviderProps {
 /**
  * VS Code Theme Provider Component
  */
-export function VSCodeThemeProvider({ children }: VSCodeThemeProviderProps) {
+export function VSCodeThemeProvider({ children }: Readonly<VSCodeThemeProviderProps>) {
   const { resolvedTheme, setTheme: setNextTheme } = useTheme();
 
   // Atoms
