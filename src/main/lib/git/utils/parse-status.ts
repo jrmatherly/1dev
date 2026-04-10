@@ -92,8 +92,8 @@ export function parseGitLog(logOutput: string): CommitInfo[] {
     const message = parts[2]?.trim();
     // Description is between message and last 2 parts (author, date)
     const description = parts.slice(3, -2).join("|").trim();
-    const author = parts[parts.length - 2]?.trim();
-    const dateStr = parts[parts.length - 1]?.trim();
+    const author = parts.at(-2)?.trim();
+    const dateStr = parts.at(-1)?.trim();
 
     if (!hash || !shortHash) continue;
 
@@ -137,7 +137,7 @@ export function parseDiffNumstat(
     const deletions = delStr === "-" ? 0 : Number.parseInt(delStr, 10) || 0;
     const statEntry = { additions, deletions };
 
-    const renameMatch = rawPath.match(/^(.+) => (.+)$/);
+    const renameMatch = /^(.+) => (.+)$/.exec(rawPath);
     if (renameMatch) {
       const oldPath = renameMatch[1];
       const newPath = renameMatch[2];

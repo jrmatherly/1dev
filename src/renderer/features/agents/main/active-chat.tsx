@@ -363,9 +363,7 @@ function groupExploringTools(parts: any[], nestedToolIds: Set<string>): any[] {
 
 // Get the ID of the first sub-chat by creation date
 function getFirstSubChatId(
-  subChats:
-    | Array<{ id: string; createdAt?: Date | string | null }>
-    | undefined,
+  subChats: Array<{ id: string; createdAt?: Date | string | null }> | undefined,
 ): string | null {
   if (!subChats?.length) return null;
   const sorted = [...subChats].sort(
@@ -3765,7 +3763,8 @@ const ChatViewInner = memo(function ChatViewInner({
         store.addToAllSubChats({
           id: newSubChat.id,
           name: newSubChat.name || "Fork",
-          createdAt: newSubChat.createdAt?.toISOString() ?? new Date().toISOString(),
+          createdAt:
+            newSubChat.createdAt?.toISOString() ?? new Date().toISOString(),
           mode: newMode,
         });
 

@@ -104,10 +104,7 @@ function fetchJson(url) {
  * Pipe an HTTP response to a file with progress reporting.
  */
 function handleResponse(res, file, destPath, resolve, reject) {
-  const totalSize = Number.parseInt(
-    res.headers["content-length"] || "0",
-    10,
-  );
+  const totalSize = Number.parseInt(res.headers["content-length"] || "0", 10);
   let downloaded = 0;
   let lastPrintedPercent = -1;
 

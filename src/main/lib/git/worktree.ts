@@ -293,17 +293,19 @@ export async function getDefaultBranch(mainRepoPath: string): Promise<string> {
         "symbolic-ref",
         "refs/remotes/origin/HEAD",
       ]);
-      const match = headRef.trim().match(/refs\/remotes\/origin\/(.+)/);
+      const match = /refs\/remotes\/origin\/(.+)/.exec(headRef.trim());
       if (match) return match[1];
     } catch {}
 
     // Check remote branches for common default branch names
     try {
       const branches = await git.branch(["-r"]);
-      const remoteBranches = branches.all.map((b) => b.replace("origin/", ""));
+      const remoteBranches = new Set(
+        branches.all.map((b) => b.replace("origin/", "")),
+      );
 
       for (const candidate of ["main", "master", "develop", "trunk"]) {
-        if (remoteBranches.includes(candidate)) {
+        if (remoteBranches.has(candidate)) {
           return candidate;
         }
       }
@@ -312,7 +314,7 @@ export async function getDefaultBranch(mainRepoPath: string): Promise<string> {
     // Try ls-remote as last resort for remote repos
     try {
       const result = await git.raw(["ls-remote", "--symref", "origin", "HEAD"]);
-      const symrefMatch = result.match(/ref:\s+refs\/heads\/(.+?)\tHEAD/);
+      const symrefMatch = /ref:\s+refs\/heads\/(.+?)\tHEAD/.exec(result);
       if (symrefMatch) {
         return symrefMatch[1];
       }
@@ -376,7 +378,7 @@ export async function refreshDefaultBranch(
     await git.remote(["set-head", "origin", "--auto"]);
 
     const headRef = await git.raw(["symbolic-ref", "refs/remotes/origin/HEAD"]);
-    const match = headRef.trim().match(/refs\/remotes\/origin\/(.+)/);
+    const match = /refs\/remotes\/origin\/(.+)/.exec(headRef.trim());
     if (match) {
       return match[1];
     }
@@ -385,7 +387,7 @@ export async function refreshDefaultBranch(
     // work in some edge cases or provide a more specific error
     try {
       const result = await git.raw(["ls-remote", "--symref", "origin", "HEAD"]);
-      const symrefMatch = result.match(/ref:\s+refs\/heads\/(.+?)\tHEAD/);
+      const symrefMatch = /ref:\s+refs\/heads\/(.+?)\tHEAD/.exec(result);
       if (symrefMatch) {
         return symrefMatch[1];
       }
@@ -987,8 +989,6 @@ export async function getWorktreeDiff(
   try {
     const git = simpleGit(worktreePath);
     const status = await git.status();
-    const currentBranch = status.current;
-
     // Has uncommitted changes - diff against HEAD
     if (!status.isClean()) {
       const exclusionArgs = [
@@ -1035,7 +1035,7 @@ export async function getWorktreeDiff(
           // git diff --no-index returns exit code 1 when files differ
           // simple-git throws but includes the diff output in the error
           const gitError = error as { message?: string };
-          if (gitError.message && gitError.message.includes("diff --git")) {
+          if (gitError.message?.includes("diff --git")) {
             // Extract the diff from the error message
             const diffStart = gitError.message.indexOf("diff --git");
             if (diffStart !== -1) {

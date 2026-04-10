@@ -20,6 +20,7 @@ export type UIMessageChunk =
       toolCallId: string;
       toolName: string;
       input: unknown;
+      providerMetadata?: Record<string, unknown>;
     }
   | { type: "tool-output-available"; toolCallId: string; output: unknown }
   | { type: "tool-output-error"; toolCallId: string; errorText: string }

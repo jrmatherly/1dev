@@ -287,7 +287,8 @@ async function verifyManifestSignature(version, manifestBytes) {
   // C:\Users\foo → /c/Users/foo. No-op on non-Windows platforms.
   const toGpgPath = (p) =>
     process.platform === "win32"
-      ? "/" + p.replace(/\\/g, "/").replace(/^([A-Za-z]):/, (_, d) => d.toLowerCase())
+      ? "/" +
+        p.replace(/\\/g, "/").replace(/^([A-Za-z]):/, (_, d) => d.toLowerCase())
       : p;
 
   const gpgHomeSafe = toGpgPath(gpgHome);
@@ -309,11 +310,7 @@ async function verifyManifestSignature(version, manifestBytes) {
     // tampered with after import."
     const fingerprintOutput = execFileSync(
       "gpg",
-      [
-        "--with-colons",
-        "--fingerprint",
-        "security@anthropic.com",
-      ],
+      ["--with-colons", "--fingerprint", "security@anthropic.com"],
       { stdio: "pipe", env: gpgEnv },
     ).toString();
 

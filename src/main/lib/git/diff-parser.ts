@@ -135,7 +135,7 @@ function validateDiffHunk(diffText: string): {
  * Split a unified diff into separate file diffs
  */
 export function splitUnifiedDiffByFile(diffText: string): ParsedDiffFile[] {
-  if (!diffText || !diffText.trim()) {
+  if (!diffText?.trim()) {
     return [];
   }
 
@@ -181,7 +181,7 @@ export function splitUnifiedDiffByFile(diffText: string): ParsedDiffFile[] {
       if (line.startsWith("diff --git ")) {
         // Fallback: parse paths from "diff --git a/path b/path"
         // Needed for binary files that don't have ---/+++ lines
-        const match = line.match(/^diff --git a\/(.+) b\/(.+)$/);
+        const match = /^diff --git a\/(.+) b\/(.+)$/.exec(line);
         if (match) {
           if (!oldPath) oldPath = match[1]!;
           if (!newPath) newPath = match[2]!;

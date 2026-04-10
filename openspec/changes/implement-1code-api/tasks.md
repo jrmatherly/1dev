@@ -1,10 +1,10 @@
 ## 1. Project Scaffolding
 
-- [ ] 1.1 Create `services/1code-api/` directory structure: `src/`, `src/routes/`, `src/trpc/`, `src/db/`, `changelog/`, `tests/`
-- [ ] 1.2 Initialize `services/1code-api/package.json` with dependencies: `fastify`, `@trpc/server`, `@trpc/server/adapters/fastify`, `drizzle-orm`, `pg`, `zod`
-- [ ] 1.3 Create `services/1code-api/tsconfig.json` with strict mode, ESM target, path aliases
-- [ ] 1.4 Create `services/1code-api/src/index.ts` — Fastify server entry point with graceful shutdown
-- [ ] 1.5 Create `services/1code-api/src/config.ts` — environment variable parsing with Zod validation (PORT, DATABASE_URL, DEV_BYPASS_AUTH, LOG_LEVEL)
+- [x] 1.1 Create `services/1code-api/` directory structure: `src/`, `src/routes/`, `src/trpc/`, `src/db/`, `changelog/`, `tests/`
+- [x] 1.2 Initialize `services/1code-api/package.json` with dependencies: `fastify`, `@trpc/server`, `@trpc/server/adapters/fastify`, `drizzle-orm`, `pg`, `zod`
+- [x] 1.3 Create `services/1code-api/tsconfig.json` with strict mode, ESM target, path aliases
+- [x] 1.4 Create `services/1code-api/src/index.ts` — Fastify server entry point with graceful shutdown
+- [x] 1.5 Create `services/1code-api/src/config.ts` — environment variable parsing with Zod validation (PORT, DATABASE_URL, DEV_BYPASS_AUTH, LOG_LEVEL)
 
 ## 2. Auth Middleware
 

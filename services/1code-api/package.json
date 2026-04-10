@@ -1,0 +1,30 @@
+{
+  "name": "@1code/api",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node --format esm",
+    "start": "node dist/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@trpc/server": "^11.1.0",
+    "drizzle-orm": "^0.44.2",
+    "fastify": "^5.3.3",
+    "gray-matter": "^4.0.3",
+    "pg": "^8.16.0",
+    "superjson": "^2.2.2",
+    "zod": "^3.25.7"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.4",
+    "drizzle-kit": "^0.31.1",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

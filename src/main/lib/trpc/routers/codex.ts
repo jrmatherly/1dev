@@ -1291,7 +1291,7 @@ function getOrCreateProvider(params: {
   const existing = providerSessions.get(params.subChatId);
 
   if (
-    existing &&
+    existing && // NOSONAR — multi-condition guard, optional chain doesn't improve readability
     existing.cwd === params.cwd &&
     existing.authFingerprint === authFingerprint &&
     existing.mcpFingerprint === params.mcpFingerprint
@@ -1731,7 +1731,7 @@ export const codexRouter = router({
             };
 
             const cleanAssistantMessageForPersistence = (message: any) => {
-              if (!message || message.role !== "assistant") return message;
+              if (!message || message.role !== "assistant") return message; // NOSONAR — null guard, not optional chain candidate
               if (!Array.isArray(message.parts)) return message;
 
               const cleanedParts = message.parts.filter(

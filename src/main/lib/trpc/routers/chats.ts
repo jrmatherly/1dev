@@ -1207,7 +1207,7 @@ export const chatsRouter = router({
             // Quick binary check (NUL bytes in first 8KB)
             const checkLength = Math.min(content.length, 8192);
             for (let i = 0; i < checkLength; i++) {
-              if (content.charCodeAt(i) === 0) {
+              if (content.charCodeAt(i) === 0) { // NOSONAR — charCodeAt is correct for binary detection (codePointAt changes hash semantics)
                 return; // Skip binary files
               }
             }

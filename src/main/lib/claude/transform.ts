@@ -5,8 +5,7 @@ import type {
   UIMessageChunk,
 } from "./types";
 
-export function createTransformer(options?: { isUsingOllama?: boolean }) {
-  const isUsingOllama = options?.isUsingOllama === true;
+export function createTransformer(_options?: { isUsingOllama?: boolean }) {
   let textId: string | null = null;
   let textStarted = false;
   let started = false;
@@ -197,7 +196,7 @@ export function createTransformer(options?: { isUsingOllama?: boolean }) {
         yield {
           type: "tool-input-start",
           toolCallId: currentToolCallId,
-          toolName: currentToolName,
+          toolName: currentToolName ?? "unknown",
         };
       }
 

@@ -3,11 +3,7 @@ import { getDatabase, chats } from "../db";
 import simpleGit from "simple-git";
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
-import {
-  assertRegisteredWorktree,
-  getRegisteredChat,
-  gitSwitchBranch,
-} from "./security";
+import { assertRegisteredWorktree, gitSwitchBranch } from "./security";
 import {
   createGit,
   createGitForNetwork,
@@ -61,7 +57,7 @@ export const createBranchesRouter = () => {
           return {
             current: branchSummary.current,
             local,
-            remote: remote.sort(),
+            remote: remote.toSorted(),
             defaultBranch,
             checkedOutBranches,
           };
@@ -76,7 +72,6 @@ export const createBranchesRouter = () => {
         }),
       )
       .mutation(async ({ input }): Promise<{ success: boolean }> => {
-        const chat = getRegisteredChat(input.worktreePath);
         await gitSwitchBranch(input.worktreePath, input.branch);
 
         // Update the branch in the chat record
@@ -321,7 +316,7 @@ async function getDefaultBranch(
 ): Promise<string> {
   try {
     const headRef = await git.raw(["symbolic-ref", "refs/remotes/origin/HEAD"]);
-    const match = headRef.match(/refs\/remotes\/origin\/(.+)/);
+    const match = /refs\/remotes\/origin\/(.+)/.exec(headRef);
     if (match) {
       return match[1].trim();
     }

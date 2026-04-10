@@ -256,7 +256,6 @@ export async function getRepositoryState(worktreePath: string): Promise<{
   const status = await git.status();
 
   // Check for state indicators via git status
-  const isRebasing = status.current?.includes("(no branch") || false;
   const hasConflicts = status.conflicted.length > 0;
 
   // More accurate state detection via git internals

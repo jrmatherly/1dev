@@ -87,9 +87,10 @@ function parseGitRemoteUrl(url: string): Omit<GitRemoteInfo, "remoteUrl"> {
   let repo: string | null = null;
 
   // Match HTTPS format: https://github.com/owner/repo
-  const httpsMatch = normalized.match(
-    /https?:\/\/(github\.com|gitlab\.com|bitbucket\.org)\/([^/]+)\/([^/]+)/,
-  );
+  const httpsMatch =
+    /https?:\/\/(github\.com|gitlab\.com|bitbucket\.org)\/([^/]+)\/([^/]+)/.exec(
+      normalized,
+    );
   if (httpsMatch) {
     const [, host, ownerPart, repoPart] = httpsMatch;
     provider =
@@ -106,9 +107,10 @@ function parseGitRemoteUrl(url: string): Omit<GitRemoteInfo, "remoteUrl"> {
   }
 
   // Match SSH format: git@github.com:owner/repo
-  const sshMatch = normalized.match(
-    /git@(github\.com|gitlab\.com|bitbucket\.org):([^/]+)\/(.+)/,
-  );
+  const sshMatch =
+    /git@(github\.com|gitlab\.com|bitbucket\.org):([^/]+)\/(.+)/.exec(
+      normalized,
+    );
   if (sshMatch) {
     const [, host, ownerPart, repoPart] = sshMatch;
     provider =

@@ -13,7 +13,6 @@ import {
   withLockRetry,
   hasUncommittedChanges,
   getRepositoryState,
-  GIT_TIMEOUTS,
 } from "./git-factory";
 
 export { isUpstreamMissingError };
@@ -30,13 +29,13 @@ async function hasUpstreamBranch(
 }
 
 /** Protected branches that should not be force-pushed to */
-const PROTECTED_BRANCHES = [
+const PROTECTED_BRANCHES = new Set([
   "main",
   "master",
   "develop",
   "production",
   "staging",
-];
+]);
 
 function invalidateGitStateCaches(worktreePath: string): void {
   gitCache.invalidateStatus(worktreePath);
@@ -437,7 +436,7 @@ export const createGitOperationsRouter = () => {
 
           // Check if it's a protected branch
           if (
-            PROTECTED_BRANCHES.includes(branch) &&
+            PROTECTED_BRANCHES.has(branch) &&
             !input.confirmProtectedBranch
           ) {
             throw new Error(
@@ -613,9 +612,9 @@ export const createGitOperationsRouter = () => {
 
             // Get the remote URL to construct the GitHub compare URL
             const remoteUrl = (await git.remote(["get-url", "origin"])) || "";
-            const repoMatch = remoteUrl
-              .trim()
-              .match(/github\.com[:/](.+?)(?:\.git)?$/);
+            const repoMatch = /github\.com[:/](.+?)(?:\.git)?$/.exec(
+              remoteUrl.trim(),
+            );
 
             if (!repoMatch) {
               throw new Error("Could not determine GitHub repository URL");
