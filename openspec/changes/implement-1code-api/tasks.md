@@ -62,7 +62,7 @@
 - [x] 9.3 Add `docker/metadata-action` for semver + SHA tagging
 - [x] 9.4 Add Cosign keyless signing step (sigstore/cosign-installer + `cosign sign --oidc-provider github-actions`)
 - [x] 9.5 Enable SLSA provenance and SBOM (`provenance: true, sbom: true` in build-push-action)
-- [ ] 9.6 Verify workflow runs on test tag (e.g., `v0.0.76-rc.1`) — container appears in GHCR
+- [x] 9.6 Verify workflow runs on test tag (e.g., `v0.0.76-rc.1`) — container appears in GHCR
 
 ## 10. K8s Manifest Updates
 
@@ -74,7 +74,7 @@
 ## 11. Integration Verification
 
 - [x] 11.1 Run all 5 quality gates: `bun run ts:check`, `bun run build`, `bun test`, `bun audit`, `cd docs && bun run build`
-- [ ] 11.2 Verify the container image is accessible in GHCR: `docker pull ghcr.io/jrmatherly/1code-api:v0.0.XX`
+- [x] 11.2 Verify the container image is accessible in GHCR: `docker pull ghcr.io/jrmatherly/1code-api:v0.0.XX`
 - [x] 11.3 Document deployment steps in `services/1code-api/README.md` — local dev, Docker, Kubernetes
 
 ## 12. Documentation Updates
