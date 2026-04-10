@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import {
+import React, {
   useState,
   useRef,
   useMemo,
@@ -12,12 +11,11 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Button as ButtonCustom } from "../../components/ui/button";
+import { Button as ButtonCustom, Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import {
   autoAdvanceTargetAtom,
-  createTeamDialogOpenAtom,
   agentsSettingsDialogActiveTabAtom,
   agentsSidebarOpenAtom,
   agentsHelpPopoverOpenAtom,
@@ -32,7 +30,6 @@ import {
   showOfflineModeFeaturesAtom,
   chatSourceModeAtom,
   selectedTeamIdAtom,
-  type ChatSourceMode,
   showWorkspaceIconAtom,
   betaKanbanEnabledAtom,
   betaAutomationsEnabledAtom,
@@ -50,15 +47,12 @@ import { usePrefetchLocalChat } from "../../lib/hooks/use-prefetch-local-chat";
 import { ArchivePopover } from "../agents/ui/archive-popover";
 import {
   ChevronDown,
-  MoreHorizontal,
   Columns3,
   ArrowUpRight,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { remoteTrpc } from "../../lib/remote-trpc";
 // import { useRouter } from "next/navigation" // Desktop doesn't use next/navigation
-// import { useCombinedAuth } from "@/lib/hooks/use-combined-auth"
-const useCombinedAuth = () => ({ userId: null });
 // import { AuthDialog } from "@/components/auth/auth-dialog"
 const AuthDialog = (_props: {
   open?: boolean;
@@ -102,10 +96,7 @@ import {
 import {
   IconDoubleChevronLeft,
   SettingsIcon,
-  PlusIcon,
   ProfileIcon,
-  PublisherStudioIcon,
-  SearchIcon,
   GitHubLogo,
   LoadingDot,
   ArchiveIcon,
@@ -113,12 +104,10 @@ import {
   QuestionCircleIcon,
   QuestionIcon,
   KeyboardIcon,
-  TicketIcon,
   CloudIcon,
 } from "../../components/ui/icons";
 import { Logo } from "../../components/ui/logo";
 import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
 import {
   selectedAgentChatIdAtom,
   selectedChatIsRemoteAtom,
@@ -128,7 +117,6 @@ import {
   loadingSubChatsAtom,
   agentsUnseenChangesAtom,
   archivePopoverOpenAtom,
-  agentsDebugModeAtom,
   selectedProjectAtom,
   justCreatedIdsAtom,
   undoStackAtom,
@@ -143,7 +131,7 @@ import {
 } from "../agents/stores/sub-chat-store";
 import { getWindowId } from "../../contexts/WindowContext";
 import { AgentsHelpPopover } from "../agents/components/agents-help-popover";
-import { getShortcutKey, isDesktopApp } from "../../lib/utils/platform";
+import { isDesktopApp } from "../../lib/utils/platform";
 import {
   useResolvedHotkeyDisplay,
   useResolvedHotkeyDisplayWithAlt,
@@ -152,7 +140,6 @@ import { pluralize } from "../agents/utils/pluralize";
 import {
   useNewChatDrafts,
   deleteNewChatDraft,
-  type NewChatDraft,
 } from "../agents/lib/drafts";
 import {
   TrafficLightSpacer,
@@ -165,7 +152,6 @@ import { TypewriterText } from "../../components/ui/typewriter-text";
 import {
   exportChat,
   copyChat,
-  type ExportFormat,
 } from "../agents/lib/export-chat";
 
 // Feedback URL: uses env variable for hosted version, falls back to public Discord for open source
@@ -596,6 +582,7 @@ const AgentChatItem = React.memo(function AgentChatItem({
               onChatClick(chatId, undefined, globalIndex);
             }
           }}
+          role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -1240,7 +1227,7 @@ const ChatListSection = React.memo(function ChatListSection({
 }, chatListSectionPropsAreEqual);
 
 interface AgentsSidebarProps {
-  userId?: string | null | undefined;
+  userId?: string | null;
   clerkUser?: any;
   desktopUser?: { id: string; email: string; name?: string } | null;
   onSignOut?: () => void;
@@ -1972,12 +1959,7 @@ export function AgentsSidebar({
     },
     [setDesktopViewForSettings, setSidebarOpenForSettings],
   );
-  const { isLoaded: isAuthLoaded } = useCombinedAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const setCreateTeamDialogOpen = useSetAtom(createTeamDialogOpenAtom);
-
-  // Debug mode for testing first-time user experience
-  const debugMode = useAtomValue(agentsDebugModeAtom);
 
   // Sidebar appearance settings
   const showWorkspaceIcon = useAtomValue(showWorkspaceIconAtom);
@@ -1987,7 +1969,6 @@ export function AgentsSidebar({
 
   // Keep chatSourceModeAtom for backwards compatibility (used in other places)
   const [chatSourceMode, setChatSourceMode] = useAtom(chatSourceModeAtom);
-  const teamId = useAtomValue(selectedTeamIdAtom);
 
   // Sync chatSourceMode with selectedChatIsRemote on startup
   // This fixes the race condition where atoms load independently from localStorage
@@ -2006,11 +1987,7 @@ export function AgentsSidebar({
   const { data: localChats } = trpc.chats.list.useQuery({});
 
   // Fetch user's teams (same as web) - always enabled to allow merged list
-  const {
-    data: teams,
-    isLoading: isTeamsLoading,
-    isError: isTeamsError,
-  } = useUserTeams(true);
+  useUserTeams(true);
 
   // Fetch remote sandbox chats (same as web) - requires teamId
   const { data: remoteChats } = useRemoteChats();
@@ -2173,7 +2150,7 @@ export function AgentsSidebar({
   const { data: projects } = trpc.projects.list.useQuery();
 
   // Auto-import hook for "Open Locally" functionality
-  const { getMatchingProjects, autoImport, isImporting } = useAutoImport();
+  const { getMatchingProjects, autoImport } = useAutoImport();
 
   // Create map for quick project lookup by id
   const projectsMap = useMemo(() => {
@@ -2296,7 +2273,7 @@ export function AgentsSidebar({
       if ((e.metaKey || e.ctrlKey) && e.key === "z" && undoStack.length > 0) {
         e.preventDefault();
         // Get the most recent item
-        const lastItem = undoStack[undoStack.length - 1];
+        const lastItem = undoStack.at(-1);
         if (!lastItem) return;
 
         // Clear timeout and remove from stack
@@ -2547,9 +2524,6 @@ export function AgentsSidebar({
       clearChatSelection();
     }
   }, [selectedChatIds, clearChatSelection]);
-
-  // Get clerk username
-  const clerkUsername = clerkUser?.username;
 
   // Filter and separate pinned/unpinned agents
   const { pinnedAgents, unpinnedAgents, filteredChats } = useMemo(() => {
@@ -2829,7 +2803,7 @@ export function AgentsSidebar({
 
   // Derive which chats have loading sub-chats
   const loadingChatIds = useMemo(
-    () => new Set([...loadingSubChats.values()]),
+    () => new Set(loadingSubChats.values()),
     [loadingSubChats],
   );
 
@@ -3558,7 +3532,6 @@ export function AgentsSidebar({
                       setFocusedChatIndex(-1); // Reset focus after selection
                     }
                   }
-                  return;
                 }
               }}
               className={cn(
