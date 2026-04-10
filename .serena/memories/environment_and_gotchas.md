@@ -22,14 +22,14 @@
 
 ## Key Version Pins
 - Electron 41.2.0 (EOL 2026-08-25, upgraded 2026-04-09), electron-vite 5.0.0, Vite 7.3.2 (upgraded from 6.4.2 on 2026-04-10, Phase A of upgrade-vite-8-build-stack)
-- Tailwind 4.2.2 (upgraded from 3.4.19 on 2026-04-10; CSS-first config, `@tailwindcss/vite` plugin, `tw-animate-css`, `tailwind-merge` 3.5.0; **no longer a version pin** — removed from `pinned-deps.md`), shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0
+- Tailwind 4.2.2 (upgraded from 3.4.19 on 2026-04-10; CSS-first config, `@tailwindcss/vite` plugin, `tw-animate-css`, `tailwind-merge` 3.5.0; **no longer a version pin** — removed from `pinned-deps.md`), shiki 4.0.2 (upgraded from 3.x on 2026-04-10 via `upgrade-shiki-4` OpenSpec), Claude CLI 2.1.96, Codex 0.118.0 (SHA256-pinned in `scripts/download-codex-binary.mjs`)
 - @azure/msal-node ^5.1.2 (upgraded from 3.8.x), @azure/msal-node-extensions ^5.1.2
 - @types/node ^24, @swc/core ^1 (electron-vite 5 peer dep)
 - `build.externalizeDeps` config in electron.vite.config.ts (replaced `externalizeDepsPlugin`)
 
 ## Upgrade Blockers (as of 2026-04-10)
 - **Vite pin (7.x, was 6.x):** Phase A Vite 7.3.2 landed 2026-04-10; Phase B Vite 8 blocked on `electron-vite 6.0.0` stable (currently beta-only `6.0.0-beta.0`)
-- **Shiki pin (3.x):** `@pierre/diffs` pins `shiki: ^3.0.0` AND `@shikijs/transformers: ^3.0.0` — blocks shiki 4
+- **Shiki 4.0.2 (resolved 2026-04-10):** upgraded from 3.x via `upgrade-shiki-4` OpenSpec change. The `@pierre/diffs` peer-dep block on shiki 3.x was worked around — see the archived change proposal for details
 - **~~TypeScript 6.0 risk~~** ✅ **RESOLVED 2026-04-10:** Upgraded to TS 6.0.2. tsconfig now has explicit `types: ["node", "better-sqlite3", "diff", "react", "react-dom"]` and `noUncheckedSideEffectImports: false`. Baseline unchanged at 80, zero new errors. tsgo upgraded to 7.0.0-dev.
 - **~~Tailwind 4 risk~~** ✅ **RESOLVED 2026-04-10:** Upgraded to TW 4.2.2. `--tw-ring-*` block rewritten to plain CSS `box-shadow`. Escaped hover selectors verified functional (TW4 keeps same class name format). 5 false renames by upgrade tool fixed (`blur`→`blur-sm`, `outline`→`outline-solid` in non-Tailwind contexts). Visual QA completed (10/10 tasks verified, 2 additional false renames fixed by code review). Change archived.
 
@@ -60,7 +60,7 @@
 - **Dependabot labels:** `dependencies`, `bun`, `docs`, `github-actions` all exist in the repo (created 2026-04-09). Missing labels cause PRs to open un-labeled with an error.
 - **Release build CI gotchas (resolved v0.0.79, 2026-04-10):**
   - **Windows GPG path mixing (RESOLVED):** MSYS2-compiled GPG from Git for Windows mangles both `--homedir` and `GNUPGHOME` Windows paths. Fix: `toGpgPath()` in `download-claude-binary.mjs` converts `C:\Users\...` → `/c/Users/...` (MSYS-compatible POSIX format). Chocolatey `gpg4win` and `gnupg` both hang on CI runners (>20 min) — do NOT use.
-  - **Cross-org GITHUB_TOKEN 403 (RESOLVED):** Codex download uses `GITHUB_TOKEN=""` with per-platform downloads (not `--all`) to minimize API calls + retry with exponential backoff (3 attempts, 10s/20s delay).
+  - **Cross-org GITHUB_TOKEN 403 (RESOLVED 2026-04-10 via direct-URL rewrite):** `scripts/download-codex-binary.mjs` now constructs `github.com/openai/codex/releases/download/rust-v{version}/{asset}` URLs directly from a pinned `PINNED_CODEX_VERSION` + `PINNED_HASHES` map and verifies SHA256 against the baked-in hashes. **Zero `api.github.com` calls in CI** → immune to unauthenticated rate-limit 403s (which caused v0.0.80/v0.0.81 macOS build failures before the rewrite). When bumping the Codex pin, regenerate `PINNED_HASHES` locally (one-time api.github.com call from the dev machine). The previous retry-with-backoff workaround was insufficient because 60s of backoff cannot cross a 60-minute rate-limit window.
   - **bun.lock regeneration:** After devDependency changes, `bun.lock` must be regenerated or CI `--frozen-lockfile` fails.
   - **macOS runner OOM (RESOLVED):** macOS-15 runners have only 7 GB RAM. Fix: `NODE_OPTIONS="--max-old-space-size=6144"` on the build step in `release.yml`. Build produces 463 renderer chunks from monaco/mermaid/shiki.
   - **Partial releases:** `release.yml` uses `if: !cancelled()` + `fail_on_unmatched_files: false` to allow partial releases during bootstrap. Tighten once all platforms are stable.

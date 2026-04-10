@@ -63,7 +63,7 @@ bun run claude:download  # Claude CLI binary (pinned 2.1.96)
 bun run codex:download   # Codex binary (pinned 0.118.0)
 ```
 
-Release workflow (GitHub Actions 3-OS matrix build → draft GitHub Release via `release.yml`): [`docs/operations/release.md`](docs/operations/release.md). v0.0.79 was the first successful all-platform build (2026-04-10); v0.0.80 ships quality/reliability fixes (TS baseline 54→45, keytar arm64 fix, 400+ SonarLint remediations). Ships unsigned; signing is a follow-on task.
+Release workflow (GitHub Actions 3-OS matrix build → draft GitHub Release via `release.yml`): [`docs/operations/release.md`](docs/operations/release.md). v0.0.79 was the first successful all-platform build (2026-04-10). v0.0.80 was deleted after Windows postinstall + macOS Codex 403 failures. v0.0.81 ships Cluster A+C TS fixes (54→38), keytar arm64 rebuild, Windows electron-rebuild fix, and a rewritten Codex downloader that skips `api.github.com` entirely (uses pinned SHA256 hashes against direct release-asset URLs). Ships unsigned; signing is a follow-on task.
 
 ## Architecture summary
 
@@ -103,8 +103,8 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 ## Dev environment quick reference
 
 - **Dev auth bypass:** Set `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` to skip login in dev mode (only works when `!app.isPackaged`). Required because the upstream OAuth backend is dead and Envoy Gateway auth isn't deployed yet.
-- **TS baseline:** 45 pre-existing errors (reduced from 54 via Cluster A `DiffStateContextValue` type fix 2026-04-10), enforced **both** locally (PostToolUse hook) **and in CI** (`ci.yml` reads `.claude/.tscheck-baseline` and fails if count exceeds it). Only new errors fail gates. See [`.claude/rules/tscheck-baseline.md`](.claude/rules/tscheck-baseline.md).
-- **Version pins (load-bearing):** Vite 7.x, Shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0, `@xyd-js/cli` `0.0.0-build-1202121-20260121231224`. See [`docs/conventions/pinned-deps.md`](docs/conventions/pinned-deps.md) for why each one is pinned.
+- **TS baseline:** 38 pre-existing errors (reduced from 54 via Cluster A `DiffStateContextValue` type fix + Cluster C `reposData` stub typing 2026-04-10), enforced **both** locally (PostToolUse hook) **and in CI** (`ci.yml` reads `.claude/.tscheck-baseline` and fails if count exceeds it). Only new errors fail gates. See [`.claude/rules/tscheck-baseline.md`](.claude/rules/tscheck-baseline.md).
+- **Version pins (load-bearing):** Vite 7.x, Shiki 4.0.2 (upgraded from 3.x on 2026-04-10 via `upgrade-shiki-4` OpenSpec change), Claude CLI 2.1.96, Codex 0.118.0 (SHA256-pinned in `scripts/download-codex-binary.mjs` — skips `api.github.com` entirely), `@xyd-js/cli` `0.0.0-build-1202121-20260121231224`. See [`docs/conventions/pinned-deps.md`](docs/conventions/pinned-deps.md) for why each one is pinned.
 - **Lint config:** `eslint.config.mjs` — ESLint 10 flat config with `eslint-plugin-sonarjs` v4. Suppressions document why each rule is off for this Electron/React codebase. Run `bun run lint` for project-wide scan.
 - **IDE config:** `.vscode/settings.json` tracked in git — tsgo flag + SonarLint rule suppressions (50 rules disabled project-wide, covering TS/JS/CSS). See file for rationale per rule.
 - **Upgrade tool false renames:** `npx @tailwindcss/upgrade` (and similar bulk-rename tools) can't distinguish CSS classes from identically-named strings in non-CSS contexts (VSCode theme keys, dictionary words, event handler args). Always grep for renamed strings in non-CSS files after running upgrade tools.
