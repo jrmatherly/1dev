@@ -4009,7 +4009,6 @@ const ChatViewInner = memo(function ChatViewInner({
     return () => {
       resizeObserver.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subChatId, isVisiblePane]);
 
   // Attach scroll listener (separate effect)
@@ -4317,16 +4316,13 @@ const ChatViewInner = memo(function ChatViewInner({
       // Note: `trpc.chats.list` takes `{ projectId?: string }`. The old mock-api wrapper
       // silently dropped the `teamId` argument and passed `{}` to tRPC, so the cache key
       // is `{}` not `{ teamId }`. Preserve that to keep the cache entry addressable.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       utils.chats.list.setData({}, (old: any) => {
         if (!old) return old;
         // Update the timestamp and sort by updatedAt descending
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updated = old.map((c: any) =>
           c.id === parentChatId ? { ...c, updatedAt: now } : c,
         );
         return updated.sort(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (a: any, b: any) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
         );

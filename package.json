@@ -29,6 +29,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "ts:check": "tsgo --noEmit",
+    "lint": "eslint src/ electron-shim.js",
     "test": "bun test",
     "postinstall": "node -e \"if(!process.env.VERCEL){require('child_process').execSync('electron-rebuild -f -w better-sqlite3,node-pty',{stdio:'inherit'})}\" && node scripts/patch-electron-dev.mjs"
   },

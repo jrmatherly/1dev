@@ -2045,7 +2045,6 @@ ${prompt}
             let messageCount = 0;
             let pendingFinishChunk: UIMessageChunk | null = null;
 
-            // eslint-disable-next-line no-constant-condition
             while (true) {
               policyRetryNeeded = false;
               messageCount = 0;

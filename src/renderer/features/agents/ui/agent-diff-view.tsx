@@ -1457,7 +1457,6 @@ export const AgentDiffView = forwardRef<AgentDiffViewRef, AgentDiffViewProps>(
         prevCollapseStateRef.current = newState
         onCollapsedStateChange?.(newState)
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- callbacks are stable, excluding to prevent loops
     }, [collapsedByFileKey, fileDiffs])
 
     // Proactively invalidate viewed state when file content changes (hash mismatch)
@@ -1491,7 +1490,6 @@ export const AgentDiffView = forwardRef<AgentDiffViewRef, AgentDiffViewProps>(
         prevViewedCountRef.current = count
         onViewedCountChange?.(count)
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- callbacks are stable, excluding to prevent loops
     }, [fileDiffs, viewedFiles])
 
     // Auto-expand all files with lazy batching for performance
@@ -1841,7 +1839,6 @@ export const AgentDiffView = forwardRef<AgentDiffViewRef, AgentDiffViewProps>(
         isLoading: isLoadingDiff,
         hasChanges: allFileDiffs.length > 0,
       })
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onStatsChange is stable setState, excluding to prevent loops
     }, [
       allFileDiffs.length,
       totalAdditions,

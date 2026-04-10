@@ -1408,8 +1408,6 @@ export const chatsRouter = router({
       let prefix = "chore";
       if (hasNewFiles && !hasDeletedFiles) {
         prefix = "feat";
-      } else if (hasOnlyDeletions) {
-        prefix = "chore";
       } else if (hasTestFiles && !hasDocFiles && !hasConfigFiles) {
         prefix = "test";
       } else if (hasDocFiles && !hasTestFiles && !hasConfigFiles) {

@@ -127,7 +127,6 @@ export function extractTerminalTheme(
     if (!vsCodeKeys) continue;
     const color = getColorFromTheme(themeColors, vsCodeKeys);
     if (color) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (theme as any)[xtermKey] = color;
     }
   }

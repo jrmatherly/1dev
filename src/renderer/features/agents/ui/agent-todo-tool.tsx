@@ -401,7 +401,7 @@ export const AgentTodoTool = memo(function AgentTodoTool({
     if (alwaysExpandTodoList && !isExpanded) {
       setIsExpanded(true);
     }
-  }, [alwaysExpandTodoList]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [alwaysExpandTodoList]);
 
   // Memoized click handlers to prevent inline function re-creation
   const handleToggleExpand = useCallback(() => {

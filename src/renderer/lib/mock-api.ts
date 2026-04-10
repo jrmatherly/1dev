@@ -26,7 +26,6 @@
  * See `openspec/changes/migrate-mock-api-consumers/` for the Phase 2 proposal.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyObj = Record<string, any>;
 
 /**

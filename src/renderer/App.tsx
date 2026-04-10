@@ -99,7 +99,6 @@ function AppContent() {
       }
     });
     // Only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Check if user has existing CLI config (API key or proxy)

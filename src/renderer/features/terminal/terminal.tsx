@@ -354,7 +354,6 @@ export function Terminal({
       console.log("[Terminal:useEffect] UNMOUNT complete");
     };
     // Note: terminalCwd is accessed via ref to avoid remounting on cwd changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paneId, cwd, workspaceId, tabId, initialCwd, initialCommands, isDark]);
 
   // Update theme when isDark changes or VS Code theme changes (without recreating terminal)

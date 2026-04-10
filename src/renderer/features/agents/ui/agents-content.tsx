@@ -191,7 +191,6 @@ export function AgentsContent() {
   // Teams stub: upstream F-entry feature, not yet restored. Dead in desktop fork.
   // When teams is restored, replace with trpc.teams.list.useQuery() or equivalent.
   const teams: { id: string; [key: string]: unknown }[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectedTeam = teams.find((t) => t.id === selectedTeamId) as any;
 
   // Auto-activate automations & inbox if user has any automations configured

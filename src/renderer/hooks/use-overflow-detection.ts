@@ -72,7 +72,6 @@ export function useOverflowDetection(
         cancelAnimationFrame(rafIdRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   return hasOverflow;

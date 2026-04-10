@@ -11,7 +11,6 @@
 
 import { normalizeCodexToolPart } from "../../shared/codex-tool-normalizer";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyObj = Record<string, any>;
 
 /**
@@ -246,7 +245,6 @@ export function parseAndNormalizeSubChatMessages(
  */
 export type ChatSandboxFields = {
   sandbox_id: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   meta: any;
 };
 
@@ -279,7 +277,6 @@ export function parseAndNormalizeChat<T extends AnyObj>(
     ...typedChat,
     // Desktop uses worktrees, not sandboxes (F9 dead on desktop)
     sandbox_id: null as string | null,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     meta: null as any,
     subChats: typedChat.subChats?.map((sc: AnyObj) => ({
       ...sc,
