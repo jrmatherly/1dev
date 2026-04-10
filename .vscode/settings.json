@@ -96,6 +96,20 @@
     // window is canonical in Electron renderer, nested ternaries are readable
     // in theme-detection code.
     "javascript:S7764": { "level": "off" },
-    "javascript:S3358": { "level": "off" }
+    "javascript:S3358": { "level": "off" },
+
+    // S7778: "Do not call Array#push() multiple times" — 6 in use-update-checker.ts.
+    // Each push() registers a separate event listener with its own closure and
+    // log message. Combining them would destroy logical grouping.
+    "typescript:S7778": { "level": "off" },
+
+    // S4138: "Use for-of instead of indexed for loop" — 1 in use-voice-recording.ts.
+    // Indexed access on Uint8Array is idiomatic for audio/signal processing.
+    "typescript:S4138": { "level": "off" },
+
+    // S7763: "Use export...from to re-export" — false positive when the imported
+    // type is also used locally (e.g. as a generic parameter). The separate
+    // import+export pattern is required to keep the name in scope.
+    "typescript:S7763": { "level": "off" }
   }
 }

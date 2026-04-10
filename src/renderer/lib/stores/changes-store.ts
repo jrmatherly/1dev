@@ -163,7 +163,7 @@ export const useChangesStore = create<ChangesState>()(
               const storageKey = localStorage.key(i);
               if (!storageKey) continue;
 
-              const match = storageKey.match(/^(\d+):changes-store$/);
+              const match = /^(\d+):changes-store$/.exec(storageKey);
               if (match) {
                 const numericData = localStorage.getItem(storageKey);
                 if (numericData) {

@@ -36,10 +36,7 @@ import {
   getThemeTypeFromColors,
 } from "./vscode-to-css-mapping";
 import { extractTerminalTheme } from "./terminal-theme-mapper";
-import {
-  BUILTIN_THEMES,
-  getBuiltinThemeById,
-} from "./builtin-themes";
+import { BUILTIN_THEMES, getBuiltinThemeById } from "./builtin-themes";
 
 /**
  * Theme context value
@@ -136,7 +133,9 @@ interface VSCodeThemeProviderProps {
 /**
  * VS Code Theme Provider Component
  */
-export function VSCodeThemeProvider({ children }: Readonly<VSCodeThemeProviderProps>) {
+export function VSCodeThemeProvider({
+  children,
+}: Readonly<VSCodeThemeProviderProps>) {
   const { resolvedTheme, setTheme: setNextTheme } = useTheme();
 
   // Atoms

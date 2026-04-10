@@ -310,9 +310,9 @@ export function normalizeHotkey(hotkey: string): string {
   const modifiers = parts.filter((p) =>
     ["cmd", "meta", "ctrl", "opt", "alt", "shift"].includes(p),
   );
-  const key = parts.filter(
+  const key = parts.find(
     (p) => !["cmd", "meta", "ctrl", "opt", "alt", "shift"].includes(p),
-  )[0];
+  );
 
   // Sort modifiers
   modifiers.sort((a, b) => modifierOrder.indexOf(a) - modifierOrder.indexOf(b));

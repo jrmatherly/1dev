@@ -2,11 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect } from "react";
 import { selectedTeamIdAtom } from "../atoms";
-import {
-  remoteApi,
-  type RemoteChat,
-  type RemoteChatWithSubChats,
-} from "../remote-api";
+import { remoteApi } from "../remote-api";
 
 /**
  * Fetch user's teams and auto-select first team if none selected
@@ -47,12 +43,10 @@ export function useUserTeams(enabled: boolean = true) {
         );
         setTeamId(query.data[0].id);
       }
-    } else {
+    } else if (teamId) {
       // User has no teams - clear stale teamId
-      if (teamId) {
-        console.log("[useUserTeams] User has no teams, clearing teamId");
-        setTeamId(null);
-      }
+      console.log("[useUserTeams] User has no teams, clearing teamId");
+      setTeamId(null);
     }
   }, [query.status, query.data, teamId, setTeamId]);
 

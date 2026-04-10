@@ -4,7 +4,6 @@ import {
   getResolvedHotkey,
   hotkeyToDisplay,
   getShortcutAction,
-  keysToDisplay,
   keysToHotkeyString,
 } from "./shortcut-registry";
 import type { ShortcutActionId } from "./types";
