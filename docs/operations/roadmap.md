@@ -91,14 +91,6 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None (each root cause is independent)
 **Canonical reference:** [`docs/conventions/tscheck-baseline.md`](../conventions/tscheck-baseline.md)
 
-### [Research] Re-evaluate Shiki 4 upgrade tractability
-
-**Added:** 2026-04-09
-**Scope:** PR #11 (shiki 3.23.0 → 4.0.2) now passes **all 5 CI quality gates** on main after CI workflow fixes (run `24224043794`, 2026-04-10). Previous blocker assumption was `@pierre/diffs` pinning `shiki: ^3.0.0` AND `@shikijs/transformers: ^3.0.0`, which would create an unresolvable peer-dep conflict. CI passing suggests either (a) `@pierre/diffs` has relaxed its peer-dep range, (b) bun's resolver is handling the dual-version scenario gracefully, or (c) the peer-dep conflict is non-fatal at build time. Investigate: run `bun info @pierre/diffs peerDependencies`, check if shiki 3 and 4 both ship in `node_modules`, dev-test syntax highlighting in the renderer to verify no runtime breakage. May be mergeable standalone, separating it from the Vite 8 + electron-vite 6 Phase B work.
-**Effort:** Small (2-4h investigation + merge decision)
-**Prereqs:** None
-**Canonical reference:** PR #11, CI run 24224043794
-
 ### [Ready] Code-sign release builds
 
 **Added:** 2026-04-10
@@ -127,13 +119,15 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ## P3 -- Low Priority / Opportunistic
 
-### [Blocked] Vite 8 — Phase B + Shiki 4
+### [Blocked] Vite 8 — Phase B
 
 **Added:** 2026-04-09
-**Scope:** Vite 8 (Rolldown replaces esbuild+Rollup) + electron-vite 6.0 + plugin-react 6.0 + Shiki 3→4. Critical CJS validation needed: `__dirname`, `require()`, dynamic `import()`, `import.meta.env`. Shiki blocked on `@pierre/diffs` updating both `shiki` and `@shikijs/transformers` to `^4.0.0`.
+**Scope:** Vite 8 (Rolldown replaces esbuild+Rollup) + electron-vite 6.0 + plugin-react 6.0. Critical CJS validation needed: `__dirname`, `require()`, dynamic `import()`, `import.meta.env`.
 **Effort:** Medium-Large
-**Prereqs:** Tailwind 4 completed + archived 2026-04-10; Phase B blocked on electron-vite 6.0.0 stable; Shiki blocked on `@pierre/diffs` (PR #11 CI passing — may be mergeable standalone, see `[Research] Re-evaluate Shiki 4` entry)
-**Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md` (Phase B + Shiki tasks)
+**Prereqs:** Tailwind 4 completed + archived 2026-04-10; Phase B blocked on electron-vite 6.0.0 stable release
+**Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md` (Phase B)
+
+> **2026-04-10:** Shiki 3→4 was previously bundled into this item but has been completed separately via `upgrade-shiki-4` (merged as PR #11). See the Recently Completed table below.
 
 ### [Ready] Dependency caching for release workflow
 
@@ -203,6 +197,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
+| 2026-04-10 | Shiki 3.23.0 → 4.0.2 (standalone) — split out from `upgrade-vite-8-build-stack` Phase B after investigation corrected the "peer-dep blocker" assumption (`@pierre/diffs` declares shiki as regular `dependency`, not `peerDependency`, so Bun installs a nested duplicate `shiki@3.23.0` under `@pierre/diffs/node_modules/` while top-level advances to `4.0.2`). Dual-version coexistence verified empirically (`node_modules` inspection + `bun.lock` diff + runtime verification). All 6 quality gates passing (5 CI-enforced + 1 local lint), renderer built and runtime-tested: chat code highlighting, custom diff highlighter (`codeToHast`), `@pierre/diffs` PatchDiff (nested shiki 3), and theme switching all confirmed working. Also includes: test harness fix (raised `no-scratchpad-references.test.ts` timeout to 15s — pre-existing flake) + Codex downloader rewrite to skip `api.github.com` (hitchhiker commit from PR branch). | `upgrade-shiki-4` (to archive), PR #11 merge `6136048` |
 | 2026-04-10 | v0.0.81 patch release — supersedes failed v0.0.80 iteration. TS baseline 54→38 (Cluster A `DiffStateContextValue` + Cluster C `reposData` stub typing), keytar arm64 rebuild postinstall fix (dlopen crash on Apple Silicon, extracted to `scripts/rebuild-native-modules.mjs`), Windows `electron-rebuild` resolution via `require.resolve` (not `.bin/` symlink — bun creates shims after postinstall on Windows), Codex downloader rewritten to skip `api.github.com` entirely (pinned SHA256 hashes + direct release-asset URLs → immune to unauth rate-limit 403s that broke v0.0.80/v0.0.81 macOS builds), Shiki 3.x → 4.0.2. v0.0.80 was deleted after partial-build failures. Ships unsigned. | `46f49a4`, `6dece61`, `30641ce`, `22ca266`, `2f75b33`, tag `v0.0.81` |
 | 2026-04-10 | Self-hosted 1code-api backend service — Phase 1 endpoints (health, changelog, plan, profile) verified end-to-end in Docker against Postgres 18 + GHCR workflow dispatch (multi-arch amd64/arm64 + Cosign keyless + SLSA provenance + SBOM), `docker pull ghcr.io/jrmatherly/1code-api:v0.0.79-test` successful. Also fixed CVE-2026-39356 (drizzle-orm SQL injection, HIGH) and aligned 5 other packages with desktop app versions. 51/51 tasks, **ARCHIVED** — `self-hosted-api` promoted to baseline (7 reqs), `feature-flags` baseline +1 req | `2026-04-10-implement-1code-api` archived |
 | 2026-04-10 | First successful all-platform release build (v0.0.79) — 7 iterations (v0.0.73–v0.0.79). Fixes: macOS OOM (NODE_OPTIONS=6144MB), Windows GPG (toGpgPath MSYS conversion in download-claude-binary.mjs), Codex 403 (per-platform downloads + retry), partial releases (if: !cancelled()), Chocolatey GPG hangs (removed), timeout 45→60 min, version consistency check, manifest verification | `release.yml`, `scripts/download-claude-binary.mjs` |

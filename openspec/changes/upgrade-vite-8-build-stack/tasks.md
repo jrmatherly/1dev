@@ -68,27 +68,17 @@
 - [ ] 9.4 Run `bun audit`
 - [ ] 9.5 Run `cd docs && bun run build`
 
-## 10. Shiki upgrade (blocked on @pierre/diffs)
+## 10. Final documentation
 
-- [ ] 10.1 Monitor `@pierre/diffs` for shiki v4 support: `npm info @pierre/diffs versions`
-- [ ] 10.2 File issue on @pierre/diffs GitHub if no update available
-- [ ] 10.3 Update `package.json`: `"shiki": "^4.0.2"` once unblocked
-- [ ] 10.4 Update `@pierre/diffs` to shiki-v4-compatible version
-- [ ] 10.5 Run `bun install`
-- [ ] 10.6 Run `bun run build` — verify shiki bundling works
-- [ ] 10.7 Open chat with code blocks — verify syntax highlighting
-- [ ] 10.8 Switch themes — verify theme loading and mapping
-- [ ] 10.9 Open diff view — verify diff highlighting with `codeToHast`
+- [ ] 10.1 Update `docs/conventions/pinned-deps.md` — remove Vite 6.x pin
+- [ ] 10.2 Update `docs/architecture/tech-stack.md` — Vite, plugin-react versions
+- [ ] 10.3 Update `openspec/config.yaml` context — batch update ALL tech stack versions (this is the last proposal to land)
 
-## 11. Final documentation
+## 11. Post-all-upgrades validation sweep
 
-- [ ] 11.1 Update `docs/conventions/pinned-deps.md` — remove Vite 6.x and Shiki 3.x pins
-- [ ] 11.2 Update `docs/architecture/tech-stack.md` — Vite, plugin-react, Shiki versions
-- [ ] 11.3 Update `openspec/config.yaml` context — batch update ALL tech stack versions (this is the last proposal to land)
+- [ ] 11.1 Run ALL 5 CI quality gates: ts:check, build, test, audit, docs build (plus local `lint`)
+- [ ] 11.2 Re-baseline `.tscheck-baseline` one final time (combined impact of all Phase B upgrades)
+- [ ] 11.3 Full functional test: app startup, chat, terminal, credential storage, auto-updater, dark mode
+- [ ] 11.4 Verify no emergent failures from combined upgrade state (Electron 41 + TS 6 + Tailwind 4 + Vite 7/8)
 
-## 12. Post-all-upgrades validation sweep
-
-- [ ] 12.1 Run ALL 5 quality gates: ts:check, build, test, audit, docs build
-- [ ] 12.2 Re-baseline `.tscheck-baseline` one final time (combined impact of all 4 upgrades)
-- [ ] 12.3 Full functional test: app startup, chat, terminal, credential storage, auto-updater, dark mode
-- [ ] 12.4 Verify no emergent failures from combined upgrade state (Electron 41 + TS 6 + Tailwind 4 + Vite 7/8)
+> **Note (2026-04-10):** §10 "Shiki upgrade" (formerly tasks 10.1-10.9) was removed from this change when the standalone `upgrade-shiki-4` change merged via PR #11. The Shiki-specific pinned-deps entry in §10.1 was also removed (pinned-deps.md no longer tracks shiki as a version pin after the successful upgrade).

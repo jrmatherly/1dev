@@ -24,7 +24,7 @@ icon: layers
 | **AI (Codex)** | Codex CLI binary | pinned `0.118.0` | Managed via `codex.ts` router. Supports dynamic short-lived bearer token refresh. |
 | **AI (Ollama)** | Ollama | — | Local model support via `ollama.ts` router. |
 | **Claude CLI** | Claude Code binary | pinned `2.1.96` | SHA-256 + GPG signature verification on download. See [Pinned Dependencies](../conventions/pinned-deps.md). |
-| **Syntax highlighting** | Shiki | `3.x` | Pinned — `@pierre/diffs` requires `^3.0.0`. |
+| **Syntax highlighting** | Shiki | `4.0.2` | Upgraded 2026-04-10 via `upgrade-shiki-4`. Dual-version install: top-level `shiki@4.0.2` for renderer code (`shiki-theme-loader.ts`, `diff-view-highlighter.ts`), nested `@pierre/diffs/shiki@3.23.0` for `@pierre/diffs/react` components. See [Pinned Dependencies](../conventions/pinned-deps.md). |
 | **Package manager** | Bun | — | `bun.lock` tracked for reproducible builds. |
 | **Testing** | bun:test | — | 14 regression guards, 58 tests. See [Regression Guards](../conventions/regression-guards.md). |
 | **Documentation** | xyd-js | pinned `0.0.0-build-...` | Lockstep pre-release builds. See [Pinned Dependencies](../conventions/pinned-deps.md). |

@@ -6,9 +6,9 @@ Vite 8 is the most significant architectural change in Vite's history — **Roll
 2. **CJS output format** — our main/preload processes use `output.format: "cjs"` which needs validation under Rolldown.
 3. **@vitejs/plugin-react 6.0.1** requires Vite 8 (Babel fully removed, uses Oxc).
 
-Additionally, **Shiki 3→4** is grouped here because its only blocker (`@pierre/diffs` pinning `shiki: ^3.0.0`) is a transitive dependency concern best resolved alongside the build stack upgrade.
-
 **Recommended approach:** Two-phase. Phase A (Vite 7 with electron-vite 5.0.0 stable) can proceed immediately. Phase B (Vite 8 with electron-vite 6.0.0) is blocked on `electron-vite` stable release.
+
+> **Note (2026-04-10):** Shiki 3→4 was previously grouped into this proposal as §Shiki 3→4 but has been split out into a standalone `upgrade-shiki-4` change and merged via PR #11. The Shiki section and related Risk surface bullets have been removed from this proposal.
 
 ## What Changes
 
@@ -59,18 +59,6 @@ Additionally, **Shiki 3→4** is grouped here because its only blocker (`@pierre
 - Uses Oxc for React Refresh transforms
 - `@vitejs/plugin-react-oxc` is now deprecated (this plugin does the same thing)
 
-### Shiki 3→4 (blocked on @pierre/diffs)
-
-**Version bump:**
-- **shiki 3.23.0 → 4.0.2** — effectively a no-op upgrade at the code level
-
-**Breaking changes (none affect us):**
-- Node.js >= 20 required (we're on 24)
-- `createdBundledHighlighter` typo-fix rename (we don't use it)
-- All APIs we use (`createHighlighter`, `codeToHtml`, `codeToHast`, `loadTheme`, `getLoadedThemes`, `getLoadedLanguages`, `BundledTheme`, `Highlighter` types) are unchanged
-
-**Blocker:** `@pierre/diffs@1.1.13` pins BOTH `"shiki": "^3.0.0"` AND `"@shikijs/transformers": "^3.0.0"` as hard dependencies. Both must be updated to `^4.0.0` before the Shiki upgrade can proceed. The `streamdown` package bundles its own shiki internally (devDependency, not runtime) and is NOT a blocker — but verify no Shiki types are imported from streamdown.
-
 **WDYR integration:** The `jsxImportSource` option for `@welldone-software/why-did-you-render` is preserved in plugin-react v5 and v6. However, the switch from Babel to Oxc for JSX transforms means WDYR runtime integration needs verification.
 
 ## Capabilities
@@ -101,7 +89,6 @@ None — no behavioral changes; build infrastructure only.
 
 **Risk surface:**
 - **Critical blocker:** electron-vite 6.0.0 stable release (Phase B)
-- **Critical blocker:** @pierre/diffs shiki v4 + @shikijs/transformers v4 support (Shiki upgrade)
 - **High risk:** CJS output format under Rolldown — `__dirname`, `require()`, dynamic `import()`, `import.meta.env`
 - **High risk:** Lightning CSS + PostCSS/Tailwind 3 interaction (if Vite 8 lands before Tailwind 4)
 - **High risk:** `@swc/core` peer dep changes in electron-vite 6.x
@@ -109,7 +96,6 @@ None — no behavioral changes; build infrastructure only.
 - **Medium risk:** WDYR integration with Oxc JSX transforms
 - **Medium risk:** `node-pty` implicit externalization under Rolldown
 - **Low risk:** plugin-react `resolve.dedupe` change — verify single React instance in bundle
-- **No risk:** Shiki API changes (none that affect us)
 
 **No changes to:**
 - tRPC routers, database schema, Drizzle migrations

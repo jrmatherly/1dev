@@ -4,7 +4,7 @@
 
 Two-phase upgrade to manage risk:
 - **Phase A** (unblocked): Vite 6→7 + plugin-react 4→5 using electron-vite 5.0.0 (stable)
-- **Phase B** (blocked): Vite 7→8 + electron-vite 5→6 + plugin-react 5→6 + Shiki 3→4
+- **Phase B** (blocked): Vite 7→8 + electron-vite 5→6 + plugin-react 5→6
 
 ### Architecture Impact
 
@@ -58,15 +58,6 @@ A compatibility layer auto-converts `rollupOptions` to `rolldownOptions`, so exi
 #### Oxc JSX Transform
 
 Plugin-react v6 uses Oxc instead of Babel for JSX transforms. The `jsxImportSource` option (used for WDYR in dev mode) is preserved, but the underlying transform engine is different. Must verify WDYR integration at runtime.
-
-### Shiki 3→4 (Trivial When Unblocked)
-
-Zero code changes needed. All APIs used (`createHighlighter`, `codeToHtml`, `codeToHast`, `loadTheme`, type imports) are unchanged in v4. The only blocker is `@pierre/diffs@1.1.13` pinning `shiki: ^3.0.0`.
-
-**Monitoring plan:** Check `@pierre/diffs` npm releases periodically. If no update by the time Phase B is ready, consider:
-1. Filing an issue on `@pierre/diffs` GitHub
-2. Using npm `overrides` in package.json to force shiki v4
-3. Forking `@pierre/diffs` with updated peer dep
 
 ### Electron-Specific Constraints
 

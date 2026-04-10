@@ -40,28 +40,28 @@
 
 - [ ] 5.1 Merge PR #11 to main via the normal branch-protection flow (required CI + admin approval)
 - [ ] 5.2 Pull latest main: `git checkout main && git pull`
-- [ ] 5.3 Edit `openspec/changes/upgrade-vite-8-build-stack/proposal.md` — remove ALL Shiki content (use section-header/string anchors, not line numbers, because the file may have drifted). Specifically:
+- [x] 5.3 Edit `openspec/changes/upgrade-vite-8-build-stack/proposal.md` — remove ALL Shiki content (use section-header/string anchors, not line numbers, because the file may have drifted). Specifically:
   - Remove the `### Shiki 3→4 (blocked on @pierre/diffs)` section in its entirety (from the heading through its final line, stopping at the next `## Capabilities` heading)
   - Remove the paragraph in `## Why` beginning with "Additionally, **Shiki 3→4** is grouped here because…"
   - In the Risk surface list, remove the bullet `- **Critical blocker:** @pierre/diffs shiki v4 + @shikijs/transformers v4 support (Shiki upgrade)`
   - In the Risk surface list, remove the bullet `- **No risk:** Shiki API changes (none that affect us)`
   - Leave the neutral "shiki version bumps" / "shiki import verification" mentions in the `## Impact` > Affected code section alone — those are incidental and still accurate after this change ships
   - Verify with `grep -n "Shiki\|shiki" openspec/changes/upgrade-vite-8-build-stack/proposal.md` — only the `## Impact` mentions should remain
-- [ ] 5.4 Edit `openspec/changes/upgrade-vite-8-build-stack/design.md` — remove ALL Shiki content:
+- [x] 5.4 Edit `openspec/changes/upgrade-vite-8-build-stack/design.md` — remove ALL Shiki content:
   - Remove the `### Shiki 3→4 (Trivial When Unblocked)` section in its entirety (heading through final numbered list item, stopping at the next `### Electron-Specific Constraints` heading)
   - In the `## Context` section's Phase B bullet, remove the `+ Shiki 3→4` suffix from the phrase "Vite 7→8 + electron-vite 5→6 + plugin-react 5→6 + Shiki 3→4" — final text should be "Vite 7→8 + electron-vite 5→6 + plugin-react 5→6"
   - Verify with `grep -n "Shiki\|shiki" openspec/changes/upgrade-vite-8-build-stack/design.md` — should return zero matches
-- [ ] 5.5 Edit `openspec/changes/upgrade-vite-8-build-stack/tasks.md`:
+- [x] 5.5 Edit `openspec/changes/upgrade-vite-8-build-stack/tasks.md`:
   - Remove `## 10. Shiki upgrade (blocked on @pierre/diffs)` entirely (heading through tasks 10.1-10.9)
   - Renumber `## 11. Final documentation` → `## 10. Final documentation`, its sub-tasks `11.1` → `10.1`, `11.2` → `10.2`, `11.3` → `10.3`
   - Renumber `## 12. Post-all-upgrades validation sweep` → `## 11. Post-all-upgrades validation sweep`, its sub-tasks accordingly
   - In the newly-renumbered task `10.1`, edit the phrase "remove Vite 6.x and Shiki 3.x pins" to "remove Vite 6.x pin" — the Shiki 3.x pin will already be removed by this change's Task 5.7, so leaving the reference would make task 10.1 a partial no-op
   - Verify with `grep -n "Shiki\|shiki" openspec/changes/upgrade-vite-8-build-stack/tasks.md` — should return zero matches
-- [ ] 5.6 Validate the Vite 8 change still passes: `bunx @fission-ai/openspec@1.2.0 validate upgrade-vite-8-build-stack --strict --no-interactive`
-- [ ] 5.7 Edit `docs/conventions/pinned-deps.md` — remove the `shiki: 3.x` pin entry (or update to `shiki: 4.x` if the file documents current pins rather than pins-with-reasons)
-- [ ] 5.8 Edit `docs/architecture/tech-stack.md` — bump any Shiki version reference from `3.x` to `4.x`
-- [ ] 5.9 Edit `CLAUDE.md` "Version pins (load-bearing)" line — remove or update the "Shiki 3.x" mention to reflect the new 4.x pin
-- [ ] 5.10 Edit `docs/operations/roadmap.md` — move the `[Research] Re-evaluate Shiki 4 upgrade tractability` entry from the P2/P3 research section to "Recently Completed" with completion date `2026-04-10` and a one-line summary citing this change's proposal
+- [x] 5.6 Validate the Vite 8 change still passes: `bunx @fission-ai/openspec@1.2.0 validate upgrade-vite-8-build-stack --strict --no-interactive`
+- [x] 5.7 Edit `docs/conventions/pinned-deps.md` — remove the `shiki: 3.x` pin entry (or update to `shiki: 4.x` if the file documents current pins rather than pins-with-reasons)
+- [x] 5.8 Edit `docs/architecture/tech-stack.md` — bump any Shiki version reference from `3.x` to `4.x`
+- [x] 5.9 Edit `CLAUDE.md` "Version pins (load-bearing)" line — remove or update the "Shiki 3.x" mention to reflect the new 4.x pin
+- [x] 5.10 Edit `docs/operations/roadmap.md` — move the `[Research] Re-evaluate Shiki 4 upgrade tractability` entry from the P2/P3 research section to "Recently Completed" with completion date `2026-04-10` and a one-line summary citing this change's proposal
 - [ ] 5.11 Run `/session-sync` skill to catch any remaining documentation drift across CLAUDE.md, Serena memories, `.claude/PROJECT_INDEX.md`, and the code-review graph
 
 ## 6. Archive the change
