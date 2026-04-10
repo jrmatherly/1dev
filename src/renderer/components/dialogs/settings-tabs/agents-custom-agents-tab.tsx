@@ -30,7 +30,7 @@ interface FileAgent {
   tools?: string[];
   disallowedTools?: string[];
   model?: "sonnet" | "opus" | "haiku" | "inherit";
-  source: "user" | "project";
+  source: "user" | "project" | "plugin";
   path: string;
 }
 
