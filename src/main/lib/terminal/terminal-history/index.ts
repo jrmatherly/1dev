@@ -82,9 +82,7 @@ export class HistoryWriter {
     this.buffer += data;
 
     // Schedule flush if not already scheduled
-    if (this.flushTimeout === null) {
-      this.flushTimeout = setTimeout(() => this.flush(), 1000);
-    }
+    this.flushTimeout ??= setTimeout(() => this.flush(), 1000);
   }
 
   /**

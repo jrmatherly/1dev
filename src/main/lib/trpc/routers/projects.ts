@@ -249,8 +249,8 @@ export const projectsRouter = router({
       let repo: string | null = null;
 
       // Match HTTPS format: https://github.com/owner/repo
-      const httpsMatch = repoUrl.match(
-        /https?:\/\/github\.com\/([^/]+)\/([^/]+)/,
+      const httpsMatch = /https?:\/\/github\.com\/([^/]+)\/([^/]+)/.exec(
+        repoUrl,
       );
       if (httpsMatch) {
         owner = httpsMatch[1] || null;
@@ -258,14 +258,14 @@ export const projectsRouter = router({
       }
 
       // Match SSH format: git@github.com:owner/repo
-      const sshMatch = repoUrl.match(/git@github\.com:([^/]+)\/(.+)/);
+      const sshMatch = /git@github\.com:([^/]+)\/(.+)/.exec(repoUrl);
       if (sshMatch) {
         owner = sshMatch[1] || null;
         repo = sshMatch[2]?.replace(/\.git$/, "") || null;
       }
 
       // Match short format: owner/repo
-      const shortMatch = repoUrl.match(/^([^/]+)\/([^/]+)$/);
+      const shortMatch = /^([^/]+)\/([^/]+)$/.exec(repoUrl);
       if (shortMatch) {
         owner = shortMatch[1] || null;
         repo = shortMatch[2]?.replace(/\.git$/, "") || null;

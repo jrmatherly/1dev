@@ -132,7 +132,7 @@ export function clearPlanCache(): void {
  */
 function getOpenAIApiKey(): string | null {
   // First check user-configured key (highest priority, not cached)
-  if (userConfiguredOpenAIKey && userConfiguredOpenAIKey.startsWith("sk-")) {
+  if (userConfiguredOpenAIKey?.startsWith("sk-")) {
     return userConfiguredOpenAIKey;
   }
 

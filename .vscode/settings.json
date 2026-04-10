@@ -187,6 +187,18 @@
 
     // S7744: "Empty object useless" — spread/merge patterns with empty
     // default objects for optional config.
-    "typescript:S7744": { "level": "off" }
+    "typescript:S7744": { "level": "off" },
+
+    // S3516: "Function always returns same value" — false positive on
+    // functions that mutate-and-return the same object (fluent API pattern).
+    "typescript:S3516": { "level": "off" },
+
+    // S7749: "Invalid group length in numeric value" — misidentifies
+    // `3600_000` numeric separator as invalid grouping.
+    "typescript:S7749": { "level": "off" },
+
+    // S2871: "Sort without comparator" — lexicographic sort is intentional
+    // for cache key generation and string-based ordering.
+    "typescript:S2871": { "level": "off" }
   }
 }
