@@ -6,10 +6,7 @@ import {
   mkdirSync,
 } from "fs";
 import { join, dirname } from "path";
-import {
-  encryptCredential,
-  decryptCredential,
-} from "./lib/credential-store";
+import { encryptCredential, decryptCredential } from "./lib/credential-store";
 
 export interface AuthUser {
   id: string;

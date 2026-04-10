@@ -156,7 +156,6 @@ function parseMentions(prompt: string): {
   };
 }
 
-
 /**
  * Get Claude Code OAuth token from local SQLite
  * Uses multi-account system first (active account), falls back to legacy table
@@ -308,7 +307,7 @@ async function readProjectMcpJsonCached(
     if (!stats) return {};
 
     const cached = projectMcpJsonCache.get(mcpJsonPath);
-    if (cached && cached.mtime === stats.mtimeMs) {
+    if (cached?.mtime === stats.mtimeMs) {
       return cached.servers;
     }
 
@@ -475,7 +474,6 @@ export async function getAllMcpConfigHandler() {
       const results = await Promise.all(
         Object.entries(servers).map(async ([name, serverConfig]) => {
           const configObj = serverConfig as Record<string, unknown>;
-          let status = getServerStatusFromConfig(serverConfig);
           const headers = serverConfig.headers as
             | Record<string, string>
             | undefined;
@@ -489,6 +487,7 @@ export async function getAllMcpConfigHandler() {
             console.error(`[MCP] Failed to fetch tools for ${name}:`, error);
           }
 
+          let status: string;
           const cacheKey = mcpCacheKey(scope, name);
           if (tools.length > 0) {
             status = "connected";
@@ -665,7 +664,7 @@ export async function getAllMcpConfigHandler() {
     // Log performance (sorted by duration DESC)
     const totalDuration = Date.now() - totalStart;
     const workingCount = [...workingMcpServers.values()].filter(
-      (v) => v,
+      Boolean,
     ).length;
     const sortedByDuration = [...groupsWithTiming].sort(
       (a, b) => b.duration - a.duration,
@@ -728,7 +727,6 @@ export async function getAllMcpConfigHandler() {
                 }
 
                 // Try to get status and tools for approved servers
-                let status = getServerStatusFromConfig(serverConfig);
                 const headers = serverConfig.headers as
                   | Record<string, string>
                   | undefined;
@@ -744,6 +742,7 @@ export async function getAllMcpConfigHandler() {
                   );
                 }
 
+                let status: string;
                 if (tools.length > 0) {
                   status = "connected";
                 } else {
@@ -951,11 +950,9 @@ export const claudeRouter = router({
               lastMsg?.role === "user" && lastMsgText === input.prompt;
 
             // 2. Create user message and save BEFORE streaming (skip if duplicate)
-            let userMessage: any;
             let messagesToSave: any[];
 
             if (isDuplicate) {
-              userMessage = lastMsg;
               messagesToSave = existingMessages;
             } else {
               const parts: any[] = [{ type: "text", text: input.prompt }];
@@ -971,7 +968,7 @@ export const claudeRouter = router({
                   });
                 }
               }
-              userMessage = {
+              const userMessage = {
                 id: crypto.randomUUID(),
                 role: "user",
                 parts,
@@ -1021,7 +1018,16 @@ export const claudeRouter = router({
               // Has custom config = either API key or custom model
               const isDefaultAnthropicUrl =
                 !finalCustomConfig.baseUrl ||
-                (() => { try { const h = new URL(finalCustomConfig.baseUrl!).hostname; return h === "anthropic.com" || h.endsWith(".anthropic.com"); } catch { return false; } })();
+                (() => {
+                  try {
+                    const h = new URL(finalCustomConfig.baseUrl!).hostname;
+                    return (
+                      h === "anthropic.com" || h.endsWith(".anthropic.com")
+                    );
+                  } catch {
+                    return false;
+                  }
+                })();
               connectionMethod = isDefaultAnthropicUrl
                 ? "api-key"
                 : "custom-model";
@@ -1292,8 +1298,7 @@ export const claudeRouter = router({
                 // Get or refresh cached config
                 let claudeConfig: any;
                 if (
-                  cached &&
-                  cached.mtime === currentMtime &&
+                  cached?.mtime === currentMtime &&
                   currentMtime > 0
                 ) {
                   claudeConfig = cached.config;
@@ -1584,20 +1589,18 @@ export const claudeRouter = router({
                 "[Ollama] Skipping MCP servers to speed up initialization",
               );
               mcpServersFiltered = undefined;
-            } else {
+            } else if (
+              mcpServersForSdk &&
+              Object.keys(mcpServersForSdk).length > 0
+            ) {
               // Ensure MCP tokens are fresh (refresh if within 5 min of expiry)
-              if (
-                mcpServersForSdk &&
-                Object.keys(mcpServersForSdk).length > 0
-              ) {
-                const lookupPath = input.projectPath || input.cwd;
-                mcpServersFiltered = await ensureMcpTokensFresh(
-                  mcpServersForSdk,
-                  lookupPath,
-                );
-              } else {
-                mcpServersFiltered = mcpServersForSdk;
-              }
+              const lookupPath = input.projectPath || input.cwd;
+              mcpServersFiltered = await ensureMcpTokensFresh(
+                mcpServersForSdk,
+                lookupPath,
+              );
+            } else {
+              mcpServersFiltered = mcpServersForSdk;
             }
 
             // Log SDK configuration for debugging
@@ -2427,7 +2430,7 @@ ${prompt}
                           startedAt: Date.now(),
                         });
                         break;
-                      case "tool-output-available":
+                      case "tool-output-available": {
                         const toolPart = parts.find(
                           (p) =>
                             p.type?.startsWith("tool-") &&
@@ -2457,6 +2460,7 @@ ${prompt}
                           }
                         }
                         break;
+                      }
                       case "message-metadata":
                         metadata = { ...metadata, ...chunk.messageMetadata };
                         break;
@@ -3040,10 +3044,8 @@ ${prompt}
             `Server "${serverName}" already exists in this project`,
           );
         }
-      } else {
-        if (existingConfig.mcpServers?.[serverName]) {
-          throw new Error(`Server "${serverName}" already exists`);
-        }
+      } else if (existingConfig.mcpServers?.[serverName]) {
+        throw new Error(`Server "${serverName}" already exists`);
       }
 
       const config = updateMcpServerConfig(

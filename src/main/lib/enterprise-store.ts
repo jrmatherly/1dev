@@ -18,12 +18,8 @@ import {
   PersistenceCreator,
   PersistenceCachePlugin,
   DataProtectionScope,
-  FilePersistence,
 } from "@azure/msal-node-extensions";
-import {
-  getCredentialTier,
-  type CredentialTier,
-} from "./credential-store";
+import { getCredentialTier, type CredentialTier } from "./credential-store";
 import { getFlag } from "./feature-flags";
 
 const SERVICE_NAME = "1Code Enterprise Auth";

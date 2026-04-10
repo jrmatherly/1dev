@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { getAuthManager } from "../../../index";
 import { getClaudeShellEnvironment } from "../../claude";
@@ -12,7 +12,6 @@ import {
 import { encryptCredential, decryptCredential } from "../../credential-store";
 import { createId } from "../../db/utils";
 import { publicProcedure, router } from "../index";
-
 
 /**
  * Store OAuth token - now uses multi-account system
@@ -285,5 +284,4 @@ export const claudeCodeRouter = router({
     console.log("[ClaudeCode] Disconnected");
     return { success: true };
   }),
-
 });

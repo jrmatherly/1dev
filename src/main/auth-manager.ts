@@ -2,10 +2,7 @@ import { AuthStore, AuthData, AuthUser } from "./auth-store";
 import { app, BrowserWindow } from "electron";
 import { AUTH_SERVER_PORT } from "./constants";
 import { getFlag } from "./lib/feature-flags";
-import {
-  EnterpriseAuth,
-  getEnterpriseAuthConfig,
-} from "./lib/enterprise-auth";
+import { EnterpriseAuth, getEnterpriseAuthConfig } from "./lib/enterprise-auth";
 import type { EnterpriseUser } from "./lib/enterprise-types";
 
 // Get API URL - in packaged app always use production, in dev allow override
@@ -20,7 +17,9 @@ function getApiBaseUrl(): string {
 // the login screen when the enterprise auth backend (Envoy Gateway + Entra)
 // is not yet deployed. Never works in packaged builds.
 function isDevAuthBypassed(): boolean {
-  return !app.isPackaged && import.meta.env.MAIN_VITE_DEV_BYPASS_AUTH === "true";
+  return (
+    !app.isPackaged && import.meta.env.MAIN_VITE_DEV_BYPASS_AUTH === "true"
+  );
 }
 
 const DEV_BYPASS_USER: AuthUser = {
@@ -461,9 +460,7 @@ let authManagerInstance: AuthManager | null = null;
  * Must be called once from main process initialization
  */
 export function initAuthManager(isDev: boolean = false): AuthManager {
-  if (!authManagerInstance) {
-    authManagerInstance = new AuthManager(isDev);
-  }
+  authManagerInstance ??= new AuthManager(isDev);
   return authManagerInstance;
 }
 

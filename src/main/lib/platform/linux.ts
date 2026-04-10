@@ -110,7 +110,7 @@ export class LinuxPlatformProvider extends BasePlatformProvider {
           `getent passwd ${uid} 2>/dev/null`,
         ]);
         // getent format: user:x:uid:gid:name:home:shell
-        const match = stdout.match(/:([^:]+)$/);
+        const match = /:([^:]+)$/.exec(stdout);
         if (match?.[1]) {
           return match[1].trim();
         }

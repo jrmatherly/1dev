@@ -146,7 +146,9 @@ export async function initAutoUpdater(getWindows: () => BrowserWindow[]) {
   // Register IPC handlers
   registerIpcHandlers();
 
-  log.info("[AutoUpdater] Initialized — feed URL auto-configured from app-update.yml (GitHub provider)");
+  log.info(
+    "[AutoUpdater] Initialized — feed URL auto-configured from app-update.yml (GitHub provider)",
+  );
 }
 
 /**
@@ -165,7 +167,9 @@ function registerIpcHandlers() {
     // normal check. The parameter is kept for IPC compatibility; remove
     // once the renderer stops passing it.
     if (force) {
-      log.info("[AutoUpdater] Force check requested (no cache-bust needed with GitHub provider)");
+      log.info(
+        "[AutoUpdater] Force check requested (no cache-bust needed with GitHub provider)",
+      );
     }
     try {
       const result = await autoUpdater.checkForUpdates();
@@ -215,7 +219,7 @@ function registerIpcHandlers() {
 export async function checkForUpdates(force = false) {
   if (!app.isPackaged) {
     log.info("[AutoUpdater] Skipping update check in dev mode");
-    return Promise.resolve(null);
+    return null;
   }
 
   // Respect minimum interval to prevent spam
@@ -224,7 +228,7 @@ export async function checkForUpdates(force = false) {
     log.info(
       `[AutoUpdater] Skipping check - last check was ${Math.round((now - lastCheckTime) / 1000)}s ago`,
     );
-    return Promise.resolve(null);
+    return null;
   }
 
   lastCheckTime = now;
@@ -270,5 +274,5 @@ function formatBytes(bytes: number): string {
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }

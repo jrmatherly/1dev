@@ -159,6 +159,34 @@
 
     // S1874: "Deprecated API" — React 19 deprecates non-generic event types
     // (FormEvent, ChangeEvent). Fixing requires auditing all form handlers.
-    "typescript:S1874": { "level": "off" }
+    "typescript:S1874": { "level": "off" },
+
+    // S7772: "Prefer node: prefix" — 51 occurrences across main process.
+    // Codebase-wide migration deferred to separate task; node: prefix is
+    // purely cosmetic in Electron 41 (Node 22+).
+    "typescript:S7772": { "level": "off" },
+
+    // S2933: "Mark as readonly" — 27 class members across main process.
+    // Low-risk style preference; bulk readonly annotation deferred.
+    "typescript:S2933": { "level": "off" },
+
+    // S7780: "Use String.raw for backslash strings" — Windows path patterns
+    // and regex escapes. Current style is idiomatic for this codebase.
+    "typescript:S7780": { "level": "off" },
+
+    // S6324: "Remove control character" — terminal ANSI escape processing
+    // in codex router. Control characters are intentional.
+    "typescript:S6324": { "level": "off" },
+
+    // S7059: "Async in constructor" — auth-manager bootstrap pattern uses
+    // async initialization in constructor deliberately.
+    "typescript:S7059": { "level": "off" },
+
+    // S4624: "Nested template literals" — already suppressed in ESLint config.
+    "typescript:S4624": { "level": "off" },
+
+    // S7744: "Empty object useless" — spread/merge patterns with empty
+    // default objects for optional config.
+    "typescript:S7744": { "level": "off" }
   }
 }

@@ -26,7 +26,6 @@ import {
   type SilentFlowRequest,
   LogLevel,
 } from "@azure/msal-node";
-import { decodeJwt } from "jose";
 import { createEnterpriseCachePlugin } from "./enterprise-store";
 import type {
   EnterpriseAuthConfig,

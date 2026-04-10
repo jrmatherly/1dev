@@ -16,7 +16,6 @@ import { z } from "zod";
 import { mcpServerUrlSchema } from "../schemas/mcp-url";
 import {
   normalizeCodexAssistantMessage,
-  normalizeCodexStreamChunk,
 } from "../../../../shared/codex-tool-normalizer";
 import { getClaudeShellEnvironment } from "../../claude/env";
 import { resolveProjectPathFromWorktree } from "../../claude-config";
@@ -161,23 +160,23 @@ type CodexUsageMetadata = {
 };
 
 const codexMcpListEntrySchema = z.looseObject({
-    name: z.string(),
-    enabled: z.boolean(),
-    disabled_reason: z.string().nullable().optional(),
-    transport: z.looseObject({
-      type: z.string(),
-      command: z.string().nullable().optional(),
-      args: z.array(z.string()).nullable().optional(),
-      env: z.record(z.string(), z.string()).nullable().optional(),
-      env_vars: z.array(z.string()).nullable().optional(),
-      cwd: z.string().nullable().optional(),
-      url: z.string().nullable().optional(),
-      bearer_token_env_var: z.string().nullable().optional(),
-      http_headers: z.record(z.string(), z.string()).nullable().optional(),
-      env_http_headers: z.record(z.string(), z.string()).nullable().optional(),
-    }),
-    auth_status: z.string().nullable().optional(),
-  });
+  name: z.string(),
+  enabled: z.boolean(),
+  disabled_reason: z.string().nullable().optional(),
+  transport: z.looseObject({
+    type: z.string(),
+    command: z.string().nullable().optional(),
+    args: z.array(z.string()).nullable().optional(),
+    env: z.record(z.string(), z.string()).nullable().optional(),
+    env_vars: z.array(z.string()).nullable().optional(),
+    cwd: z.string().nullable().optional(),
+    url: z.string().nullable().optional(),
+    bearer_token_env_var: z.string().nullable().optional(),
+    http_headers: z.record(z.string(), z.string()).nullable().optional(),
+    env_http_headers: z.record(z.string(), z.string()).nullable().optional(),
+  }),
+  auth_status: z.string().nullable().optional(),
+});
 
 type CodexMcpListEntry = z.infer<typeof codexMcpListEntrySchema>;
 
@@ -370,7 +369,7 @@ async function runCodexCli(
   return await new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(codexCliPath, args, {
       stdio: ["ignore", "pipe", "pipe"],
-      cwd: cwd && cwd.length > 0 ? cwd : undefined,
+      cwd: cwd?.length ? cwd : undefined,
       env: process.env,
       windowsHide: true,
     });
@@ -466,7 +465,7 @@ async function findSessionFileById(sessionId: string): Promise<string | null> {
   const sessionsRoot = resolveSessionsRoot();
   const fileSuffix = `-${sessionId}.jsonl`;
   const sortDesc = (values: string[]) =>
-    values.sort((left, right) =>
+    values.toSorted((left, right) =>
       right.localeCompare(left, undefined, { numeric: true }),
     );
   const listNames = async (dirPath: string): Promise<string[]> => {
@@ -509,7 +508,7 @@ async function readLatestTokenCountInfo(
   filePath: string,
   options?: { notBeforeTimestampMs?: number },
 ): Promise<CodexTokenCountInfo | null> {
-  let rawContent = "";
+  let rawContent: string;
   try {
     rawContent = await readFile(filePath, "utf8");
   } catch {
@@ -628,9 +627,7 @@ async function pollUsage(
   let sessionFilePath: string | null = null;
 
   for (let attempt = 0; attempt < CODEX_USAGE_POLL_ATTEMPTS; attempt += 1) {
-    if (!sessionFilePath) {
-      sessionFilePath = await findSessionFileById(sessionId);
-    }
+    sessionFilePath ??= await findSessionFileById(sessionId);
 
     if (sessionFilePath) {
       const latestInfo = await readLatestTokenCountInfo(
@@ -806,7 +803,7 @@ async function fetchCodexMcpTools(
 function resolveCodexLookupPath(
   pathCandidate: string | null | undefined,
 ): string {
-  return pathCandidate && pathCandidate.trim()
+  return pathCandidate?.trim()
     ? pathCandidate.trim()
     : "__global__";
 }
@@ -1036,7 +1033,7 @@ export async function getAllCodexMcpConfigHandler() {
     );
   }
 
-  const projectPaths = [...projectPathSet].sort((a, b) => a.localeCompare(b));
+  const projectPaths = [...projectPathSet].toSorted((a, b) => a.localeCompare(b));
   const projectResults = await Promise.allSettled(
     projectPaths.map(async (projectPath) => {
       const projectSnapshot = await resolveCodexMcpSnapshot({
@@ -1236,7 +1233,7 @@ function buildUserParts(
 ): any[] {
   const parts: any[] = [{ type: "text", text: prompt }];
 
-  if (images && images.length > 0) {
+  if (images?.length) {
     for (const image of images) {
       if (!image.base64Data || !image.mediaType) continue;
       parts.push({
@@ -1265,7 +1262,7 @@ function buildModelMessageContent(
 ): any[] {
   const content: any[] = [{ type: "text", text: prompt }];
 
-  if (images && images.length > 0) {
+  if (images?.length) {
     for (const image of images) {
       if (!image.base64Data || !image.mediaType) continue;
       content.push({
@@ -1588,7 +1585,7 @@ export const codexRouter = router({
       try {
         const projectPath = input.projectPath?.trim();
         await runCodexCliChecked(["mcp", "login", input.serverName.trim()], {
-          cwd: projectPath && projectPath.length > 0 ? projectPath : undefined,
+          cwd: projectPath?.length ? projectPath : undefined,
         });
         clearCodexMcpCache();
         return { success: true as const };
@@ -1611,7 +1608,7 @@ export const codexRouter = router({
       try {
         const projectPath = input.projectPath?.trim();
         await runCodexCliChecked(["mcp", "logout", input.serverName.trim()], {
-          cwd: projectPath && projectPath.length > 0 ? projectPath : undefined,
+          cwd: projectPath?.length ? projectPath : undefined,
         });
         clearCodexMcpCache();
         return { success: true as const };
@@ -1707,7 +1704,7 @@ export const codexRouter = router({
             });
             const metadataModel = selectedModelId;
 
-            const lastMessage = existingMessages[existingMessages.length - 1];
+            const lastMessage = existingMessages.at(-1);
             const isDuplicatePrompt =
               lastMessage?.role === "user" &&
               extractPromptFromStoredMessage(lastMessage) === input.prompt;

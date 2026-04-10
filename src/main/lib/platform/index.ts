@@ -46,19 +46,13 @@ export function getPlatformProvider(
 ): PlatformProvider {
   switch (platformId) {
     case "win32":
-      if (!windowsProvider) {
-        windowsProvider = new WindowsPlatformProvider();
-      }
+      windowsProvider ??= new WindowsPlatformProvider();
       return windowsProvider;
     case "darwin":
-      if (!darwinProvider) {
-        darwinProvider = new DarwinPlatformProvider();
-      }
+      darwinProvider ??= new DarwinPlatformProvider();
       return darwinProvider;
     case "linux":
-      if (!linuxProvider) {
-        linuxProvider = new LinuxPlatformProvider();
-      }
+      linuxProvider ??= new LinuxPlatformProvider();
       return linuxProvider;
     default:
       throw new Error(`Unsupported platform: ${platformId}`);

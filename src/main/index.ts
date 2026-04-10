@@ -7,9 +7,9 @@ import {
   nativeImage,
   session,
 } from "electron";
-import { existsSync, readFileSync, readlinkSync, unlinkSync } from "fs";
-import { createServer } from "http";
-import { join } from "path";
+import { existsSync, readFileSync, readlinkSync, unlinkSync } from "node:fs";
+import { createServer } from "node:http";
+import { join } from "node:path";
 import {
   AuthManager,
   initAuthManager,
@@ -32,7 +32,6 @@ import {
 import { logCredentialTier } from "./lib/credential-store";
 import { closeDatabase, initDatabase } from "./lib/db";
 import {
-  getLaunchDirectory,
   isCliInstalled,
   installCli,
   uninstallCli,
@@ -68,7 +67,7 @@ const PROTOCOL = IS_DEV ? "apollosai-agents-dev" : "apollosai-agents";
 // Set dev mode userData path BEFORE requestSingleInstanceLock()
 // This ensures dev and prod have separate instance locks
 if (IS_DEV) {
-  const { join } = require("path");
+  const { join } = require("node:path");
   const devUserData = join(app.getPath("userData"), "..", "Agents Dev");
   app.setPath("userData", devUserData);
   console.log("[Dev] Using separate userData path:", devUserData);
@@ -508,9 +507,9 @@ function cleanupStaleLocks(): boolean {
   try {
     // SingletonLock is a symlink like "hostname-pid"
     const lockTarget = readlinkSync(lockPath);
-    const match = lockTarget.match(/-(\d+)$/);
+    const match = /-(\d+)$/.exec(lockTarget);
     if (match) {
-      const pid = parseInt(match[1], 10);
+      const pid = Number.parseInt(match[1], 10);
       try {
         // Check if process is running (signal 0 doesn't kill, just checks)
         process.kill(pid, 0);
@@ -598,7 +597,9 @@ if (gotTheLock) {
 
     // Set app user model ID for Windows (different in dev to avoid taskbar conflicts)
     if (process.platform === "win32") {
-      app.setAppUserModelId(IS_DEV ? "dev.apollosai.agents.dev" : "dev.apollosai.agents");
+      app.setAppUserModelId(
+        IS_DEV ? "dev.apollosai.agents.dev" : "dev.apollosai.agents",
+      );
     }
 
     console.log(`[App] Starting 1Code${IS_DEV ? " (DEV)" : ""}...`);
@@ -1047,7 +1048,7 @@ if (gotTheLock) {
     cancelAllPendingOAuth();
     await cleanupGitWatchers();
     await shutdownAnalytics();
-    await closeDatabase();
+    closeDatabase();
   });
 
   // Handle uncaught exceptions

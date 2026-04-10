@@ -33,7 +33,7 @@ import {
  * Used to narrow `z.string()` input down to the typed union.
  */
 function isFeatureFlagKey(key: string): key is FeatureFlagKey {
-  return Object.prototype.hasOwnProperty.call(FLAG_DEFAULTS, key);
+  return Object.hasOwn(FLAG_DEFAULTS, key);
 }
 
 export const featureFlagsRouter = router({

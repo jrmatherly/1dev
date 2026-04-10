@@ -7,7 +7,6 @@ import {
   writeFile,
   mkdir,
   rename as fsRename,
-  rm,
 } from "node:fs/promises";
 import {
   join,

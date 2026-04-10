@@ -832,7 +832,7 @@ export const chatsRouter = router({
         for (const s of siblings) {
           const match = s.name?.match(/^\[(\d+)\]/);
           if (match) {
-            maxN = Math.max(maxN, parseInt(match[1], 10));
+            maxN = Math.max(maxN, Number.parseInt(match[1], 10));
           }
         }
 
@@ -1381,9 +1381,6 @@ export const chatsRouter = router({
       // Detect commit type from file changes
       const hasNewFiles = files.some((f) => f.oldPath === "/dev/null");
       const hasDeletedFiles = files.some((f) => f.newPath === "/dev/null");
-      const hasOnlyDeletions = files.every(
-        (f) => f.additions === 0 && f.deletions > 0,
-      );
 
       // Detect type from file paths
       const allPaths = files.map((f) =>
@@ -1914,7 +1911,7 @@ export const chatsRouter = router({
                   (p) => p.type === "tool-ExitPlanMode",
                 );
                 // Check if ExitPlanMode is completed (has output, even if empty)
-                if (exitPlanPart && exitPlanPart.output !== undefined) {
+                if (exitPlanPart?.output !== undefined) {
                   return true;
                 }
               }

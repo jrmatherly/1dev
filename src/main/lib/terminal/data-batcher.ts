@@ -39,9 +39,7 @@ export class DataBatcher {
       return;
     }
 
-    if (this.timeout === null) {
-      this.timeout = setTimeout(() => this.flush(), BATCH_DURATION_MS);
-    }
+    this.timeout ??= setTimeout(() => this.flush(), BATCH_DURATION_MS);
   }
 
   /**

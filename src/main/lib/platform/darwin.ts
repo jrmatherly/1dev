@@ -2,7 +2,7 @@
  * macOS Platform Provider
  */
 
-import { exec, execSync } from "node:child_process";
+import { exec } from "node:child_process";
 import { existsSync, lstatSync, readlinkSync } from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
@@ -99,7 +99,7 @@ export class DarwinPlatformProvider extends BasePlatformProvider {
         "-c",
         `dscl . -read /Users/$(whoami) UserShell 2>/dev/null`,
       ]);
-      const match = stdout.match(/UserShell:\s*(.+)/);
+      const match = /UserShell:\s*(.+)/.exec(stdout);
       if (match?.[1]) {
         return match[1].trim();
       }

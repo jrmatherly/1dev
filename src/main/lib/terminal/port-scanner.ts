@@ -42,7 +42,7 @@ export async function getListeningPortsForPids(
   if (pids.length === 0) return [];
 
   // Check cache first
-  const cacheKey = pids.sort().join(",");
+  const cacheKey = pids.toSorted().join(",");
   const cached = portCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < PORT_CACHE_TTL) {
     return cached.ports;
@@ -102,11 +102,11 @@ async function getListeningPortsLsof(pids: number[]): Promise<PortInfo[]> {
       // lsof ignores -p filter when PIDs don't exist, returning all TCP listeners
       if (!pidSet.has(pid)) continue;
 
-      const name = columns[columns.length - 2]; // NAME column (e.g., *:3000), before (LISTEN)
+      const name = columns.at(-2)!; // NAME column (e.g., *:3000), before (LISTEN)
 
       // Parse address:port from NAME column
       // Formats: *:3000, 127.0.0.1:3000, [::1]:3000, [::]:3000
-      const match = name.match(/^(?:\[([^\]]+)\]|([^:]+)):(\d+)$/);
+      const match = /^(?:\[([^\]]+)\]|([^:]+)):(\d+)$/.exec(name);
       if (match) {
         const address = match[1] || match[2] || "*";
         const port = Number.parseInt(match[3], 10);
@@ -157,14 +157,14 @@ async function getListeningPortsWindows(pids: number[]): Promise<PortInfo[]> {
       const columns = line.trim().split(/\s+/);
       if (columns.length < 5) continue;
 
-      const pid = Number.parseInt(columns[columns.length - 1], 10);
+      const pid = Number.parseInt(columns.at(-1)!, 10);
       if (!pidSet.has(pid)) continue;
 
       const localAddr = columns[1];
       // Parse address:port - handles both IPv4 and IPv6
       // IPv4: 0.0.0.0:3000
       // IPv6: [::]:3000
-      const match = localAddr.match(/^(?:\[([^\]]+)\]|([^:]+)):(\d+)$/);
+      const match = /^(?:\[([^\]]+)\]|([^:]+)):(\d+)$/.exec(localAddr);
       if (match) {
         const address = match[1] || match[2] || "0.0.0.0";
         const port = Number.parseInt(match[3], 10);

@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
 import { FALLBACK_SHELL, SHELL_CRASH_THRESHOLD_MS } from "./env";
 import { portManager } from "./port-manager";
-import { createSession, isPtyAvailable, setupInitialCommands } from "./session";
+import { createSession, setupInitialCommands } from "./session";
 import type {
   CreateSessionParams,
   SessionResult,
@@ -123,7 +123,7 @@ export class TerminalManager extends EventEmitter {
     const { paneId, data } = params;
     const session = this.sessions.get(paneId);
 
-    if (!session || !session.isAlive) {
+    if (!session?.isAlive) {
       throw new Error(`Terminal session ${paneId} not found or not alive`);
     }
 
@@ -149,7 +149,7 @@ export class TerminalManager extends EventEmitter {
 
     const session = this.sessions.get(paneId);
 
-    if (!session || !session.isAlive) {
+    if (!session?.isAlive) {
       console.warn(
         `Cannot resize terminal ${paneId}: session not found or not alive`,
       );
@@ -173,7 +173,7 @@ export class TerminalManager extends EventEmitter {
     const { paneId, signal = "SIGTERM" } = params;
     const session = this.sessions.get(paneId);
 
-    if (!session || !session.isAlive) {
+    if (!session?.isAlive) {
       console.warn(
         `Cannot signal terminal ${paneId}: session not found or not alive`,
       );
