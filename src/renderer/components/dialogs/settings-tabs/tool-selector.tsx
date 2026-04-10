@@ -173,7 +173,7 @@ export function ToolSelector({
                     >
                       <div
                         className={cn(
-                          "mt-0.5 h-3.5 w-3.5 rounded border flex items-center justify-center flex-shrink-0",
+                          "mt-0.5 h-3.5 w-3.5 rounded border flex items-center justify-center shrink-0",
                           isSelected
                             ? mode === "allowlist"
                               ? "border-green-500 bg-green-500"

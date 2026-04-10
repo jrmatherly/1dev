@@ -112,7 +112,7 @@ function TerminalModeSwitcher({
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 flex-shrink-0 hover:bg-foreground/10"
+          className="h-6 w-6 p-0 shrink-0 hover:bg-foreground/10"
         >
           <CurrentIcon className="size-4 text-muted-foreground" />
         </Button>
@@ -433,7 +433,7 @@ export function TerminalSidebar({
       <div className="flex flex-col h-full w-full bg-background">
         {/* Mobile header with back button and tabs */}
         <div
-          className="flex items-center gap-1.5 px-2 py-2 flex-shrink-0 border-b"
+          className="flex items-center gap-1.5 px-2 py-2 shrink-0 border-b"
           style={{
             backgroundColor: terminalBg,
             // @ts-expect-error - WebKit-specific property for Electron window dragging
@@ -446,7 +446,7 @@ export function TerminalSidebar({
             variant="ghost"
             size="icon"
             onClick={handleMobileClose}
-            className="h-7 w-7 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] flex-shrink-0 rounded-md"
+            className="h-7 w-7 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md"
             aria-label="Back to chat"
             style={{
               // @ts-expect-error - WebKit-specific property
@@ -533,18 +533,18 @@ export function TerminalSidebar({
       <div className="flex flex-col h-full min-w-0 overflow-hidden">
         {/* Header with tabs */}
         <div
-          className="flex items-center gap-1 pl-1 pr-2 py-1.5 flex-shrink-0"
+          className="flex items-center gap-1 pl-1 pr-2 py-1.5 shrink-0"
           style={{ backgroundColor: terminalBg }}
         >
           {/* Close button - on the left */}
-          <div className="flex items-center flex-shrink-0 gap-0.5">
+          <div className="flex items-center shrink-0 gap-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={closeSidebar}
-                  className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] text-foreground flex-shrink-0 rounded-md"
+                  className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] text-foreground shrink-0 rounded-md"
                   aria-label="Close terminal"
                 >
                   <IconDoubleChevronRight className="h-4 w-4" />
@@ -806,18 +806,18 @@ export function TerminalBottomPanelContent({
     <div className="flex flex-col h-full min-w-0 overflow-hidden">
       {/* Header with tabs */}
       <div
-        className="flex items-center gap-1 pl-1 pr-2 py-1.5 flex-shrink-0 border-t"
+        className="flex items-center gap-1 pl-1 pr-2 py-1.5 shrink-0 border-t"
         style={{ backgroundColor: terminalBg, borderTopWidth: "0.5px" }}
       >
         {/* Close button + mode switcher */}
-        <div className="flex items-center flex-shrink-0 gap-0.5">
+        <div className="flex items-center shrink-0 gap-0.5">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] text-foreground flex-shrink-0 rounded-md"
+                className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] text-foreground shrink-0 rounded-md"
                 aria-label="Close terminal"
               >
                 <ChevronsDown className="h-4 w-4" />

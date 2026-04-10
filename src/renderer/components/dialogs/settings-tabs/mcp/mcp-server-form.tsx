@@ -253,7 +253,7 @@ export function McpServerForm({
                 "One argument per line\n-m\nmcp_server\n--port\n3000"
               }
               rows={3}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground/40 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring resize-none"
             />
             <p className="text-[11px] text-muted-foreground">
               One argument per line
@@ -266,7 +266,7 @@ export function McpServerForm({
               onChange={(e) => setEnvText(e.target.value)}
               placeholder={"KEY=value\nAPI_KEY=sk-..."}
               rows={3}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground/40 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring resize-none"
             />
             <p className="text-[11px] text-muted-foreground">
               KEY=value format, one per line

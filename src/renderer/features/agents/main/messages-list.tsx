@@ -1189,7 +1189,7 @@ export const SimpleIsolatedGroup = memo(function SimpleIsolatedGroup({
       {/* User message text - sticky */}
       <div
         data-user-message-id={userMsg.id}
-        className={`[&>div]:!mb-4 pointer-events-auto sticky z-10 ${stickyTopClass}`}
+        className={`[&>div]:mb-4! pointer-events-auto sticky z-10 ${stickyTopClass}`}
       >
         {/* Show "Using X" summary when no text but have attachments */}
         {!textContent.trim() &&

@@ -71,13 +71,13 @@ export function ImageViewer({
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="@container flex items-center justify-between px-2 h-10 border-b border-border/50 bg-background flex-shrink-0">
+      <div className="@container flex items-center justify-between px-2 h-10 border-b border-border/50 bg-background shrink-0">
         {/* Left side: Close + mode switcher + file info */}
         <div className="flex items-center gap-1 min-w-0 flex-1">
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 p-0 flex-shrink-0 hover:bg-foreground/10"
+            className="h-6 w-6 p-0 shrink-0 hover:bg-foreground/10"
             onClick={onClose}
           >
             {displayMode === "side-peek" ? (
@@ -92,7 +92,7 @@ export function ImageViewer({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 flex-shrink-0 hover:bg-foreground/10"
+                className="h-6 w-6 p-0 shrink-0 hover:bg-foreground/10"
               >
                 {(() => {
                   const CurrentIcon =
@@ -124,7 +124,7 @@ export function ImageViewer({
             {(() => {
               const Icon = getFileIconByExtension(filePath);
               return Icon ? (
-                <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                <Icon className="h-3.5 w-3.5 shrink-0" />
               ) : null;
             })()}
             <span className="text-sm font-medium truncate" title={filePath}>
@@ -133,7 +133,7 @@ export function ImageViewer({
           </div>
         </div>
         {/* Right side: Actions */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {/* Open in editor */}
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
@@ -147,7 +147,7 @@ export function ImageViewer({
                   <img
                     src={EDITOR_ICONS[preferredEditor]}
                     alt=""
-                    className="h-3.5 w-3.5 flex-shrink-0"
+                    className="h-3.5 w-3.5 shrink-0"
                   />
                 )}
               </button>

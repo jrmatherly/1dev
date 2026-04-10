@@ -315,7 +315,7 @@ export function FileItem({
             <ContextMenuItem
               onClick={handleDiscardClick}
               disabled={isActioning}
-              className="data-[highlighted]:bg-red-500/15 data-[highlighted]:text-red-400"
+              className="data-highlighted:bg-red-500/15 data-highlighted:text-red-400"
             >
               {discardLabel}
             </ContextMenuItem>

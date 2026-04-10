@@ -204,7 +204,7 @@ export function CodexLoginModal({ autoStart = true }: CodexLoginModalProps) {
         />
 
         {isAuthRetryFlow && (
-          <div className="text-center !mt-2">
+          <div className="text-center mt-2!">
             <button
               type="button"
               onClick={handleOpenModelsSettings}

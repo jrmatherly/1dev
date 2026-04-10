@@ -128,7 +128,7 @@ function AccountRow({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onRename}>Rename</DropdownMenuItem>
             <DropdownMenuItem
-              className="data-[highlighted]:bg-red-500/15 data-[highlighted]:text-red-400"
+              className="data-highlighted:bg-red-500/15 data-highlighted:text-red-400"
               onClick={onRemove}
             >
               Remove
@@ -543,7 +543,7 @@ export function AgentsModelsTab() {
                 value={modelSearch}
                 onChange={(e) => setModelSearch(e.target.value)}
                 placeholder="Add or search model"
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                className="flex-1 bg-transparent text-sm outline-hidden placeholder:text-muted-foreground"
               />
             </div>
           </div>
@@ -695,7 +695,7 @@ export function AgentsModelsTab() {
                   Takes priority over subscription
                 </p>
               </div>
-              <div className="flex-shrink-0 w-80 flex items-center gap-2">
+              <div className="shrink-0 w-80 flex items-center gap-2">
                 <Input
                   type="password"
                   value={codexApiKey}
@@ -742,7 +742,7 @@ export function AgentsModelsTab() {
                   Required for voice transcription (Whisper API)
                 </p>
               </div>
-              <div className="flex-shrink-0 w-80">
+              <div className="shrink-0 w-80">
                 <Input
                   type="password"
                   value={openaiKey}
@@ -780,7 +780,7 @@ export function AgentsModelsTab() {
                     Model identifier to use for requests
                   </p>
                 </div>
-                <div className="flex-shrink-0 w-80">
+                <div className="shrink-0 w-80">
                   <Input
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
@@ -798,7 +798,7 @@ export function AgentsModelsTab() {
                     ANTHROPIC_AUTH_TOKEN env
                   </p>
                 </div>
-                <div className="flex-shrink-0 w-80">
+                <div className="shrink-0 w-80">
                   <Input
                     type="password"
                     value={token}
@@ -817,7 +817,7 @@ export function AgentsModelsTab() {
                     ANTHROPIC_BASE_URL env
                   </p>
                 </div>
-                <div className="flex-shrink-0 w-80">
+                <div className="shrink-0 w-80">
                   <Input
                     value={baseUrl}
                     onChange={(e) => setBaseUrl(e.target.value)}

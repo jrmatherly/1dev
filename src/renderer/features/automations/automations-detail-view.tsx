@@ -475,7 +475,7 @@ export function AutomationsDetailView() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
                     onClick={() => setShowDeleteDialog(true)}
-                    className="data-[highlighted]:bg-red-500/15 data-[highlighted]:text-red-400 focus:bg-red-500/15 focus:text-red-400"
+                    className="data-highlighted:bg-red-500/15 data-highlighted:text-red-400 focus:bg-red-500/15 focus:text-red-400"
                   >
                     Delete
                   </DropdownMenuItem>
@@ -525,7 +525,7 @@ export function AutomationsDetailView() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Untitled automation"
-            className="text-lg font-medium bg-transparent border-0 outline-none placeholder:text-muted-foreground/50 mb-6"
+            className="text-lg font-medium bg-transparent border-0 outline-hidden placeholder:text-muted-foreground/50 mb-6"
           />
 
           {/* Flow builder */}
@@ -545,7 +545,7 @@ export function AutomationsDetailView() {
                   >
                     <PlatformIcon
                       platform={trigger.platform}
-                      className="h-4 w-4 text-muted-foreground flex-shrink-0"
+                      className="h-4 w-4 text-muted-foreground shrink-0"
                     />
                     <Select
                       value={trigger.trigger_type}
@@ -569,7 +569,7 @@ export function AutomationsDetailView() {
                     </Select>
                     <button
                       onClick={() => handleRemoveTrigger(trigger.id)}
-                      className="h-6 w-6 p-0 flex items-center justify-center hover:bg-red-500/10 transition-colors rounded-md text-muted-foreground hover:text-red-500 flex-shrink-0"
+                      className="h-6 w-6 p-0 flex items-center justify-center hover:bg-red-500/10 transition-colors rounded-md text-muted-foreground hover:text-red-500 shrink-0"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -686,7 +686,7 @@ export function AutomationsDetailView() {
                       value={targetRepository}
                       onChange={(e) => setTargetRepository(e.target.value)}
                       placeholder="owner/repo (optional)"
-                      className="w-full h-9 rounded-md text-sm bg-muted/50 border border-border px-3 placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="w-full h-9 rounded-md text-sm bg-muted/50 border border-border px-3 placeholder:text-muted-foreground/40 focus:outline-hidden focus:ring-1 focus:ring-ring"
                     />
                     <p className="text-xs text-muted-foreground mt-1.5">
                       Repository where Claude Code will make changes
@@ -706,7 +706,7 @@ export function AutomationsDetailView() {
                       }}
                       placeholder="Add instructions for the agent..."
                       rows={6}
-                      className="w-full min-h-[100px] rounded-md text-sm bg-muted/50 border border-border p-3 placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                      className="w-full min-h-[100px] rounded-md text-sm bg-muted/50 border border-border p-3 placeholder:text-muted-foreground/40 focus:outline-hidden focus:ring-1 focus:ring-ring resize-none"
                     />
                   </div>
 
@@ -800,7 +800,7 @@ export function AutomationsDetailView() {
                               <Badge
                                 variant="outline"
                                 className={cn(
-                                  "text-[10px] px-1.5 py-0 h-5 flex-shrink-0 capitalize",
+                                  "text-[10px] px-1.5 py-0 h-5 shrink-0 capitalize",
                                   getStatusColor(execution.status),
                                 )}
                               >
@@ -827,7 +827,7 @@ export function AutomationsDetailView() {
                                     <span className="truncate">
                                       {formatExternalId(execution.external_id)}
                                     </span>
-                                    <ExternalLinkIcon className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                                    <ExternalLinkIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                                   </button>
                                 ) : (
                                   <span className="text-sm text-muted-foreground truncate block">
@@ -842,7 +842,7 @@ export function AutomationsDetailView() {
                                   )}
                               </div>
 
-                              <span className="text-xs text-muted-foreground flex-shrink-0">
+                              <span className="text-xs text-muted-foreground shrink-0">
                                 {formatDistanceToNow(
                                   new Date(execution.created_at),
                                 )}

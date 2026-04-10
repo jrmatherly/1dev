@@ -218,7 +218,7 @@ export const IsolatedMessageGroup = memo(function IsolatedMessageGroup({
       {/* User message text - sticky (or attachment-only summary bubble) */}
       <div
         data-user-message-id={userMsgId}
-        className={`group/user-message [&>div]:!mb-4 pointer-events-auto sticky z-10 ${stickyTopClass}`}
+        className={`group/user-message [&>div]:mb-4! pointer-events-auto sticky z-10 ${stickyTopClass}`}
       >
         {/* Show "Using X" summary when no text but have attachments */}
         <div className="relative">
@@ -294,7 +294,7 @@ export const IsolatedMessageGroup = memo(function IsolatedMessageGroup({
                       tabIndex={-1}
                       className={cn(
                         "p-1 rounded-md transition-all duration-150 ease-out hover:bg-accent/80 active:scale-[0.97] opacity-0 group-hover/user-message:opacity-100",
-                        isRollingBack && "!opacity-50 cursor-not-allowed",
+                        isRollingBack && "opacity-50! cursor-not-allowed",
                       )}
                     >
                       <IconTextUndo className="w-3.5 h-3.5 text-muted-foreground" />

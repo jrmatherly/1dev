@@ -121,7 +121,7 @@ function TabButton({ tab, isActive, onClick }: TabButtonProps) {
       onClick={onClick}
       className={cn(
         "inline-flex items-center whitespace-nowrap transition-colors duration-75 cursor-pointer w-full justify-start gap-2 text-left px-3 py-1.5 text-sm h-7 rounded-md",
-        "outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
+        "outline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70",
         isActive
           ? "bg-foreground/5 text-foreground font-medium"
           : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground font-medium",

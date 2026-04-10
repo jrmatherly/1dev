@@ -25,7 +25,7 @@ export function ProjectIcon({ project, className }: ProjectIconProps) {
   if (!project || hasError || !src || imgError) {
     return (
       <FolderOpen
-        className={cn("text-muted-foreground flex-shrink-0", className)}
+        className={cn("text-muted-foreground shrink-0", className)}
       />
     );
   }
@@ -34,7 +34,7 @@ export function ProjectIcon({ project, className }: ProjectIconProps) {
     <img
       src={src}
       alt=""
-      className={cn("rounded-sm flex-shrink-0 object-cover", className)}
+      className={cn("rounded-sm shrink-0 object-cover", className)}
       onError={handleError}
     />
   );

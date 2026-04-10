@@ -69,7 +69,7 @@ export const KanbanColumn = memo(function KanbanColumn({
       <div className="flex items-center gap-2 px-2 py-2 mb-2">
         <span
           className={cn(
-            "w-2 h-2 rounded-full flex-shrink-0",
+            "w-2 h-2 rounded-full shrink-0",
             STATUS_COLORS[status],
           )}
         />

@@ -175,7 +175,7 @@ function SplitDivider({
 
   return (
     <div
-      className="relative flex-shrink-0 z-10"
+      className="relative shrink-0 z-10"
       style={{ width: "1px", touchAction: "none" }}
     >
       {/* Visible 1px border */}

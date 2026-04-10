@@ -108,7 +108,7 @@ function ThemePreviewBox({
   return (
     <div
       className={cn(
-        "flex-shrink-0 flex items-center justify-center font-semibold",
+        "shrink-0 flex items-center justify-center font-semibold",
         sizeClasses,
         className,
       )}
@@ -119,7 +119,7 @@ function ThemePreviewBox({
     >
       {/* Accent dot to the left of text */}
       <div
-        className={cn("rounded-full flex-shrink-0", dotSize)}
+        className={cn("rounded-full shrink-0", dotSize)}
         style={{ backgroundColor: accentColor }}
       />
       <span style={{ color: isDark ? "#fff" : "#000", opacity: 0.9 }}>Aa</span>

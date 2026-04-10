@@ -11,7 +11,7 @@ icon: layers
 | **Build** | electron-vite | `5.0.0` | `build.externalizeDeps` replaces the old `externalizeDepsPlugin`. |
 | **Packaging** | electron-builder | `26.x` | macOS (DMG + ZIP), Windows (NSIS + portable), Linux (AppImage + DEB). |
 | **UI** | React | `19.x` | TypeScript 6 strict mode. |
-| **Styling** | Tailwind CSS | `3.x` | Pinned — `tailwind-merge` v3 requires TW v4; 134 files use `cn()`. See [Pinned Dependencies](../conventions/pinned-deps.md). |
+| **Styling** | Tailwind CSS | `4.2.x` | CSS-first config (`@theme`, `@custom-variant dark`), Rust/Oxide engine, `@tailwindcss/vite` plugin. `tailwind-merge` v3, `tw-animate-css` v1.4 (replaces `tailwindcss-animate`). |
 | **Components** | Radix UI | — | Headless primitives. Lucide icons, Motion (animations), Sonner (toasts). |
 | **State (UI)** | Jotai | — | Atoms for UI state (selected chat, sidebar open, preview settings). |
 | **State (persisted)** | Zustand | — | Sub-chat tabs and pinned state. `useAgentSubChatStore` does NOT use `persist()` middleware — rebuilt from DB on `setChatId()`. |

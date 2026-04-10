@@ -105,7 +105,7 @@ export const AgentThinkingTool = memo(function AgentThinkingTool({
       >
         <div className="flex-1 min-w-0 flex items-center gap-1">
           <div className="text-xs flex items-center gap-1.5 min-w-0">
-            <span className="font-medium whitespace-nowrap flex-shrink-0">
+            <span className="font-medium whitespace-nowrap shrink-0">
               {isStreaming ? (
                 <TextShimmer
                   as="span"
@@ -126,14 +126,14 @@ export const AgentThinkingTool = memo(function AgentThinkingTool({
             )}
             {/* Elapsed time */}
             {elapsedDisplay && (
-              <span className="text-muted-foreground/50 tabular-nums flex-shrink-0">
+              <span className="text-muted-foreground/50 tabular-nums shrink-0">
                 {elapsedDisplay}
               </span>
             )}
             {/* Chevron */}
             <ChevronRight
               className={cn(
-                "w-3.5 h-3.5 text-muted-foreground/60 transition-transform duration-200 ease-out flex-shrink-0",
+                "w-3.5 h-3.5 text-muted-foreground/60 transition-transform duration-200 ease-out shrink-0",
                 isExpanded && "rotate-90",
                 !isExpanded && "opacity-0 group-hover:opacity-100",
               )}
@@ -148,7 +148,7 @@ export const AgentThinkingTool = memo(function AgentThinkingTool({
           {/* Top gradient fade when streaming */}
           <div
             className={cn(
-              "absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none transition-opacity duration-200",
+              "absolute inset-x-0 top-0 h-8 bg-linear-to-b from-background to-transparent z-10 pointer-events-none transition-opacity duration-200",
               isStreaming && isOverflowing ? "opacity-100" : "opacity-0",
             )}
           />

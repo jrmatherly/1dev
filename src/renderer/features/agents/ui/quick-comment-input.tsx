@@ -149,7 +149,7 @@ export function QuickCommentInput({
               onChange={(e) => setComment(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Add your reply..."
-              className="flex-1 text-xs bg-transparent outline-none text-foreground placeholder:text-muted-foreground px-1"
+              className="flex-1 text-xs bg-transparent outline-hidden text-foreground placeholder:text-muted-foreground px-1"
             />
             <button
               onClick={handleSubmit}

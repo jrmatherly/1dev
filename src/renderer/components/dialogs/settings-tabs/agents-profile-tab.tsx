@@ -99,7 +99,7 @@ export function AgentsProfileTab() {
                 This is your display name
               </p>
             </div>
-            <div className="flex-shrink-0 w-80">
+            <div className="shrink-0 w-80">
               <Input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -118,7 +118,7 @@ export function AgentsProfileTab() {
                 Your account email
               </p>
             </div>
-            <div className="flex-shrink-0 w-80">
+            <div className="shrink-0 w-80">
               <Input
                 value={user?.email || ""}
                 disabled

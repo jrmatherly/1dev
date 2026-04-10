@@ -300,7 +300,7 @@ const TreeNode = memo(function TreeNode({
           </ContextMenuItem>
           <ContextMenuItem
             onClick={() => onContextAction("delete", node)}
-            className="data-[highlighted]:bg-red-500/15 data-[highlighted]:text-red-400"
+            className="data-highlighted:bg-red-500/15 data-highlighted:text-red-400"
           >
             Delete
           </ContextMenuItem>
@@ -839,7 +839,7 @@ export const FilesTab = memo(
               role="tree"
               tabIndex={0}
               onKeyDown={handleKeyDown}
-              className="outline-none"
+              className="outline-hidden"
             >
               {tree.map((node) => (
                 <TreeNode

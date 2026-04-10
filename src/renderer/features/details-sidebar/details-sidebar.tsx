@@ -109,7 +109,7 @@ function WidgetCard({
             </div>
           ) : (
             <>
-              <Icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+              <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <span className="text-xs font-medium text-foreground flex-1">
                 {title}
               </span>
@@ -123,7 +123,7 @@ function WidgetCard({
                   variant="ghost"
                   size="icon"
                   onClick={onExpand}
-                  className="h-5 w-5 p-0 hover:bg-foreground/10 text-muted-foreground hover:text-foreground rounded-md opacity-0 group-hover:opacity-100 transition-[background-color,opacity,transform] duration-150 ease-out active:scale-[0.97] flex-shrink-0"
+                  className="h-5 w-5 p-0 hover:bg-foreground/10 text-muted-foreground hover:text-foreground rounded-md opacity-0 group-hover:opacity-100 transition-[background-color,opacity,transform] duration-150 ease-out active:scale-[0.97] shrink-0"
                   aria-label={`Expand ${widgetId}`}
                 >
                   <ArrowUpRight className="h-3 w-3" />
@@ -333,7 +333,7 @@ export function DetailsSidebar({
     >
       <div className="flex flex-col h-full min-w-0 overflow-hidden">
         {/* Header with pill tabs */}
-        <div className="flex items-center justify-between px-2 h-10 bg-tl-background flex-shrink-0 border-b border-border/50">
+        <div className="flex items-center justify-between px-2 h-10 bg-tl-background shrink-0 border-b border-border/50">
           <div className="flex items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -341,7 +341,7 @@ export function DetailsSidebar({
                   variant="ghost"
                   size="icon"
                   onClick={closeSidebar}
-                  className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] text-foreground flex-shrink-0 rounded-md"
+                  className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] text-foreground shrink-0 rounded-md"
                   aria-label="Close details"
                 >
                   <IconDoubleChevronRight className="h-4 w-4" />
@@ -361,7 +361,7 @@ export function DetailsSidebar({
                 className={cn(
                   "px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
                   activeTab === "details"
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-background text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -373,7 +373,7 @@ export function DetailsSidebar({
                 className={cn(
                   "px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
                   activeTab === "files"
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-background text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -536,7 +536,7 @@ export function DetailsSidebar({
                             variant="ghost"
                             size="icon"
                             onClick={handleOpenMcpSettings}
-                            className="h-5 w-5 p-0 hover:bg-foreground/10 text-muted-foreground hover:text-foreground rounded-md opacity-0 group-hover:opacity-100 transition-[background-color,opacity] duration-150 ease-out flex-shrink-0"
+                            className="h-5 w-5 p-0 hover:bg-foreground/10 text-muted-foreground hover:text-foreground rounded-md opacity-0 group-hover:opacity-100 transition-[background-color,opacity] duration-150 ease-out shrink-0"
                             aria-label="MCP Settings"
                           >
                             <ArrowUpRight className="h-3 w-3" />

@@ -97,18 +97,18 @@ function InboxGitHubAvatar({ gitOwner }: { gitOwner: string }) {
   const [hasError, setHasError] = useState(false)
 
   if (hasError) {
-    return <GitHubIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+    return <GitHubIcon className="h-4 w-4 text-muted-foreground shrink-0" />
   }
 
   return (
-    <div className="h-4 w-4 relative flex-shrink-0">
+    <div className="h-4 w-4 relative shrink-0">
       {!isLoaded && (
         <div className="absolute inset-0 rounded-sm bg-muted" />
       )}
       <img
         src={`https://github.com/${gitOwner}.png?size=64`}
         alt={gitOwner}
-        className={cn("h-4 w-4 rounded-sm flex-shrink-0", isLoaded ? "opacity-100" : "opacity-0")}
+        className={cn("h-4 w-4 rounded-sm shrink-0", isLoaded ? "opacity-100" : "opacity-0")}
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
       />
@@ -120,12 +120,12 @@ function InboxChatIcon({ chat, isSelected }: { chat: InboxChat; isSelected: bool
   const repoOwner = chat.meta?.repository?.split("/")[0] || null
 
   return (
-    <div className="relative flex-shrink-0 w-4 h-4">
+    <div className="relative shrink-0 w-4 h-4">
       {repoOwner ? (
         <InboxGitHubAvatar gitOwner={repoOwner} />
       ) : (
         <AutomationsIcon className={cn(
-          "h-4 w-4 flex-shrink-0 transition-colors",
+          "h-4 w-4 shrink-0 transition-colors",
           isSelected ? "text-foreground" : "text-muted-foreground",
         )} />
       )}
@@ -190,7 +190,7 @@ function InboxItemDesktop({
                   {chat.name || "Untitled"}
                 </span>
                 {/* Archive button - appears on hover */}
-                <div className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center relative">
+                <div className="shrink-0 w-3.5 h-3.5 flex items-center justify-center relative">
                   <button
                     onClick={onArchive}
                     tabIndex={-1}
@@ -203,7 +203,7 @@ function InboxItemDesktop({
               </div>
               <div className="flex items-center gap-1 text-[11px] text-muted-foreground/60 min-w-0">
                 <span className="truncate flex-1 min-w-0">{displayText}</span>
-                <span className="flex-shrink-0">{formatTimeAgo(new Date(chat.createdAt))}</span>
+                <span className="shrink-0">{formatTimeAgo(new Date(chat.createdAt))}</span>
               </div>
             </div>
           </div>
@@ -257,7 +257,7 @@ function InboxItemMobile({
             <button
               onClick={onArchive}
               tabIndex={-1}
-              className="flex-shrink-0 flex items-center justify-center w-5 h-5 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+              className="shrink-0 flex items-center justify-center w-5 h-5 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150"
               aria-label="Archive"
             >
               <ArchiveIcon className="h-3.5 w-3.5" />
@@ -265,7 +265,7 @@ function InboxItemMobile({
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground/60 min-w-0">
             <span className="truncate flex-1 min-w-0">{displayText}</span>
-            <span className="flex-shrink-0">{formatTimeAgo(new Date(chat.createdAt))}</span>
+            <span className="shrink-0">{formatTimeAgo(new Date(chat.createdAt))}</span>
           </div>
         </div>
       </div>
@@ -526,12 +526,12 @@ export function InboxView() {
         {mobileViewMode === "list" ? (
           <>
             {/* Mobile Header */}
-            <div className="flex-shrink-0 border-b bg-background">
+            <div className="shrink-0 border-b bg-background">
               <div className="h-14 flex items-center justify-between px-4">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleMobileBackToChats}
-                    className="h-7 w-7 p-0 flex items-center justify-center hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] flex-shrink-0 rounded-md text-muted-foreground hover:text-foreground"
+                    className="h-7 w-7 p-0 flex items-center justify-center hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md text-muted-foreground hover:text-foreground"
                     aria-label="Back to chats"
                   >
                     <AlignJustify className="h-4 w-4" />
@@ -706,7 +706,7 @@ export function InboxView() {
           )}
 
           {/* Header */}
-          <div className="p-2 pb-3 flex-shrink-0 relative z-10">
+          <div className="p-2 pb-3 shrink-0 relative z-10">
             <div className="space-y-2">
               {/* Top row - different layout based on main sidebar state */}
               {sidebarOpen ? (
@@ -715,7 +715,7 @@ export function InboxView() {
                 <div className="flex items-center justify-between gap-1 mb-1">
                   <button
                     onClick={() => setSidebarOpen(true)}
-                    className="h-6 w-6 p-0 flex items-center justify-center hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] flex-shrink-0 rounded-md text-muted-foreground hover:text-foreground"
+                    className="h-6 w-6 p-0 flex items-center justify-center hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md text-muted-foreground hover:text-foreground"
                     aria-label="Open sidebar"
                     style={{
                       // @ts-expect-error - WebKit-specific property

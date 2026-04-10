@@ -490,14 +490,14 @@ export function AgentsCustomAgentsTab() {
           style={{ borderRightWidth: "0.5px" }}
         >
           {/* Search + Add */}
-          <div className="px-2 pt-2 flex-shrink-0 flex items-center gap-1.5">
+          <div className="px-2 pt-2 shrink-0 flex items-center gap-1.5">
             <input
               ref={searchInputRef}
               placeholder="Search agents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={listKeyDown}
-              className="h-7 w-full rounded-lg text-sm bg-muted border border-input px-3 placeholder:text-muted-foreground/40 outline-none"
+              className="h-7 w-full rounded-lg text-sm bg-muted border border-input px-3 placeholder:text-muted-foreground/40 outline-hidden"
             />
             <button
               onClick={() => {
@@ -515,7 +515,7 @@ export function AgentsCustomAgentsTab() {
             ref={listRef}
             onKeyDown={listKeyDown}
             tabIndex={-1}
-            className="flex-1 overflow-y-auto px-2 pt-2 pb-2 outline-none"
+            className="flex-1 overflow-y-auto px-2 pt-2 pb-2 outline-hidden"
           >
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
@@ -558,7 +558,7 @@ export function AgentsCustomAgentsTab() {
                             data-item-id={agent.name}
                             onClick={() => setSelectedAgentName(agent.name)}
                             className={cn(
-                              "w-full text-left py-1.5 px-2 rounded-md transition-colors duration-150 cursor-pointer outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:-outline-offset-2",
+                              "w-full text-left py-1.5 px-2 rounded-md transition-colors duration-150 cursor-pointer outline-hidden focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:-outline-offset-2",
                               isSelected
                                 ? "bg-foreground/5 text-foreground"
                                 : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
@@ -601,7 +601,7 @@ export function AgentsCustomAgentsTab() {
                             data-item-id={agent.name}
                             onClick={() => setSelectedAgentName(agent.name)}
                             className={cn(
-                              "w-full text-left py-1.5 px-2 rounded-md transition-colors duration-150 cursor-pointer outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:-outline-offset-2",
+                              "w-full text-left py-1.5 px-2 rounded-md transition-colors duration-150 cursor-pointer outline-hidden focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70 focus-visible:-outline-offset-2",
                               isSelected
                                 ? "bg-foreground/5 text-foreground"
                                 : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",

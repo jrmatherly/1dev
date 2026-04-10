@@ -162,7 +162,7 @@ function CodexThinkingSubMenu({
         onMouseEnter={handleTriggerEnter}
         onMouseLeave={handleTriggerLeave}
         className={cn(
-          "flex items-center justify-between gap-1.5 min-h-[32px] py-[5px] px-1.5 mx-1 rounded-md text-sm cursor-default select-none outline-none transition-colors",
+          "flex items-center justify-between gap-1.5 min-h-[32px] py-[5px] px-1.5 mx-1 rounded-md text-sm cursor-default select-none outline-hidden transition-colors",
           showSub
             ? "dark:bg-neutral-800 bg-accent text-foreground"
             : "dark:hover:bg-neutral-800 hover:text-foreground",
@@ -195,7 +195,7 @@ function CodexThinkingSubMenu({
                 <button
                   key={thinking}
                   onClick={() => onSelectThinking(thinking)}
-                  className="flex items-center justify-between gap-4 min-h-[32px] py-[5px] px-1.5 mx-1 w-[calc(100%-8px)] rounded-md text-sm cursor-default select-none outline-none dark:hover:bg-neutral-800 hover:text-foreground transition-colors"
+                  className="flex items-center justify-between gap-4 min-h-[32px] py-[5px] px-1.5 mx-1 w-[calc(100%-8px)] rounded-md text-sm cursor-default select-none outline-hidden dark:hover:bg-neutral-800 hover:text-foreground transition-colors"
                 >
                   <span>{formatCodexThinkingLabel(thinking)}</span>
                   {isSelected && <CheckIcon className="h-3.5 w-3.5 shrink-0" />}
@@ -272,11 +272,11 @@ function CrossProviderConfirmDialog({
               pointerEvents: "none" as const,
               transition: { duration: 0.15, ease: DIALOG_EASING },
             }}
-            className="fixed inset-0 z-[45] bg-black/25"
+            className="fixed inset-0 z-45 bg-black/25"
             onClick={onClose}
             style={{ pointerEvents: "auto" }}
           />
-          <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-[46] pointer-events-none">
+          <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-46 pointer-events-none">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -582,7 +582,7 @@ export function AgentModelSelector({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground transition-[background-color,color] duration-150 ease-out rounded-md outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
+            "flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground transition-[background-color,color] duration-150 ease-out rounded-md outline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70",
             "hover:text-foreground hover:bg-muted/50",
             triggerClassName,
           )}
@@ -686,7 +686,7 @@ export function AgentModelSelector({
                   onOpenModelsSettings();
                   handleOpenChange(false);
                 }}
-                className="flex items-center gap-1.5 min-h-[32px] py-[5px] px-1.5 mx-1 w-[calc(100%-8px)] rounded-md text-sm cursor-default select-none outline-none dark:hover:bg-neutral-800 hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 min-h-[32px] py-[5px] px-1.5 mx-1 w-[calc(100%-8px)] rounded-md text-sm cursor-default select-none outline-hidden dark:hover:bg-neutral-800 hover:text-foreground transition-colors"
               >
                 <span className="flex-1 text-left">Add Models</span>
                 <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />

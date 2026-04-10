@@ -95,7 +95,8 @@ jobs:
 
       - name: "⬇️ Download Claude CLI binary (pinned)"
         # macOS builds both arm64 + x64 (universal DMG/ZIP), so we need
-        # binaries for both architectures via --all.
+        # binaries for both architectures. --all downloads all 6 platforms
+        # but electron-builder only bundles the ones matching build.mac.target.
         env:
           DL_FLAG: ${{ matrix.os == 'macos-15' && '--all' || '' }}
         shell: bash

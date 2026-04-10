@@ -96,7 +96,7 @@ function FileViewerModeSwitcher({
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 flex-shrink-0 hover:bg-foreground/10"
+          className="h-6 w-6 p-0 shrink-0 hover:bg-foreground/10"
         >
           <CurrentIcon className="size-4 text-muted-foreground" />
         </Button>
@@ -154,13 +154,13 @@ function UnsupportedViewer({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="flex items-center justify-between px-2 h-10 border-b border-border/50 bg-background flex-shrink-0">
+      <div className="flex items-center justify-between px-2 h-10 border-b border-border/50 bg-background shrink-0">
         <div className="flex items-center gap-1 min-w-0 flex-1">
           {/* Close + mode switcher on the left */}
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 p-0 flex-shrink-0 hover:bg-foreground/10"
+            className="h-6 w-6 p-0 shrink-0 hover:bg-foreground/10"
             onClick={onClose}
           >
             {displayMode === "side-peek" ? (
@@ -219,13 +219,13 @@ function CodeViewerHeader({
   }, [filePath, preferredEditor, openInAppMutation]);
 
   return (
-    <div className="@container flex items-center justify-between px-2 h-10 border-b border-border/50 bg-background flex-shrink-0">
+    <div className="@container flex items-center justify-between px-2 h-10 border-b border-border/50 bg-background shrink-0">
       {/* Left side: Close button + mode switcher + file info */}
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 flex-shrink-0 hover:bg-foreground/10"
+          className="h-6 w-6 p-0 shrink-0 hover:bg-foreground/10"
           onClick={onClose}
         >
           {displayMode === "side-peek" ? (
@@ -246,7 +246,7 @@ function CodeViewerHeader({
         </div>
       </div>
       {/* Right side: Actions */}
-      <div className="flex items-center gap-1 flex-shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         {/* Open in editor */}
         <Tooltip delayDuration={500}>
           <TooltipTrigger asChild>
@@ -260,7 +260,7 @@ function CodeViewerHeader({
                 <img
                   src={EDITOR_ICONS[preferredEditor]}
                   alt=""
-                  className="h-3.5 w-3.5 flex-shrink-0"
+                  className="h-3.5 w-3.5 shrink-0"
                 />
               )}
             </button>
@@ -429,9 +429,9 @@ function EditorContextMenu({
   }, [position]);
 
   const itemClass =
-    "flex items-center gap-1.5 min-h-[32px] py-[5px] px-1.5 mx-1 rounded-md text-sm cursor-default select-none outline-none transition-colors dark:hover:bg-neutral-800 hover:bg-accent hover:text-foreground";
+    "flex items-center gap-1.5 min-h-[32px] py-[5px] px-1.5 mx-1 rounded-md text-sm cursor-default select-none outline-hidden transition-colors dark:hover:bg-neutral-800 hover:bg-accent hover:text-foreground";
   const disabledItemClass =
-    "flex items-center gap-1.5 min-h-[32px] py-[5px] px-1.5 mx-1 rounded-md text-sm cursor-default select-none outline-none opacity-50 pointer-events-none";
+    "flex items-center gap-1.5 min-h-[32px] py-[5px] px-1.5 mx-1 rounded-md text-sm cursor-default select-none outline-hidden opacity-50 pointer-events-none";
   const shortcutClass =
     "ml-auto text-xs tracking-widest text-muted-foreground/60";
   const separatorClass = "my-1 h-px bg-border mx-1";

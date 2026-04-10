@@ -11,8 +11,7 @@ icon: pin
 
 | Package | Pin | Reason |
 |---------|-----|--------|
-| Vite | 6.x | Vite 8 requires `electron-vite` 6.0.0 (beta-only as of 2026-04-09); Vite 7 is safe with electron-vite 5.0.0 |
-| Tailwind CSS | 3.x | `tailwind-merge` v3 requires Tailwind v4; 134 files use `cn()` |
+| Vite | 7.x | Vite 8 requires `electron-vite` 6.0.0 (beta-only as of 2026-04-10); Vite 7.3.2 runs on electron-vite 5.0.0. Upgraded from 6.4.2 on 2026-04-10. |
 | shiki | 3.x | `@pierre/diffs` pins `shiki: ^3.0.0`; v4 blocked until upstream update |
 | Electron | ~41.2 | EOL 2026-08-25 — Chromium 146, Node.js 24.14, V8 14.6. Upgraded from ~40.8 on 2026-04-09. |
 | Claude CLI binary | 2.1.96 | Session resume + streaming tested at this version |

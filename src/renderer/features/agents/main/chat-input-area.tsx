@@ -1245,7 +1245,7 @@ export const ChatInputArea = memo(function ChatInputArea({
         })
         observer.observe(el)
       }}
-      className="px-2 pb-2 shadow-sm shadow-background relative z-10"
+      className="px-2 pb-2 shadow-xs shadow-background relative z-10"
     >
       <div className="w-full max-w-2xl mx-auto">
         <div
@@ -1391,7 +1391,7 @@ export const ChatInputArea = memo(function ChatInputArea({
                     }}
                   >
                     <DropdownMenuTrigger asChild>
-                      <button className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50 outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70">
+                      <button className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50 outline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70">
                         {subChatMode === "plan" ? (
                           <PlanIcon className="h-3.5 w-3.5 shrink-0" />
                         ) : (
@@ -1404,7 +1404,7 @@ export const ChatInputArea = memo(function ChatInputArea({
                     <DropdownMenuContent
                       align="start"
                       sideOffset={6}
-                      className="!min-w-[116px] !w-[116px]"
+                      className="min-w-[116px]! w-[116px]!"
                       onCloseAutoFocus={(e) => e.preventDefault()}
                     >
                       <DropdownMenuItem
@@ -1521,7 +1521,7 @@ export const ChatInputArea = memo(function ChatInputArea({
                     {modeTooltip?.visible &&
                       createPortal(
                         <div
-                          className="fixed z-[100000]"
+                          className="fixed z-100000"
                           style={{
                             top: modeTooltip.position.top + 14,
                             left: modeTooltip.position.left,
@@ -1613,7 +1613,7 @@ export const ChatInputArea = memo(function ChatInputArea({
 
                 </div>
 
-                <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
+                <div className="flex items-center gap-0.5 ml-auto shrink-0">
                   {/* Hidden file input - accepts any files */}
                   <input
                     type="file"
@@ -1648,7 +1648,7 @@ export const ChatInputArea = memo(function ChatInputArea({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-sm outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70"
+                        className="h-7 w-7 rounded-sm outline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={images.length >= 5 && files.length >= 10}
                       >

@@ -63,7 +63,7 @@ These must be rewritten to either:
 
 ### Visual Regression Risk
 
-Scale shifts (`shadow-sm`→`shadow-xs`, etc.) are handled by the upgrade tool — it renames classes to preserve visual appearance. But default value changes (border color, ring width/color, placeholder color, button cursor) will cause subtle visual differences that need manual QA.
+Scale shifts (`shadow-xs`→`shadow-2xs`, etc.) are handled by the upgrade tool — it renames classes to preserve visual appearance. But default value changes (border color, ring width/color, placeholder color, button cursor) will cause subtle visual differences that need manual QA.
 
 ### Verification Strategy
 

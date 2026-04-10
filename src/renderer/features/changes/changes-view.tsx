@@ -133,11 +133,11 @@ const ChangesFileItemWithContext = memo(function ChangesFileItemWithContext({
 						<TooltipTrigger asChild>
 							<div className="flex-1 min-w-0 flex items-center overflow-hidden">
 								{dirPath && (
-									<span className="text-xs text-muted-foreground truncate flex-shrink min-w-0">
+									<span className="text-xs text-muted-foreground truncate shrink min-w-0">
 										{dirPath}/
 									</span>
 								)}
-								<span className="text-xs font-medium flex-shrink-0 whitespace-nowrap">
+								<span className="text-xs font-medium shrink-0 whitespace-nowrap">
 									{fileName}
 								</span>
 							</div>
@@ -166,7 +166,7 @@ const ChangesFileItemWithContext = memo(function ChangesFileItemWithContext({
 						{/* Multi-select context menu */}
 						<ContextMenuItem
 							onClick={onDiscardSelected}
-							className="data-[highlighted]:bg-red-500/15 data-[highlighted]:text-red-400"
+							className="data-highlighted:bg-red-500/15 data-highlighted:text-red-400"
 						>
 							Discard {highlightedCount} Selected Changes...
 						</ContextMenuItem>
@@ -216,7 +216,7 @@ const ChangesFileItemWithContext = memo(function ChangesFileItemWithContext({
 						<ContextMenuSeparator />
 						<ContextMenuItem
 							onClick={onDiscard}
-							className="data-[highlighted]:bg-red-500/15 data-[highlighted]:text-red-400"
+							className="data-highlighted:bg-red-500/15 data-highlighted:text-red-400"
 						>
 							{isUntracked ? "Delete File..." : "Discard Changes..."}
 						</ContextMenuItem>
@@ -955,7 +955,7 @@ export function ChangesView({
 						) : (
 							<div
 								ref={fileListRef}
-								className="flex-1 overflow-y-auto outline-none"
+								className="flex-1 overflow-y-auto outline-hidden"
 								tabIndex={0}
 								onKeyDown={handleKeyDown}
 							>

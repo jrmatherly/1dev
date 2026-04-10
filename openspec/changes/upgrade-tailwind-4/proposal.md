@@ -28,10 +28,10 @@ The migration is **the highest-touch upgrade** in this batch (~1,300+ class occu
 - Remove `@tailwindcss/container-queries` reference (now built-in to TW4)
 
 **Utility class renames (handled by upgrade tool):**
-- `flex-shrink-0` → `shrink-0` (~334 occurrences across 83 files)
-- `outline-none` → `outline-hidden` (78 occurrences across 48 files)
-- Scale shifts: `shadow-sm` → `shadow-xs`, `shadow` → `shadow-sm`, `rounded-sm` → `rounded-xs`, `rounded` → `rounded-sm` (~874 total across 174 files)
-- `backdrop-blur-sm` → `backdrop-blur-xs` (7 occurrences across 4 files)
+- `shrink-0` → `shrink-0` (~334 occurrences across 83 files)
+- `outline-hidden` → `outline-hidden` (78 occurrences across 48 files)
+- Scale shifts: `shadow-xs` → `shadow-2xs`, `shadow-sm` → `shadow-xs`, `rounded-sm` → `rounded-xs`, `rounded` → `rounded-sm` (~874 total across 174 files)
+- `backdrop-blur-xs` → `backdrop-blur-xs` (7 occurrences across 4 files)
 
 **Default value changes (visual regression potential):**
 - Default border color: `gray-200` → `currentColor`
@@ -41,7 +41,7 @@ The migration is **the highest-touch upgrade** in this batch (~1,300+ class occu
 - Button cursor: `cursor: pointer` → `cursor: default`
 
 **Internal CSS variable breakage:**
-- `agents-styles.css` lines 219-234 directly reference `--tw-ring-offset-shadow`, `--tw-ring-shadow`, `--tw-ring-inset`, `--tw-ring-color` (including dark mode override at line 234). These Tailwind internals may change in v4 — **must be rewritten** to use v4's ring utilities or verified against v4's actual internal variable names.
+- `agents-styles.css` lines 219-234 directly reference `--tw-ring-offset-shadow`, `--tw-ring-shadow`, `--tw-ring-inset`, `--tw-ring-color` (including dark mode override at line 234). These Tailwind internals may change in v4 — **must be rewritten** to use v4's ring-3 utilities or verified against v4's actual internal variable names.
 
 **Escaped Tailwind class selectors (MISSED IN INITIAL ANALYSIS):**
 - `agents-styles.css` lines 191-195 contain hardcoded escaped selectors matching Tailwind-generated class names: `.hover\:bg-foreground\/5:hover`, `.hover\:text-foreground:hover`, `.hover\:bg-primary\/15:hover`, etc. If TW4 changes generated class name format (especially arbitrary opacity syntax), these selectors will silently stop matching. TW4's native `@media (hover: hover)` wrapping may make this override pattern unnecessary.

@@ -274,7 +274,7 @@ export const AgentUserMessageBubble = memo(function AgentUserMessageBubble({
               <RenderFileMentions text={cleanedText} />
               {/* Show gradient only when collapsed and not searching in this message */}
               {showGradient && !hasCurrentSearchHighlight && (
-                <div className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none bg-gradient-to-t from-[hsl(var(--input-background))] to-transparent rounded-b-xl" />
+                <div className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none bg-linear-to-t from-[hsl(var(--input-background))] to-transparent rounded-b-xl" />
               )}
             </div>
           ) : (imageParts.length > 0 || textMentions.length > 0) &&

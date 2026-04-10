@@ -381,7 +381,7 @@ export function AgentsPreferencesTab() {
                   <img
                     src={EDITOR_ICONS[preferredEditor]}
                     alt=""
-                    className="h-4 w-4 flex-shrink-0"
+                    className="h-4 w-4 shrink-0"
                   />
                 )}
                 <span className="truncate">
@@ -401,10 +401,10 @@ export function AgentsPreferencesTab() {
                     <img
                       src={EDITOR_ICONS[editor.id]}
                       alt=""
-                      className="h-4 w-4 flex-shrink-0 object-contain"
+                      className="h-4 w-4 shrink-0 object-contain"
                     />
                   ) : (
-                    <div className="h-4 w-4 flex-shrink-0" />
+                    <div className="h-4 w-4 shrink-0" />
                   )}
                   <span>{editor.label}</span>
                 </DropdownMenuItem>
@@ -419,10 +419,10 @@ export function AgentsPreferencesTab() {
                     <img
                       src={EDITOR_ICONS[app.id]}
                       alt=""
-                      className="h-4 w-4 flex-shrink-0 object-contain"
+                      className="h-4 w-4 shrink-0 object-contain"
                     />
                   ) : (
-                    <div className="h-4 w-4 flex-shrink-0" />
+                    <div className="h-4 w-4 shrink-0" />
                   )}
                   <span>{app.label}</span>
                 </DropdownMenuItem>
@@ -432,7 +432,7 @@ export function AgentsPreferencesTab() {
                   <img
                     src={vscodeBaseIcon}
                     alt=""
-                    className="h-4 w-4 flex-shrink-0 object-contain"
+                    className="h-4 w-4 shrink-0 object-contain"
                   />
                   <span>VS Code</span>
                 </DropdownMenuSubTrigger>
@@ -451,10 +451,10 @@ export function AgentsPreferencesTab() {
                         <img
                           src={EDITOR_ICONS[app.id]}
                           alt=""
-                          className="h-4 w-4 flex-shrink-0 object-contain"
+                          className="h-4 w-4 shrink-0 object-contain"
                         />
                       ) : (
-                        <div className="h-4 w-4 flex-shrink-0" />
+                        <div className="h-4 w-4 shrink-0" />
                       )}
                       <span>{app.label}</span>
                     </DropdownMenuItem>
@@ -466,7 +466,7 @@ export function AgentsPreferencesTab() {
                   <img
                     src={jetbrainsBaseIcon}
                     alt=""
-                    className="h-4 w-4 flex-shrink-0 object-contain"
+                    className="h-4 w-4 shrink-0 object-contain"
                   />
                   <span>JetBrains</span>
                 </DropdownMenuSubTrigger>
@@ -485,10 +485,10 @@ export function AgentsPreferencesTab() {
                         <img
                           src={EDITOR_ICONS[app.id]}
                           alt=""
-                          className="h-4 w-4 flex-shrink-0 object-contain"
+                          className="h-4 w-4 shrink-0 object-contain"
                         />
                       ) : (
-                        <div className="h-4 w-4 flex-shrink-0" />
+                        <div className="h-4 w-4 shrink-0" />
                       )}
                       <span>{app.label}</span>
                     </DropdownMenuItem>

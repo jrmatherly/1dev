@@ -136,7 +136,7 @@ export function BillingMethodPage() {
             className={cn(
               "h-8 flex-1 rounded-full text-sm font-medium transition-colors",
               selectedGroup === "claude-code"
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-background text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -151,7 +151,7 @@ export function BillingMethodPage() {
             className={cn(
               "h-8 flex-1 rounded-full text-sm font-medium transition-colors",
               selectedGroup === "codex"
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-background text-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >

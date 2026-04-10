@@ -86,8 +86,8 @@ function PropertyRow({
   return (
     <div className="flex items-center min-h-[28px]">
       {/* Label column - fixed width */}
-      <div className="flex items-center gap-1.5 w-[100px] flex-shrink-0">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+      <div className="flex items-center gap-1.5 w-[100px] shrink-0">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         <span className="text-xs text-muted-foreground truncate">{label}</span>
       </div>
       {/* Value column - flexible */}
@@ -217,7 +217,7 @@ export const InfoSection = memo(function InfoSection({
     return (
       <div className="px-2 py-1.5 flex flex-col gap-0.5">
         <div className="flex items-center min-h-[28px]">
-          <div className="flex items-center gap-1.5 w-[100px] flex-shrink-0">
+          <div className="flex items-center gap-1.5 w-[100px] shrink-0">
             <div className="h-3.5 w-3.5 rounded bg-muted animate-pulse" />
             <div className="h-3 w-12 rounded bg-muted animate-pulse" />
           </div>
@@ -226,7 +226,7 @@ export const InfoSection = memo(function InfoSection({
           </div>
         </div>
         <div className="flex items-center min-h-[28px]">
-          <div className="flex items-center gap-1.5 w-[100px] flex-shrink-0">
+          <div className="flex items-center gap-1.5 w-[100px] shrink-0">
             <div className="h-3.5 w-3.5 rounded bg-muted animate-pulse" />
             <div className="h-3 w-8 rounded bg-muted animate-pulse" />
           </div>
@@ -298,8 +298,8 @@ export const InfoSection = memo(function InfoSection({
       {/* Open in Editor - only for actual git worktrees (under ~/.1code/worktrees/) */}
       {isWorktree && (
         <div className="flex items-center min-h-[28px]">
-          <div className="flex items-center gap-1.5 w-[100px] flex-shrink-0">
-            <ExternalLinkIcon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+          <div className="flex items-center gap-1.5 w-[100px] shrink-0">
+            <ExternalLinkIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <span className="text-xs text-muted-foreground truncate">
               Open in
             </span>
@@ -316,7 +316,7 @@ export const InfoSection = memo(function InfoSection({
                     <img
                       src={EDITOR_ICONS[preferredEditor]}
                       alt=""
-                      className="h-3.5 w-3.5 flex-shrink-0"
+                      className="h-3.5 w-3.5 shrink-0"
                     />
                   )}
                   {editorMeta.label}

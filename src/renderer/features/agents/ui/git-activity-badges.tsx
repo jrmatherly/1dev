@@ -158,7 +158,7 @@ export const GitActivityBadges = memo(function GitActivityBadges({
               )}
             </div>
 
-            <div className="flex items-center flex-shrink-0 ml-2">
+            <div className="flex items-center shrink-0 ml-2">
               {/* Expand/Collapse button */}
               <div className="w-6 h-6 flex items-center justify-center">
                 <button
@@ -219,15 +219,15 @@ export const GitActivityBadges = memo(function GitActivityBadges({
                         className="flex items-center gap-2 px-2.5 py-1 text-xs hover:bg-muted/50 transition-colors cursor-pointer"
                       >
                         {FileIcon && (
-                          <FileIcon className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+                          <FileIcon className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                         )}
                         <span className="truncate flex-1 text-foreground">
                           {file.displayPath}
                         </span>
-                        <span className="flex-shrink-0 text-green-600 dark:text-green-400">
+                        <span className="shrink-0 text-green-600 dark:text-green-400">
                           +{file.additions}
                         </span>
-                        <span className="flex-shrink-0 text-red-600 dark:text-red-400">
+                        <span className="shrink-0 text-red-600 dark:text-red-400">
                           -{file.deletions}
                         </span>
                       </div>
@@ -246,7 +246,7 @@ export const GitActivityBadges = memo(function GitActivityBadges({
           onClick={handleOpenCommit}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-muted/30 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors cursor-pointer overflow-hidden min-w-0"
         >
-          <GitCommit className="w-3.5 h-3.5 flex-shrink-0" />
+          <GitCommit className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">{activity.message}</span>
         </button>
       )}
@@ -256,7 +256,7 @@ export const GitActivityBadges = memo(function GitActivityBadges({
           onClick={() => window.desktopApi.openExternal(activity.url)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-muted/30 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors cursor-pointer overflow-hidden min-w-0"
         >
-          <GitPullRequest className="w-3.5 h-3.5 flex-shrink-0 text-emerald-500" />
+          <GitPullRequest className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
           <span className="truncate">{activity.title}</span>
         </button>
       )}

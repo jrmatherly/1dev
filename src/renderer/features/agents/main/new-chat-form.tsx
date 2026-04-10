@@ -1733,7 +1733,7 @@ export function NewChatForm({
   return (
     <div className="flex h-full flex-col relative">
       {/* Header - Simple burger on mobile, AgentsHeaderControls on desktop */}
-      <div className="flex-shrink-0 flex items-center justify-between bg-background p-1.5">
+      <div className="shrink-0 flex items-center justify-between bg-background p-1.5">
         <div className="flex-1 min-w-0 flex items-center gap-2">
           {isMobileFullscreen ? (
             // Simple burger button for mobile - just opens chats list
@@ -1741,7 +1741,7 @@ export function NewChatForm({
               variant="ghost"
               size="icon"
               onClick={onBackToChats}
-              className="h-7 w-7 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] flex-shrink-0 rounded-md"
+              className="h-7 w-7 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md"
               aria-label="All projects"
             >
               <AlignJustify className="h-4 w-4" />
@@ -1840,7 +1840,7 @@ export function NewChatForm({
                           }
                         }}
                       >
-                        <DropdownMenuTrigger className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-[background-color,color] duration-150 ease-out rounded-md hover:bg-muted/50 outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70">
+                        <DropdownMenuTrigger className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-[background-color,color] duration-150 ease-out rounded-md hover:bg-muted/50 outline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70">
                           {agentMode === "plan" ? (
                             <PlanIcon className="h-3.5 w-3.5" />
                           ) : (
@@ -1852,7 +1852,7 @@ export function NewChatForm({
                         <DropdownMenuContent
                           align="start"
                           sideOffset={6}
-                          className="!min-w-[116px] !w-[116px]"
+                          className="min-w-[116px]! w-[116px]!"
                           onCloseAutoFocus={(e) => e.preventDefault()}
                         >
                           <DropdownMenuItem
@@ -1971,7 +1971,7 @@ export function NewChatForm({
                         {modeTooltip?.visible &&
                           createPortal(
                             <div
-                              className="fixed z-[100000]"
+                              className="fixed z-100000"
                               style={{
                                 top: modeTooltip.position.top + 14,
                                 left: modeTooltip.position.left,
@@ -2071,7 +2071,7 @@ export function NewChatForm({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
+                    <div className="flex items-center gap-0.5 ml-auto shrink-0">
                       {/* Hidden file input */}
                       <input
                         type="file"
@@ -2094,7 +2094,7 @@ export function NewChatForm({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 rounded-sm outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70"
+                          className="h-7 w-7 rounded-sm outline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70"
                           onClick={() => fileInputRef.current?.click()}
                           disabled={images.length >= 5 && files.length >= 10}
                         >
@@ -2151,7 +2151,7 @@ export function NewChatForm({
                     >
                       <PopoverTrigger asChild>
                         <button
-                          className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-[background-color,color] duration-150 ease-out rounded-md hover:bg-muted/50 outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70"
+                          className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-[background-color,color] duration-150 ease-out rounded-md hover:bg-muted/50 outline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70"
                           disabled={branchesQuery.isLoading}
                         >
                           <BranchIcon className="w-4 h-4" />
@@ -2172,7 +2172,7 @@ export function NewChatForm({
                             placeholder="Search branches..."
                             value={branchSearch}
                             onChange={(e) => setBranchSearch(e.target.value)}
-                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                            className="flex-1 bg-transparent text-sm outline-hidden placeholder:text-muted-foreground"
                             autoFocus
                           />
                           <Button
@@ -2237,7 +2237,7 @@ export function NewChatForm({
                                         setBranchSearch("");
                                       }}
                                       className={cn(
-                                        "flex items-center gap-1.5 w-[calc(100%-8px)] mx-1 px-1.5 text-sm text-left absolute left-0 top-0 rounded-md cursor-default select-none outline-none transition-colors",
+                                        "flex items-center gap-1.5 w-[calc(100%-8px)] mx-1 px-1.5 text-sm text-left absolute left-0 top-0 rounded-md cursor-default select-none outline-hidden transition-colors",
                                         isSelected
                                           ? "dark:bg-neutral-800 text-foreground"
                                           : "dark:hover:bg-neutral-800 hover:text-foreground",
@@ -2346,7 +2346,7 @@ export function NewChatForm({
 
       {/* Worktree config banner - fixed bottom-right corner */}
       {showWorktreeBanner && (
-        <div className="absolute bottom-4 right-4 max-w-sm p-3 pb-4 bg-muted/50 backdrop-blur-sm rounded-lg border border-border space-y-3 shadow-lg z-50">
+        <div className="absolute bottom-4 right-4 max-w-sm p-3 pb-4 bg-muted/50 backdrop-blur-xs rounded-lg border border-border space-y-3 shadow-lg z-50">
           <p className="text-sm text-muted-foreground">
             Configure a worktree setup script to install dependencies or copy
             environment variables.

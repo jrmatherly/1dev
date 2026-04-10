@@ -186,14 +186,14 @@ function HighlightedJson({ code }: { code: string }) {
   if (html) {
     return (
       <pre
-        className="text-[10px] font-mono leading-relaxed whitespace-pre-wrap break-words [&>pre]:!bg-transparent"
+        className="text-[10px] font-mono leading-relaxed whitespace-pre-wrap wrap-break-word [&>pre]:bg-transparent!"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     )
   }
 
   return (
-    <pre className="text-[10px] text-muted-foreground/60 whitespace-pre-wrap break-words font-mono leading-relaxed">
+    <pre className="text-[10px] text-muted-foreground/60 whitespace-pre-wrap wrap-break-word font-mono leading-relaxed">
       {code}
     </pre>
   )
@@ -256,7 +256,7 @@ export const AgentMcpToolCall = memo(function AgentMcpToolCall({
       >
         <div className="flex-1 min-w-0 flex items-center gap-1.5">
           <div className="text-xs text-muted-foreground flex items-center gap-1.5 min-w-0">
-            <span className="font-medium whitespace-nowrap flex-shrink-0">
+            <span className="font-medium whitespace-nowrap shrink-0">
               {isPending ? (
                 <TextShimmer
                   as="span"
@@ -279,7 +279,7 @@ export const AgentMcpToolCall = memo(function AgentMcpToolCall({
 
             {/* Result count — more muted than args */}
             {resultCount && (
-              <span className="text-muted-foreground/40 font-normal whitespace-nowrap flex-shrink-0">
+              <span className="text-muted-foreground/40 font-normal whitespace-nowrap shrink-0">
                 {resultCount}
               </span>
             )}
@@ -288,7 +288,7 @@ export const AgentMcpToolCall = memo(function AgentMcpToolCall({
             {hasExpandableContent && (
               <ChevronRight
                 className={cn(
-                  "w-3.5 h-3.5 text-muted-foreground/60 transition-transform duration-200 ease-out flex-shrink-0",
+                  "w-3.5 h-3.5 text-muted-foreground/60 transition-transform duration-200 ease-out shrink-0",
                   isExpanded && "rotate-90",
                   !isExpanded && "opacity-0 group-hover:opacity-100",
                 )}
@@ -308,7 +308,7 @@ export const AgentMcpToolCall = memo(function AgentMcpToolCall({
                 .filter(([, v]) => v !== undefined && v !== null && v !== "")
                 .map(([key, value]) => (
                   <div key={key} className="flex items-baseline gap-1.5 text-[10px]">
-                    <span className="text-muted-foreground/50 font-mono flex-shrink-0">
+                    <span className="text-muted-foreground/50 font-mono shrink-0">
                       {key}:
                     </span>
                     <span className="text-muted-foreground/70 font-mono truncate">

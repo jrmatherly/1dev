@@ -203,7 +203,7 @@ export function AgentsWorktreesTab() {
                 Choose which project to configure
               </p>
             </div>
-            <div className="flex-shrink-0 w-64">
+            <div className="shrink-0 w-64">
               <Select
                 value={selectedProjectId ?? ""}
                 onValueChange={setSelectedProjectId}
@@ -249,7 +249,7 @@ export function AgentsWorktreesTab() {
                     Where to save the configuration file
                   </p>
                 </div>
-                <div className="flex-shrink-0 w-auto min-w-56 max-w-80">
+                <div className="shrink-0 w-auto min-w-56 max-w-80">
                   <Select
                     value={saveTarget}
                     onValueChange={(v) =>

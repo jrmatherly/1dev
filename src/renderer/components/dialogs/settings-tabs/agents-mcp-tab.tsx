@@ -910,14 +910,14 @@ export function AgentsMcpTab() {
           style={{ borderRightWidth: "0.5px" }}
         >
           {/* Search + Add */}
-          <div className="px-2 pt-2 flex-shrink-0 flex items-center">
+          <div className="px-2 pt-2 shrink-0 flex items-center">
             <input
               ref={searchInputRef}
               placeholder="Search servers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={listKeyDown}
-              className="h-7 w-full rounded-lg text-sm bg-muted border border-input px-3 placeholder:text-muted-foreground/40 outline-none mr-1.5"
+              className="h-7 w-full rounded-lg text-sm bg-muted border border-input px-3 placeholder:text-muted-foreground/40 outline-hidden mr-1.5"
             />
             <button
               onClick={() => {
@@ -950,7 +950,7 @@ export function AgentsMcpTab() {
             ref={listRef}
             onKeyDown={listKeyDown}
             tabIndex={-1}
-            className="flex-1 overflow-y-auto px-2 pt-2 pb-2 outline-none"
+            className="flex-1 overflow-y-auto px-2 pt-2 pb-2 outline-hidden"
           >
             {isLoadingConfig ? (
               <div className="flex items-center justify-center h-full">
@@ -1003,7 +1003,7 @@ export function AgentsMcpTab() {
                           className={cn(
                             "w-full text-left py-1.5 pl-2 pr-2 rounded-md cursor-pointer group relative",
                             "transition-colors duration-75",
-                            "outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70",
+                            "outline-offset-2 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring/70",
                             isSelected
                               ? "bg-foreground/5 text-foreground"
                               : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
@@ -1020,7 +1020,7 @@ export function AgentsMcpTab() {
                                 >
                                   {server.name}
                                 </span>
-                                <div className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center">
+                                <div className="shrink-0 w-3.5 h-3.5 flex items-center justify-center">
                                   <McpStatusDot
                                     status={server.status}
                                     disabled={isDisabled}
@@ -1032,7 +1032,7 @@ export function AgentsMcpTab() {
                                   {item.groupName}
                                 </span>
                                 {server.status !== "pending" && (
-                                  <span className="flex-shrink-0">
+                                  <span className="shrink-0">
                                     {isDisabled
                                       ? "Disabled"
                                       : server.status === "connected"
