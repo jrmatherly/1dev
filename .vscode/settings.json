@@ -45,6 +45,11 @@
     // S3358: "Extract nested ternary" — 1 occurrence in update-banner.tsx.
     // 3-way mock flag branch is readable as nested ternary. Extracting to
     // if/else would add verbosity without improving comprehension.
-    "typescript:S3358": { "level": "off" }
+    "typescript:S3358": { "level": "off" },
+
+    // S2486: "Handle this exception" — 1 occurrence in electron-shim.js.
+    // Empty catch in require() monkey-patch is intentional: if electronBinding
+    // fails, execution falls through to originalRequire() as the final fallback.
+    "javascript:S2486": { "level": "off" }
   }
 }

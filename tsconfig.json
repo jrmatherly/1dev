@@ -15,7 +15,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["node", "better-sqlite3", "diff", "react", "react-dom"],
+    "types": [
+      "node",
+      "better-sqlite3",
+      "diff",
+      "react",
+      "react-dom"
+    ],
     "noUncheckedSideEffectImports": false,
     "outDir": "./dist",
     "rootDir": "./src",
