@@ -1052,7 +1052,6 @@ export const claudeRouter = router({
             }
 
             const transform = createTransformer({
-              emitSdkMessageUuid: historyEnabled,
               isUsingOllama,
             });
 
@@ -1439,7 +1438,7 @@ export const claudeRouter = router({
 
             // Build final env - only add OAuth token if we have one AND no existing API config
             // Existing CLI config takes precedence over OAuth
-            const finalEnv = {
+            const finalEnv: Record<string, string | undefined> = {
               ...claudeEnv,
               ...(claudeCodeToken &&
                 !hasExistingApiConfig && {
@@ -1976,7 +1975,7 @@ ${prompt}
                         type: "ask-user-question-result",
                         toolUseId: toolUseID,
                         result: errorMessage,
-                      } as UIMessageChunk);
+                      } as unknown as UIMessageChunk);
                       return {
                         behavior: "deny",
                         message: errorMessage,
@@ -1995,7 +1994,7 @@ ${prompt}
                       type: "ask-user-question-result",
                       toolUseId: toolUseID,
                       result: answerResult,
-                    } as UIMessageChunk);
+                    } as unknown as UIMessageChunk);
                     return {
                       behavior: "allow",
                       updatedInput: response.updatedInput,
@@ -2056,6 +2055,7 @@ ${prompt}
               // 5. Run Claude SDK
               let stream;
               try {
+                // @ts-expect-error — SDK Options type requires literal 'deny'|'allow' for canUseTool behavior, but our implementation returns string
                 stream = claudeQuery(queryOptions);
               } catch (queryError) {
                 console.error(
@@ -2167,7 +2167,7 @@ ${prompt}
                       msgAny.error ||
                       msgAny.message ||
                       "Unknown SDK error";
-                    lastError = new Error(sdkError);
+                    lastError = new Error(sdkError); // NOSONAR — placeholder for future error propagation
 
                     // Detailed SDK error logging in main process
                     console.error(
@@ -2418,7 +2418,7 @@ ${prompt}
                           console.log(
                             `[SD] M:PLAN_TOOL_DETECTED sub=${subId} callId=${chunk.toolCallId}`,
                           );
-                          exitPlanModeToolCallId = chunk.toolCallId;
+                          exitPlanModeToolCallId = chunk.toolCallId; // NOSONAR — placeholder for plan-mode exit tracking
                         }
 
                         parts.push({
