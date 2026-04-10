@@ -168,7 +168,29 @@ Radix-based primitives: accordion, alert-dialog, badge, button, button-group, ca
 
 ---
 
-## 3. Build & Release (`scripts/`)
+## 3. Backend API Service (`services/1code-api/`)
+
+Self-hosted replacement for the upstream `1code.dev` SaaS backend. Fastify + tRPC server with Drizzle/PostgreSQL.
+
+| File | Purpose |
+|------|---------|
+| `src/index.ts` | Server entry — Fastify lifecycle, graceful shutdown |
+| `src/config.ts` | Zod-validated environment config (PORT, DATABASE_URL, DEV_BYPASS_AUTH, LOG_LEVEL) |
+| `src/auth.ts` | Envoy Gateway header extraction + dev bypass mode |
+| `src/db/schema.ts` | Drizzle PostgreSQL schema (`users` table) |
+| `src/db/connection.ts` | Connection pool, auto-migration, health check |
+| `src/routes/health.ts` | `GET /health` — K8s probe (no auth) |
+| `src/routes/changelog.ts` | `GET /api/changelog/desktop` — markdown file changelog feed |
+| `src/routes/plan.ts` | `GET /api/desktop/user/plan` — enterprise plan resolution |
+| `src/routes/profile.ts` | `PATCH /api/user/profile` — display name upsert |
+| `Dockerfile` | Multi-stage build (bun install → bun build → distroless) |
+| `drizzle.config.ts` | Drizzle Kit config for PostgreSQL migrations |
+
+**Container:** `ghcr.io/jrmatherly/1code-api` — built by `.github/workflows/container-build.yml` on `v*` tags, multi-arch (amd64+arm64), Cosign signed.
+
+---
+
+## 4. Build & Release (`scripts/`)
 
 | Script | Purpose |
 |--------|---------|
@@ -193,7 +215,7 @@ bun run release =
 
 ---
 
-## 4. Tests (`tests/regression/`) — bun:test
+## 5. Tests (`tests/regression/`) — bun:test
 
 Phase 0 regression guards (no Jest/Vitest/Playwright). Run with `bun test`.
 
@@ -215,7 +237,7 @@ CI enforces the same 5 in `.github/workflows/ci.yml`.
 
 ---
 
-## 5. Configuration Files
+## 6. Configuration Files
 
 | File | Purpose |
 |------|---------|
@@ -231,7 +253,7 @@ CI enforces the same 5 in `.github/workflows/ci.yml`.
 
 ---
 
-## 6. OpenSpec System (`openspec/`)
+## 7. OpenSpec System (`openspec/`)
 
 Spec-driven change proposal workflow (OpenSpec 1.2.0).
 
@@ -246,7 +268,7 @@ Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `spec
 
 ---
 
-## 7. Claude Code Configuration (`.claude/`)
+## 8. Claude Code Configuration (`.claude/`)
 
 | Path | Purpose |
 |------|---------|
@@ -264,7 +286,7 @@ Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `spec
 
 ---
 
-## 8. Working Directories (gitignored)
+## 9. Working Directories (gitignored)
 
 - `.scratchpad/` — Ephemeral local-only working notes (gitignored). Canonical docs live in `docs/`
 - `.full-review/` — Output from `comprehensive-review:full-review` plugin
@@ -274,7 +296,7 @@ Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `spec
 
 ---
 
-## 9. Key Patterns & Conventions
+## 10. Key Patterns & Conventions
 
 ### IPC Flow
 ```
@@ -307,7 +329,7 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 
 ---
 
-## 10. Tech Stack
+## 11. Tech Stack
 
 | Layer | Tech | Pin |
 |-------|------|-----|
@@ -328,7 +350,7 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 
 ---
 
-## 11. Phase 0 Hard Gate Status (Self-Hosting Migration)
+## 12. Phase 0 Hard Gate Status (Self-Hosting Migration)
 
 **Canonical status:** [`docs/enterprise/phase-0-gates.md`](../docs/enterprise/phase-0-gates.md). Summary (all gates complete as of 2026-04-09):
 
@@ -348,7 +370,7 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 
 ---
 
-## 12. Documentation Sync Targets
+## 13. Documentation Sync Targets
 
 **Canonical source-of-truth:** `docs/` (xyd-js site, tabs: Architecture, Enterprise, Conventions, Operations, API Reference). Enforced by `openspec/specs/documentation-site/spec.md`.
 

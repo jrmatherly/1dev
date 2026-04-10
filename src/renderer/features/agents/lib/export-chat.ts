@@ -172,7 +172,7 @@ export async function exportChat({
     link.download = exportData.filename;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(url);
 
     toast.success("Export complete", {

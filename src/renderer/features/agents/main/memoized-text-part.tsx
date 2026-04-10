@@ -24,10 +24,8 @@ function highlightTextInDom(
   const existingHighlights = container.querySelectorAll(".search-highlight");
   existingHighlights.forEach((el) => {
     const parent = el.parentNode;
-    if (parent) {
-      parent.replaceChild(document.createTextNode(el.textContent || ""), el);
-      parent.normalize();
-    }
+    el.replaceWith(document.createTextNode(el.textContent || ""));
+    parent?.normalize();
   });
 
   if (!searchText) return;
@@ -80,18 +78,15 @@ function highlightTextInDom(
       fragments.push(text.slice(lastIndex));
     }
 
-    if (fragments.length > 0) {
-      const parent = textNode.parentNode;
-      if (parent) {
-        fragments.forEach((frag) => {
-          if (typeof frag === "string") {
-            parent.insertBefore(document.createTextNode(frag), textNode);
-          } else {
-            parent.insertBefore(frag, textNode);
-          }
-        });
-        parent.removeChild(textNode);
+    if (fragments.length > 0 && textNode.parentNode) {
+      for (const frag of fragments) {
+        if (typeof frag === "string") {
+          textNode.before(document.createTextNode(frag));
+        } else {
+          textNode.before(frag);
+        }
       }
+      textNode.remove();
     }
   }
 }

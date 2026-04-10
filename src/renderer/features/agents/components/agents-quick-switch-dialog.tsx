@@ -41,7 +41,7 @@ export function AgentsQuickSwitchDialog({
   // Derive loading parent chat IDs from loadingSubChats Map
   const loadingSubChats = useAtomValue(loadingSubChatsAtom);
   const loadingChatIds = useMemo(
-    () => new Set([...loadingSubChats.values()]),
+    () => new Set(loadingSubChats.values()),
     [loadingSubChats],
   );
 

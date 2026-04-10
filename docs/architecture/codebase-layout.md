@@ -5,7 +5,17 @@ icon: folder-tree
 
 # Codebase Layout
 
-> **Stub.** Content authoring deferred to a follow-on change.
+> **Stub.** Full `src/` directory tree deferred to a follow-on change.
+
+## Services Layer
+
+The `services/` directory contains self-hosted backend services that replace the upstream `1code.dev` SaaS:
+
+| Service | Stack | Purpose |
+|---------|-------|---------|
+| `services/1code-api/` | Fastify + tRPC + Drizzle/PostgreSQL | Backend API — changelog, plan, profile, health endpoints |
+
+Container images are built via `.github/workflows/container-build.yml` and pushed to `ghcr.io/jrmatherly/1code-api`.
 
 ## TODO
 
@@ -14,4 +24,4 @@ icon: folder-tree
 - Preload bridge and context isolation
 - File naming conventions (PascalCase components, camelCase utils, kebab-case stores)
 
-See CLAUDE.md "Architecture" tree section for the current source.
+See `.claude/PROJECT_INDEX.md` for the current detailed source.

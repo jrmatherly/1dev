@@ -107,17 +107,21 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** Apple Developer Program membership, Windows code-signing cert provisioned
 **Canonical reference:** `docs/operations/release.md` "Code Signing (Not Yet Enabled)" section
 
-### [Ready] K8s manifest CI + container image pipeline (phased)
+### [Ready] K8s manifest CI — validation workflow (Phase 1)
 
-**Added:** 2026-04-10 (rescoped from "Build Kubernetes server images to GHCR")
-**Scope:** Three phases for the `deploy/kubernetes/` manifests and associated services:
-- **Phase 1 (Ready):** Manifest validation CI — `deploy-validate.yml` workflow triggered on PRs touching `deploy/`. Tools: `kubeconform` (schema), `kustomize build` (render), optional Kyverno policy checks. No containers needed.
-- **Phase 2 (Blocked):** Container image build — Dockerfiles for `1code-api` (backend) and `1code-update-server` (nginx static). Multi-arch via `docker/build-push-action` + GHCR. Cosign keyless signing. Unified `v*` tag with desktop release. Blocked on implementing the services.
-- **Phase 3 (Deferred):** OCI artifact packaging — `flux push artifact` to publish manifests as OCI artifacts for air-gapped/immutable delivery. Post-GA optimization.
-**Effort:** Small (Phase 1), Large (Phase 2, requires implementing services), Medium (Phase 3)
-**Prereqs:** Phase 1: none. Phase 2: `1code-api` source + Dockerfile, `1code-update-server` source + Dockerfile. Phase 3: Phase 2 complete.
-**Research:** Deployment engineer research completed 2026-04-10 — recommends GitRepository → OCI hybrid, kubeconform + Kyverno validation, Cosign keyless signing, unified semver tagging.
-**Canonical reference:** `deploy/README.md`, `deploy/kubernetes/*/app/helmrelease.yaml`
+**Added:** 2026-04-10 (rescoped — Phase 2 container build now complete)
+**Scope:** Manifest validation CI — `deploy-validate.yml` workflow triggered on PRs touching `deploy/`. Tools: `kubeconform` (schema), `kustomize build` (render), optional Kyverno policy checks.
+**Effort:** Small
+**Prereqs:** None
+**Canonical reference:** `deploy/README.md`
+
+### [Deferred] K8s OCI artifact packaging (Phase 3)
+
+**Added:** 2026-04-10
+**Scope:** `flux push artifact` to publish manifests as OCI artifacts for air-gapped/immutable delivery. Post-GA optimization.
+**Effort:** Medium
+**Prereqs:** Phase 2 container build complete (done)
+**Canonical reference:** `deploy/README.md`
 
 ---
 
@@ -199,6 +203,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
+| 2026-04-10 | Self-hosted 1code-api backend service — Phase 1 endpoints (health, changelog, plan, profile), Dockerfile, container-build.yml workflow, 1code-update-server deleted, 17 tests | `implement-1code-api` OpenSpec change |
 | 2026-04-10 | First successful all-platform release build (v0.0.79) — 7 iterations (v0.0.73–v0.0.79). Fixes: macOS OOM (NODE_OPTIONS=6144MB), Windows GPG (toGpgPath MSYS conversion in download-claude-binary.mjs), Codex 403 (per-platform downloads + retry), partial releases (if: !cancelled()), Chocolatey GPG hangs (removed), timeout 45→60 min, version consistency check, manifest verification | `release.yml`, `scripts/download-claude-binary.mjs` |
 | 2026-04-10 | Tailwind CSS 3.4.19 → 4.2.2 + tailwind-merge 2.6.1 → 3.5.0 — CSS-first config, PostCSS → `@tailwindcss/vite`, `tw-animate-css`, `--tw-ring-*` rewritten to `box-shadow`, 7 false renames fixed (5 initial + 2 caught by code review), 148 files touched by upgrade tool, 10/10 visual QA verified | `upgrade-tailwind-4` archived |
 | 2026-04-10 | Release pipeline — 3-OS matrix release.yml + package.json publish → github provider + CDN_BASE removed from auto-updater.ts + runbook rewrite | F5 auto-update channel resolved (unsigned first iteration) |

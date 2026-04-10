@@ -6,8 +6,7 @@ Flux v2 GitOps manifests for deploying 1Code enterprise services to a Kubernetes
 
 | Directory | Purpose |
 |-----------|---------|
-| `kubernetes/1code-api/` | Self-hosted API backend (replaces upstream `1code.dev` API) |
-| `kubernetes/1code-update-server/` | Electron auto-update server (serves `latest-mac.yml`, release assets) |
+| `kubernetes/1code-api/` | Self-hosted API backend (replaces upstream `1code.dev` API). Container built via `.github/workflows/container-build.yml`, pushed to `ghcr.io/jrmatherly/1code-api` |
 | `kubernetes/envoy-auth-policy/` | Envoy Gateway SecurityPolicy for Entra OIDC (protects LiteLLM proxy) |
 
 ## Prerequisites
@@ -28,7 +27,6 @@ Replace these before deploying:
 |-------------|-------------|---------|
 | `${SECRET_DOMAIN}` | Your base domain | `example.com` |
 | `${APP_HOSTNAME}` | API hostname | `api.example.com` |
-| `${UPDATE_HOSTNAME}` | Update server hostname | `cdn.example.com` |
 | `${LITELLM_HOSTNAME}` | LiteLLM proxy hostname | `llms.example.com` |
 | `${ENTRA_TENANT_ID}` | Azure AD / Entra tenant ID | `xxxxxxxx-xxxx-...` |
 | `${ENTRA_CLIENT_ID}` | Entra app registration client ID | `xxxxxxxx-xxxx-...` |
@@ -45,7 +43,16 @@ Replace these before deploying:
 
 1. **envoy-auth-policy** — can be deployed independently (depends on Envoy Gateway)
 2. **1code-api** — depends on PostgreSQL database
-3. **1code-update-server** — independent, serves static release assets
+
+## Container Build
+
+The API container image is built via `.github/workflows/container-build.yml`:
+
+- **Trigger:** `v*` tag push or `workflow_dispatch`
+- **Registry:** `ghcr.io/jrmatherly/1code-api`
+- **Architectures:** `linux/amd64`, `linux/arm64`
+- **Signing:** Cosign keyless via GitHub OIDC
+- **Supply chain:** SLSA provenance + SBOM enabled
 
 ## Integration with Flux
 

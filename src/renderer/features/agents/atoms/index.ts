@@ -491,7 +491,7 @@ export const diffFilesCollapsedAtomFamily = atomFamily((chatId: string) =>
 // Helpers for split view ratio management
 export function getDefaultRatios(n: number): number[] {
   if (n <= 0) return [];
-  return Array(n).fill(1 / n) as number[];
+  return new Array(n).fill(1 / n) as number[];
 }
 
 export function addPaneRatio(ratios: number[]): number[] {

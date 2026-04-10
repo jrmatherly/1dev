@@ -4,15 +4,15 @@
 ```
 src/           — Application source code
 docs/          — Canonical xyd-js documentation site (Operations tab has roadmap)
-deploy/        — K8s Flux v2 manifests: 1code-api, envoy-auth-policy (all ${PLACEHOLDER}). 1code-update-server is dead (F5 resolved via GitHub Releases).
+deploy/        — K8s Flux v2 manifests: 1code-api, envoy-auth-policy (all ${PLACEHOLDER}). 1code-update-server DELETED (F5 resolved via GitHub Releases).
 openspec/      — OpenSpec change proposals + 9 capability specs
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, etc.)
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
 tests/regression/ — 14 bun:test regression guards, 58 tests
 drizzle/       — 9 database migration files
-services/1code-api/ — (planned) Backend API service for enterprise fork (changelog, plan, profile, health endpoints)
-.github/workflows/container-build.yml — (planned) Container build workflow for services/1code-api
+services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). Phase 1: health, changelog, plan, profile endpoints. 17 tests.
+.github/workflows/container-build.yml — Container build: multi-arch (amd64+arm64), GHCR push, Cosign signing, SLSA provenance
 ```
 
 ## Main Process (`src/main/`)

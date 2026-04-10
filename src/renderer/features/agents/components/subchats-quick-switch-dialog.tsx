@@ -191,7 +191,7 @@ export function SubChatsQuickSwitchDialog({
   // Derive loading sub-chat IDs
   const loadingSubChats = useAtomValue(loadingSubChatsAtom);
   const loadingSubChatIds = useMemo(
-    () => new Set([...loadingSubChats.keys()]),
+    () => new Set(loadingSubChats.keys()),
     [loadingSubChats],
   );
 

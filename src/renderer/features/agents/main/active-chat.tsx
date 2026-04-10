@@ -4114,8 +4114,7 @@ const ChatViewInner = memo(function ChatViewInner({
     const currentTextContexts = textContextsRef.current;
     const currentDiffTextContexts = diffTextContextsRef.current;
     const currentPastedTexts = pastedTextsRef.current;
-    const hasImages =
-      currentImages.filter((img) => !img.isLoading && img.url).length > 0;
+    const hasImages = currentImages.some((img) => !img.isLoading && img.url);
     const hasTextContexts = currentTextContexts.length > 0;
     const hasDiffTextContexts = currentDiffTextContexts.length > 0;
     const hasPastedTexts = currentPastedTexts.length > 0;
@@ -4507,8 +4506,7 @@ const ChatViewInner = memo(function ChatViewInner({
     const hasText = inputValue.trim().length > 0;
     const currentImages = imagesRef.current;
     const currentFiles = filesRef.current;
-    const hasImages =
-      currentImages.filter((img) => !img.isLoading && img.url).length > 0;
+    const hasImages = currentImages.some((img) => !img.isLoading && img.url);
 
     if (!hasText && !hasImages) return;
 

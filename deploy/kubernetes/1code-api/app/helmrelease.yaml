@@ -1,14 +1,22 @@
 ---
 # 1Code API Backend
 # Self-hosted replacement for upstream 1code.dev API.
-# Provides: auth exchange, user profile, subscription/plan info, changelog.
+# Source: services/1code-api/ — built via .github/workflows/container-build.yml
 #
-# The Electron desktop app calls these endpoints:
-#   POST /api/auth/desktop/exchange  — OAuth code exchange
-#   POST /api/auth/desktop/refresh   — Token refresh
-#   GET  /api/desktop/user/plan      — Subscription plan lookup
-#   PATCH /api/user/profile           — Profile update
+# Container image: ghcr.io/jrmatherly/1code-api
+#   ${IMAGE_REGISTRY} resolves to ghcr.io/jrmatherly
+#   ${IMAGE_TAG} resolves to the release tag (e.g., v0.0.80)
+#
+# Phase 1 endpoints (implemented):
+#   GET  /health                      — K8s liveness/readiness probe
 #   GET  /api/changelog/desktop       — Desktop changelog feed
+#   GET  /api/desktop/user/plan       — Subscription plan lookup
+#   PATCH /api/user/profile           — Profile update
+#
+# Phase 2 endpoints (deferred):
+#   POST /api/auth/desktop/exchange   — OAuth code exchange (enterprise uses MSAL)
+#   POST /api/auth/desktop/refresh    — Token refresh (enterprise uses MSAL)
+#   tRPC agents.*, automations.*      — Cloud chat sync, automations
 #
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease

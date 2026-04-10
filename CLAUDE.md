@@ -92,6 +92,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **`.claude/skills/`** — Claude Code workflow skills (on-demand).
 - **`.claude/agents/`** — Claude Code subagents (task-specific: `db-schema-auditor`, `trpc-router-auditor`, `upstream-dependency-auditor`, `security-reviewer`, `ui-reviewer`).
 - **`.serena/memories/`** — Serena project memories. Read via `mcp__serena__read_memory` **after** activating the project with `mcp__serena__activate_project` (project: `ai-coding-cli`).
+- **`services/1code-api/`** — Self-hosted backend API (Fastify + tRPC + Drizzle/PostgreSQL). Replaces upstream `1code.dev`. Container built via `.github/workflows/container-build.yml` → `ghcr.io/jrmatherly/1code-api`. See [`services/1code-api/README.md`](services/1code-api/README.md).
 - **`deploy/`** — Kubernetes deployment manifests (Flux v2). Components: `1code-api`, `envoy-auth-policy`. All values use `${PLACEHOLDER}` substitution. See [`deploy/README.md`](deploy/README.md).
 - **`openspec/`** — OpenSpec 1.2.0 change proposals and 9 capability specs (45 requirements). See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
 - **`tests/regression/`** — 14 bun:test regression guards (58 tests). See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).

@@ -1134,9 +1134,8 @@ export function NewChatForm({
 
     // Allow send if there's text, images, files, or pasted text files
     const hasText = message.trim().length > 0;
-    const hasImages =
-      images.filter((img) => !img.isLoading && img.url).length > 0;
-    const hasFiles = files.filter((f) => !f.isLoading).length > 0;
+    const hasImages = images.some((img) => !img.isLoading && img.url);
+    const hasFiles = files.some((f) => !f.isLoading);
     const hasPastedTexts = pastedTexts.length > 0;
 
     if (
