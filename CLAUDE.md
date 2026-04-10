@@ -50,8 +50,9 @@ bun run db:generate      # Generate migrations from schema
 bun run db:push          # Push schema directly (dev only)
 bun run db:studio        # Open Drizzle Studio GUI
 
-# Quality gates (run all 5 before every PR — none is a superset)
+# Quality gates (run all 6 before every PR — none is a superset)
 bun run ts:check         # tsgo (requires: npm install -g @typescript/native-preview)
+bun run lint             # eslint + eslint-plugin-sonarjs (project-wide code quality)
 bun run build            # esbuild packaging validation
 bun test                 # bun:test regression guards (~3s)
 bun audit                # dependency advisories
@@ -103,7 +104,8 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **Dev auth bypass:** Set `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` to skip login in dev mode (only works when `!app.isPackaged`). Required because the upstream OAuth backend is dead and Envoy Gateway auth isn't deployed yet.
 - **TS baseline:** 80 pre-existing errors, enforced **both** locally (PostToolUse hook) **and in CI** (`ci.yml` reads `.claude/.tscheck-baseline` and fails if count exceeds it). Only new errors fail gates. See [`.claude/rules/tscheck-baseline.md`](.claude/rules/tscheck-baseline.md).
 - **Version pins (load-bearing):** Vite 7.x, Shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0, `@xyd-js/cli` `0.0.0-build-1202121-20260121231224`. See [`docs/conventions/pinned-deps.md`](docs/conventions/pinned-deps.md) for why each one is pinned.
-- **IDE config:** `.vscode/settings.json` tracked in git — tsgo flag + SonarLint rule suppressions (5 rules disabled project-wide). See file for rationale per rule.
+- **Lint config:** `eslint.config.mjs` — ESLint 10 flat config with `eslint-plugin-sonarjs` v4. Suppressions document why each rule is off for this Electron/React codebase. Run `bun run lint` for project-wide scan.
+- **IDE config:** `.vscode/settings.json` tracked in git — tsgo flag + SonarLint rule suppressions (16 rules disabled project-wide, covering TS/JS/CSS). See file for rationale per rule.
 - **Upgrade tool false renames:** `npx @tailwindcss/upgrade` (and similar bulk-rename tools) can't distinguish CSS classes from identically-named strings in non-CSS contexts (VSCode theme keys, dictionary words, event handler args). Always grep for renamed strings in non-CSS files after running upgrade tools.
 - **CI release gotchas:** (1) `GITHUB_TOKEN` is repo-scoped — sending it as Bearer to cross-org APIs (e.g., `openai/codex`) returns 403; unset for external downloads. (2) Windows GPG in Git Bash mangles `--homedir` paths; use `GNUPGHOME` env var or normalize paths. (3) `bun.lock` must be committed after any `package.json` devDependency change or `--frozen-lockfile` CI fails.
 - **Gotchas (tool quirks, macOS base64url, Entra v2 manifest, Flux/GitOps):** [`docs/operations/env-gotchas.md`](docs/operations/env-gotchas.md).

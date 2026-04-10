@@ -40,15 +40,23 @@
 - **Tier C (attribution — PRESERVED):** only at allowlisted positions per the spec
 - Enforced by `tests/regression/brand-sweep-complete.test.ts`
 
-## SonarLint Configuration
-- `.vscode/settings.json` tracked in git with 5 rule suppressions
-- S6478 (nested components), S7764 (window vs globalThis), S7781 (replace vs replaceAll), S7735 (negated conditions), S3358 (nested ternary) — all investigated and deliberately suppressed
+## Code Quality Tooling
+
+### ESLint + eslint-plugin-sonarjs (added 2026-04-10)
+- `eslint.config.mjs` — ESLint 10 flat config with `eslint-plugin-sonarjs` v4
+- `bun run lint` — project-wide SonarJS scan (~8s, replaces file-by-file IDE approach)
+- Type-aware rules intentionally disabled (`projectService` off) — overlap with tsgo, adds ~40s
+- ~35 rules suppressed with documented rationale for Electron/React patterns
+- ESLint 10 breaking change: `eslint-disable` comments referencing uninstalled plugins are hard errors — removed 19 stale comments from upstream code
+
+### SonarLint IDE Configuration
+- `.vscode/settings.json` tracked in git with 16 rule suppressions (TS/JS/CSS)
+- Rules suppressed in both `typescript:` and `javascript:` prefixes (HTML inline scripts use JS prefix)
 - `// NOSONAR` inline comment for one-off suppressions (e.g., djb2 `charCodeAt` in chat-markdown-renderer.tsx)
 - S7758 (`charCodeAt→codePointAt`) is WRONG for hash functions — do NOT apply
 
-## Quality Gates (no formatter, no linter)
-- No Prettier, ESLint, or Biome configured
-- Four automated quality gates + docs build (5 in CI)
+## Quality Gates
+- Six automated quality gates + docs build (6 in CI)
 - All required before submitting a PR
 
 ## OpenSpec Conventions

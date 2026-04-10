@@ -5,8 +5,9 @@
 - `bun run build` — Compile TypeScript via electron-vite
 - `bun run preview` — Preview built app
 
-## Quality Gates (ALL REQUIRED)
+## Quality Gates (ALL 6 REQUIRED)
 - `bun run ts:check` — TypeScript check via tsgo (baseline: 80 errors, see `.claude/.tscheck-baseline`)
+- `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — Full electron-vite build
 - `bun test` — 14 regression guards, 58 tests (~2.5s)
 - `bun audit` — Dependency vulnerability scan
