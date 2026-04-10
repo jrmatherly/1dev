@@ -56,3 +56,6 @@
 - Serena requires `activate_project` before `read_memory`
 - `bun audit` exits non-zero (normal — pre-existing advisories)
 - `gh auth switch --user jrmatherly` needed for repo admin operations (branch protection, alert dismissal)
+- **Release workflow:** `.github/workflows/release.yml` — tag-push + workflow_dispatch. 3-OS matrix → draft GitHub Release. SHA-pinned `softprops/action-gh-release@153bb8e # v2.6.1`. Bun pinned to 1.3.11. macOS runner pinned to macos-15. Unsigned first iteration (CSC_IDENTITY_AUTO_DISCOVERY=false). macOS downloads both arm64+x64 binaries via `--all` flag.
+- **Dependabot labels:** `dependencies`, `bun`, `docs`, `github-actions` all exist in the repo (created 2026-04-09). Missing labels cause PRs to open un-labeled with an error.
+- **`/session-sync` skill:** End-of-task drift sync for CLAUDE.md, Serena memories, roadmap, code-review graph. Run after every significant change instead of typing the full multi-command chain.

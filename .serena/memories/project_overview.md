@@ -25,7 +25,8 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Branch protection:** main branch protected with required CI status check, admin bypass
 - **CodeQL:** 19 findings resolved (18 fixed, 1 dismissed as false positive)
 - **12 package upgrades landed** (all deps current as of 2026-04-09)
-- **Active OpenSpec changes (3):** `upgrade-electron-41` (26/27, committed+pushed), `upgrade-tailwind-4`, `upgrade-vite-8-build-stack`
+- **Release pipeline:** GitHub Actions `release.yml` builds 3-OS matrix (macos-15, ubuntu, windows) and publishes to GitHub Releases. `electron-updater` github provider. Unsigned first iteration. F5 auto-update channel RESOLVED.
+- **Active OpenSpec changes (2):** `upgrade-tailwind-4`, `upgrade-vite-8-build-stack` (15/59, Phase A done). `upgrade-electron-41` ready to archive (26/27).
 - **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → Vite8-B+Shiki4 (blocked on `electron-vite 6.0.0` stable)
 - **Archived:** `upgrade-typescript-6`, `migrate-mock-api-consumers`, `wire-enterprise-auth` (36/36 tasks complete) + 8 other Phase 0 changes
 

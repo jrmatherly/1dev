@@ -62,6 +62,10 @@
 - `gh label create <name> --color <hex> --description "<text>"` — Create labels before Dependabot needs them
 - `gh label list --limit 100 --json name` — Verify all expected labels exist
 
+## Session Lifecycle
+- `/session-sync` — End-of-task sync: CLAUDE.md + Serena memories + roadmap + code-review graph + commit
+- `/remember` — Save session state for clean continuation next session
+
 ## Serena MCP
 - `mcp__serena__activate_project` with `project: "ai-coding-cli"` — required before read/write memories
 - `mcp__serena__list_memories` / `mcp__serena__read_memory` — access project memories
