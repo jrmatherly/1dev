@@ -1,0 +1,36 @@
+{
+  // UI Setting:
+  // TypeScript (Native Preview) > Use Tsgo
+  "js/ts.experimental.useTsgo": true,
+  "mirrord.promptUsingBinary": false,
+
+  // SonarLint rule suppressions — rules that conflict with codebase conventions.
+  // Each rule was investigated (2026-04-10 session) and deliberately skipped.
+  "sonarlint.rules": {
+    // S6478: "Move component out of parent" — 44 nested components in
+    // chat-markdown-renderer.tsx. This is a deliberate architecture choice;
+    // refactoring would be a major initiative with no correctness benefit.
+    "typescript:S6478": { "level": "off" },
+
+    // S7764: "Prefer globalThis over window" — 17 occurrences. In Electron's
+    // renderer process, `window` is the canonical global object. `globalThis`
+    // is functionally identical but less idiomatic for browser/Electron code.
+    "typescript:S7764": { "level": "off" },
+
+    // S7781: "Prefer replaceAll over replace" — 10 occurrences. All use
+    // regex with /g flag (e.g. replace(/&/g, "&amp;")). replaceAll with a
+    // /g regex is functionally identical but adds no clarity or safety.
+    "typescript:S7781": { "level": "off" },
+
+    // S7735: "Unexpected negated condition" — guard-clause pattern
+    // (if (!mounted) return null) is idiomatic React and used throughout
+    // the codebase. SonarLint prefers positive conditions but that conflicts
+    // with the early-return guard pattern.
+    "typescript:S7735": { "level": "off" },
+
+    // S3358: "Extract nested ternary" — 1 occurrence in update-banner.tsx.
+    // 3-way mock flag branch is readable as nested ternary. Extracting to
+    // if/else would add verbosity without improving comprehension.
+    "typescript:S3358": { "level": "off" }
+  }
+}

@@ -605,7 +605,10 @@ function getBlockId(code: string): string {
 
 // Exported component that handles streaming state
 // When streaming, shows placeholder. When done, renders the diagram.
-export function MermaidBlock({ code, isStreaming = false }: Readonly<MermaidBlockProps>) {
+export function MermaidBlock({
+  code,
+  isStreaming = false,
+}: Readonly<MermaidBlockProps>) {
   const blockId = getBlockId(code);
   const codeComplete = looksComplete(code);
 
