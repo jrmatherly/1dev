@@ -109,7 +109,7 @@ Required structure:
 
 ## Baseline capability specs
 
-Canonical capability baselines under `openspec/specs/` (count grows when changes archive — currently 9 specs, 45 requirements). Current list:
+Canonical capability baselines under `openspec/specs/` (count grows when changes archive — currently 10 specs, 53 requirements). Current list:
 
 ```bash
 ls -d openspec/specs/*/ 2>/dev/null | xargs -n1 basename

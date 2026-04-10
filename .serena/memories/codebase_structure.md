@@ -38,13 +38,13 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). P
 - `operations/roadmap.md` — **Single source of truth** for outstanding work
 - Build: `cd docs && bun run build` (cleans .xyd/ artifacts first)
 
-## OpenSpec Specs (9 capabilities)
+## OpenSpec Specs (10 capabilities, 53 requirements)
 brand-identity, feature-flags, claude-code-auth-import, documentation-site,
-credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime
+credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime, self-hosted-api
 
 ## Active OpenSpec Changes (2)
-upgrade-vite-8-build-stack (15/59, Phase A done), implement-1code-api (51 tasks, Phase 1)
-(upgrade-electron-41, upgrade-typescript-6, upgrade-tailwind-4 all archived 2026-04-10)
+upgrade-vite-8-build-stack (15/59, Phase A done), upgrade-electron-41 (26/27, ready to archive)
+(implement-1code-api, upgrade-typescript-6, upgrade-tailwind-4 all archived 2026-04-10)
 
 ## IDE Configuration
 .vscode/settings.json — tracked in git (`.gitignore` uses `!.vscode/settings.json`).
