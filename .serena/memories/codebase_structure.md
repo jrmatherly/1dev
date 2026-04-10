@@ -4,13 +4,15 @@
 ```
 src/           — Application source code
 docs/          — Canonical xyd-js documentation site (Operations tab has roadmap)
-deploy/        — K8s Flux v2 manifests: 1code-api, 1code-update-server, envoy-auth-policy (all ${PLACEHOLDER})
+deploy/        — K8s Flux v2 manifests: 1code-api, envoy-auth-policy (all ${PLACEHOLDER}). 1code-update-server is dead (F5 resolved via GitHub Releases).
 openspec/      — OpenSpec change proposals + 9 capability specs
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, etc.)
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
 tests/regression/ — 14 bun:test regression guards, 58 tests
 drizzle/       — 9 database migration files
+services/1code-api/ — (planned) Backend API service for enterprise fork (changelog, plan, profile, health endpoints)
+.github/workflows/container-build.yml — (planned) Container build workflow for services/1code-api
 ```
 
 ## Main Process (`src/main/`)
@@ -41,8 +43,8 @@ brand-identity, feature-flags, claude-code-auth-import, documentation-site,
 credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime
 
 ## Active OpenSpec Changes (2)
-upgrade-electron-41 (26/27, committed+pushed), upgrade-vite-8-build-stack (15/59, Phase A done)
-(upgrade-typescript-6, upgrade-tailwind-4 archived 2026-04-10)
+upgrade-vite-8-build-stack (15/59, Phase A done), implement-1code-api (51 tasks, Phase 1)
+(upgrade-electron-41, upgrade-typescript-6, upgrade-tailwind-4 all archived 2026-04-10)
 
 ## IDE Configuration
 .vscode/settings.json — tracked in git (`.gitignore` uses `!.vscode/settings.json`).

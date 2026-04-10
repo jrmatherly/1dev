@@ -31,7 +31,7 @@
 - **Vite pin (7.x, was 6.x):** Phase A Vite 7.3.2 landed 2026-04-10; Phase B Vite 8 blocked on `electron-vite 6.0.0` stable (currently beta-only `6.0.0-beta.0`)
 - **Shiki pin (3.x):** `@pierre/diffs` pins `shiki: ^3.0.0` AND `@shikijs/transformers: ^3.0.0` — blocks shiki 4
 - **~~TypeScript 6.0 risk~~** ✅ **RESOLVED 2026-04-10:** Upgraded to TS 6.0.2. tsconfig now has explicit `types: ["node", "better-sqlite3", "diff", "react", "react-dom"]` and `noUncheckedSideEffectImports: false`. Baseline unchanged at 80, zero new errors. tsgo upgraded to 7.0.0-dev.
-- **~~Tailwind 4 risk~~** ✅ **RESOLVED 2026-04-10:** Upgraded to TW 4.2.2. `--tw-ring-*` block rewritten to plain CSS `box-shadow`. Escaped hover selectors verified functional (TW4 keeps same class name format). 5 false renames by upgrade tool fixed (`blur`→`blur-sm`, `outline`→`outline-solid` in non-Tailwind contexts). Section 8 visual QA pending.
+- **~~Tailwind 4 risk~~** ✅ **RESOLVED 2026-04-10:** Upgraded to TW 4.2.2. `--tw-ring-*` block rewritten to plain CSS `box-shadow`. Escaped hover selectors verified functional (TW4 keeps same class name format). 5 false renames by upgrade tool fixed (`blur`→`blur-sm`, `outline`→`outline-solid` in non-Tailwind contexts). Visual QA completed (10/10 tasks verified, 2 additional false renames fixed by code review). Change archived.
 
 ## Dev Auth
 - `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` — skips login, creates `dev@localhost`
@@ -58,4 +58,9 @@
 - `gh auth switch --user jrmatherly` needed for repo admin operations (branch protection, alert dismissal)
 - **Release workflow:** `.github/workflows/release.yml` — tag-push + workflow_dispatch. 3-OS matrix → draft GitHub Release. SHA-pinned `softprops/action-gh-release@153bb8e # v2.6.1`. Bun pinned to 1.3.11. macOS runner pinned to macos-15. Unsigned first iteration (CSC_IDENTITY_AUTO_DISCOVERY=false). macOS downloads both arm64+x64 binaries via `--all` flag.
 - **Dependabot labels:** `dependencies`, `bun`, `docs`, `github-actions` all exist in the repo (created 2026-04-09). Missing labels cause PRs to open un-labeled with an error.
+- **Release build CI gotchas (discovered v0.0.73–v0.0.75):**
+  - **Windows GPG path mixing:** `GNUPGHOME` env var doesn't work in Git Bash — must use `--homedir` with path normalization (`$(cygpath -u "$GNUPGHOME")` or similar).
+  - **Cross-org GITHUB_TOKEN 403:** Default `GITHUB_TOKEN` cannot fetch releases from other orgs (e.g., `openai/codex`). Codex download step needs a PAT or pre-bundled binary.
+  - **bun.lock regeneration:** After devDependency changes, `bun.lock` must be regenerated or CI `--frozen-lockfile` fails.
+  - **macOS runner OOM:** Full electron-builder build can OOM on default macOS runners. Needs `NODE_OPTIONS=--max-old-space-size=8192` or a runner with more RAM.
 - **`/session-sync` skill:** End-of-task drift sync for CLAUDE.md, Serena memories, roadmap, code-review graph. Run after every significant change instead of typing the full multi-command chain.

@@ -91,7 +91,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **`.claude/skills/`** — Claude Code workflow skills (on-demand).
 - **`.claude/agents/`** — Claude Code subagents (task-specific: `db-schema-auditor`, `trpc-router-auditor`, `upstream-dependency-auditor`, `security-reviewer`, `ui-reviewer`).
 - **`.serena/memories/`** — Serena project memories. Read via `mcp__serena__read_memory` **after** activating the project with `mcp__serena__activate_project` (project: `ai-coding-cli`).
-- **`deploy/`** — Kubernetes deployment manifests (Flux v2). Components: `1code-api`, `1code-update-server`, `envoy-auth-policy`. All values use `${PLACEHOLDER}` substitution. See [`deploy/README.md`](deploy/README.md).
+- **`deploy/`** — Kubernetes deployment manifests (Flux v2). Components: `1code-api`, `envoy-auth-policy`. All values use `${PLACEHOLDER}` substitution. See [`deploy/README.md`](deploy/README.md).
 - **`openspec/`** — OpenSpec 1.2.0 change proposals and 9 capability specs (45 requirements). See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
 - **`tests/regression/`** — 14 bun:test regression guards (58 tests). See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
 - **`.scratchpad/`** — Ephemeral local-only notes (gitignored). Never referenced from tracked files.
@@ -105,6 +105,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **Version pins (load-bearing):** Vite 7.x, Shiki 3.x, Claude CLI 2.1.96, Codex 0.118.0, `@xyd-js/cli` `0.0.0-build-1202121-20260121231224`. See [`docs/conventions/pinned-deps.md`](docs/conventions/pinned-deps.md) for why each one is pinned.
 - **IDE config:** `.vscode/settings.json` tracked in git — tsgo flag + SonarLint rule suppressions (5 rules disabled project-wide). See file for rationale per rule.
 - **Upgrade tool false renames:** `npx @tailwindcss/upgrade` (and similar bulk-rename tools) can't distinguish CSS classes from identically-named strings in non-CSS contexts (VSCode theme keys, dictionary words, event handler args). Always grep for renamed strings in non-CSS files after running upgrade tools.
+- **CI release gotchas:** (1) `GITHUB_TOKEN` is repo-scoped — sending it as Bearer to cross-org APIs (e.g., `openai/codex`) returns 403; unset for external downloads. (2) Windows GPG in Git Bash mangles `--homedir` paths; use `GNUPGHOME` env var or normalize paths. (3) `bun.lock` must be committed after any `package.json` devDependency change or `--frozen-lockfile` CI fails.
 - **Gotchas (tool quirks, macOS base64url, Entra v2 manifest, Flux/GitOps):** [`docs/operations/env-gotchas.md`](docs/operations/env-gotchas.md).
 - **First-install debug:** clear `~/Library/Application\ Support/Agents\ Dev/`, reset Launch Services. Full runbook in [`docs/operations/debugging-first-install.md`](docs/operations/debugging-first-install.md).
 
