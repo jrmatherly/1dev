@@ -13,7 +13,7 @@
 - Zod for runtime validation on tRPC procedure inputs
 - Type inference preferred over explicit annotations
 - `tsgo` used instead of `tsc` — faster but has known gaps with mapped-type recursion
-- Current baseline: 80 pre-existing errors (stored in `.claude/.tscheck-baseline`)
+- Current baseline: 54 pre-existing errors (stored in `.claude/.tscheck-baseline`) — improved from 80 via SonarLint remediation session 2026-04-10
 
 ## State Management
 - **Jotai**: UI state (selected chat, sidebar, preview)
@@ -50,7 +50,7 @@
 - ESLint 10 breaking change: `eslint-disable` comments referencing uninstalled plugins are hard errors — removed 19 stale comments from upstream code
 
 ### SonarLint IDE Configuration
-- `.vscode/settings.json` tracked in git with 16 rule suppressions (TS/JS/CSS)
+- `.vscode/settings.json` tracked in git with 50 rule suppressions (TS/JS/CSS) — grew from 16 during 2026-04-10 remediation session
 - Rules suppressed in both `typescript:` and `javascript:` prefixes (HTML inline scripts use JS prefix)
 - `// NOSONAR` inline comment for one-off suppressions (e.g., djb2 `charCodeAt` in chat-markdown-renderer.tsx)
 - S7758 (`charCodeAt→codePointAt`) is WRONG for hash functions — do NOT apply
