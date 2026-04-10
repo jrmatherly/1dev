@@ -179,8 +179,13 @@ jobs:
       # xyd-js CLI requires Node >= 22 at runtime. The default Ubuntu runner
       # ships Node 20, which causes `xyd build` to refuse to start. Pin to
       # Node 24 (aligns with Electron 41's bundled Node 24.14 for dev parity).
+      #
+      # Version pin: v6 (v6.3.0+). The older v4 was declared `using: node20`
+      # in its action.yml, which triggered GitHub's Node 20 deprecation
+      # warning ("will be removed 2026-09-16"). v6 is declared `using: node24`
+      # and is future-proof through the transition.
       - name: "📦 Install Node 24"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24"
 
