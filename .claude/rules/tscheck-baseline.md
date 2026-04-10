@@ -10,7 +10,7 @@ This repo uses **`tsgo`** (Go-based TS checker, `@typescript/native-preview`) in
 
 ## The baseline
 
-`.claude/.tscheck-baseline` contains the current numeric baseline of pre-existing TypeScript errors on `main` (currently ~87).
+`.claude/.tscheck-baseline` contains the current numeric baseline of pre-existing TypeScript errors on `main` (currently 80 on TypeScript 6.0.2 + tsgo 7.0.0-dev).
 
 **This file is load-bearing, not just a shortcut.** A `PostToolUse` hook in `.claude/settings.json` reads this file after every `.ts`/`.tsx` `Edit` or `Write`, re-runs `bun run ts:check`, and **fails loudly if the count increased**.
 
@@ -39,6 +39,10 @@ npm install -g @typescript/native-preview
 ```
 
 Without it, `bun run ts:check` will fail with `command not found`.
+
+## TS 6.0 — `types[]` is load-bearing
+
+TypeScript 6.0 defaults `compilerOptions.types` to `[]` (was auto-discover all `@types/*`). When adding a new `@types/*` devDependency, you MUST also add it to `tsconfig.json > compilerOptions.types` or its ambient declarations won't resolve. Current list: `["node", "better-sqlite3", "diff", "react", "react-dom"]`.
 
 ## Why we use tsgo
 

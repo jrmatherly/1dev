@@ -26,6 +26,7 @@ openspec instructions apply --change <id>  # Get apply instructions with task li
 openspec validate --strict --no-interactive  # Validate current change
 openspec validate --all --strict --no-interactive  # Validate all changes
 openspec archive <id>                  # Archive completed change + sync baseline specs
+openspec archive <id> --skip-specs     # Archive tooling/doc change with no capability deltas
 
 # Spec management
 openspec spec                          # Manage specifications
@@ -38,6 +39,14 @@ openspec update [path]                 # Update instruction files
 ```
 
 **JSON output:** Most commands accept `--json` for machine-readable output (used by `/opsx:apply` and `/opsx:archive` skills).
+
+## CLI working directory
+
+**`openspec` is cwd-sensitive.** It must be run from the repo root (where `openspec/` lives). Running from subdirectories like `docs/` returns `"no changes exist"` even when changes are present. When chaining with `cd` (e.g., after a `cd docs && bun run build` quality gate), return to repo root first.
+
+## Archive flag for non-capability changes
+
+Use `openspec archive <id> --skip-specs --yes` for toolchain, dependency, or documentation-only changes that have no capability spec deltas (proposal says "Capabilities: None — toolchain upgrade only"). Without `--skip-specs`, archive will attempt to promote non-existent delta specs and may fail or create empty baselines. Examples: `upgrade-typescript-6`, `upgrade-electron-41`, `upgrade-electron-40`.
 
 ## MODIFIED Requirements rule (baseline constraint)
 

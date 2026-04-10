@@ -2,7 +2,7 @@ schema: spec-driven
 
 context: |
   Project: 1Code enterprise fork (apollosai.dev) — local-first Electron desktop app
-  Tech stack: Electron 41, React 19, TypeScript 5, Tailwind 3, tRPC, Drizzle ORM, SQLite
+  Tech stack: Electron 41, React 19, TypeScript 6, Tailwind 3, tRPC, Drizzle ORM, SQLite
   Package manager: bun
   AI backends: Claude Agent SDK, Codex CLI, Ollama
   Fork posture: Decoupling from upstream 1code.dev — self-hosting via LiteLLM + Entra + Envoy Gateway

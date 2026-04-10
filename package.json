@@ -137,7 +137,7 @@
     "electron-vite": "5.0.0",
     "postcss": "^8.5.9",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vite": "^6.4.2"
   },
   "build": {

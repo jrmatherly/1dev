@@ -79,14 +79,6 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ## P3 -- Low Priority / Opportunistic
 
-### [Ready] TypeScript 5 → 6 upgrade
-
-**Added:** 2026-04-09
-**Scope:** Upgrade TypeScript from 5.9.3 to 6.0.2 — the "bridge release" before TS 7.0 (Go rewrite). Add `"types": ["node"]` and `"noUncheckedSideEffectImports": false` to tsconfig. Re-baseline error count. Update tsgo alignment.
-**Effort:** Small-Medium
-**Prereqs:** None
-**Canonical reference:** `openspec/changes/upgrade-typescript-6/proposal.md`
-
 ### [Ready] Tailwind CSS 3 → 4 + tailwind-merge 2 → 3
 
 **Added:** 2026-04-09
@@ -100,7 +92,7 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Added:** 2026-04-09
 **Scope:** Bump Vite 6→7 + plugin-react 4→5 with electron-vite 5.0.0 (stable). Validates CJS interop and browser target changes. Should land BEFORE Tailwind 4 so `@tailwindcss/vite` is tested against its natural Vite version.
 **Effort:** Small-Medium
-**Prereqs:** TypeScript 6 should land first (sets `noUncheckedSideEffectImports`)
+**Prereqs:** None (TypeScript 6 landed 2026-04-10, `noUncheckedSideEffectImports` already set)
 **Canonical reference:** `openspec/changes/upgrade-vite-8-build-stack/proposal.md` (Phase A tasks)
 
 ### [Blocked] Vite 8 — Phase B + Shiki 4
@@ -163,7 +155,8 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
-| 2026-04-09 | Electron 40 → 41 upgrade (Chromium 146, Node.js 24.14, V8 14.6) | `upgrade-electron-41` (26/27 tasks; auto-updater pending packaged-build smoke test) |
+| 2026-04-10 | TypeScript 5.9.3 → 6.0.2 upgrade (tsconfig `types[]` explicit, `noUncheckedSideEffectImports: false`, tsgo 7.0.0-dev; baseline unchanged at 80) | `upgrade-typescript-6` archived |
+| 2026-04-09 | Electron 40 → 41 upgrade (Chromium 146, Node.js 24.14, V8 14.6) | `upgrade-electron-41` committed + pushed (auto-updater pending packaged-build smoke test) |
 | 2026-04-09 | Analytics dual-import warning fix | static `setOptOut` import in `windows/main.ts:16` |
 | 2026-04-09 | login.html brand refresh (21ST to 1Code logo) | `7c8d884` |
 | 2026-04-09 | Electron 39.8.7 to 40.8.5 upgrade | `upgrade-electron-40` archived |

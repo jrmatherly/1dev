@@ -10,7 +10,7 @@ icon: layers
 | **Desktop** | Electron | `~41.2` | Node.js 24.14, Chromium 146, V8 14.6. Upgraded from ~40.8 on 2026-04-09. EOL 2026-08-25. |
 | **Build** | electron-vite | `5.0.0` | `build.externalizeDeps` replaces the old `externalizeDepsPlugin`. |
 | **Packaging** | electron-builder | `26.x` | macOS (DMG + ZIP), Windows (NSIS + portable), Linux (AppImage + DEB). |
-| **UI** | React | `19.x` | TypeScript 5 strict mode. |
+| **UI** | React | `19.x` | TypeScript 6 strict mode. |
 | **Styling** | Tailwind CSS | `3.x` | Pinned — `tailwind-merge` v3 requires TW v4; 134 files use `cn()`. See [Pinned Dependencies](../conventions/pinned-deps.md). |
 | **Components** | Radix UI | — | Headless primitives. Lucide icons, Motion (animations), Sonner (toasts). |
 | **State (UI)** | Jotai | — | Atoms for UI state (selected chat, sidebar open, preview settings). |

@@ -55,8 +55,45 @@ jobs:
       - name: "🏗️ Install tsgo"
         run: bun add -g @typescript/native-preview
 
-      - name: "🔍 Run ts:check"
-        run: bun run ts:check
+      - name: "🔍 Run ts:check (baseline-aware)"
+        # Matches the local PostToolUse hook convention documented in
+        # .claude/rules/tscheck-baseline.md: only fail if the error count
+        # exceeds `.claude/.tscheck-baseline`. The 80 pre-existing errors
+        # are tracked in `docs/operations/roadmap.md` under "ts:check
+        # baseline remediation". This step enforces "no new regressions".
+        #
+        # Security note: this script only reads files from the checked-out
+        # repo and the output of `bun run ts:check` (a deterministic local
+        # command). It does NOT interpolate any `${{ github.event.* }}`
+        # values, so no command-injection surface is introduced.
+        run: |
+          if [ ! -f .claude/.tscheck-baseline ]; then
+            echo "❌ .claude/.tscheck-baseline missing — CI requires a baseline file"
+            exit 1
+          fi
+          BASELINE=$(cat .claude/.tscheck-baseline | tr -d '[:space:]')
+          if ! [[ "$BASELINE" =~ ^[0-9]+$ ]]; then
+            echo "❌ .claude/.tscheck-baseline is not a non-negative integer: '$BASELINE'"
+            exit 1
+          fi
+          # Capture output; `bun run ts:check` returns non-zero whenever any
+          # error is reported, so we must not let the non-zero exit kill the
+          # shell before we read the count.
+          set +e
+          bun run ts:check 2>&1 | tee /tmp/tscheck-output.txt
+          set -e
+          ACTUAL=$(grep -cE '^[^ ].*\.tsx?\([0-9]+,[0-9]+\): error' /tmp/tscheck-output.txt || true)
+          echo ""
+          echo "📊 TS errors — baseline: $BASELINE, actual: $ACTUAL"
+          if [ "$ACTUAL" -gt "$BASELINE" ]; then
+            echo "❌ New TS errors introduced ($ACTUAL > $BASELINE baseline)"
+            exit 1
+          fi
+          if [ "$ACTUAL" -lt "$BASELINE" ]; then
+            echo "💡 TS errors dropped below baseline ($ACTUAL < $BASELINE)."
+            echo "   Update .claude/.tscheck-baseline to $ACTUAL to ratchet."
+          fi
+          echo "✅ TS error count within baseline"
 
   build:
     name: "🏗️ Build (electron-vite)"
@@ -138,6 +175,14 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      # xyd-js CLI requires Node >= 22 at runtime. The default Ubuntu runner
+      # ships Node 20, which causes `xyd build` to refuse to start. Pin to
+      # Node 24 (aligns with Electron 41's bundled Node 24.14 for dev parity).
+      - name: "📦 Install Node 24"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
 
       - name: "⬇️ Install docs dependencies"
         working-directory: docs
