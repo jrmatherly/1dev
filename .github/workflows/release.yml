@@ -106,23 +106,50 @@ jobs:
 
       - name: "⬇️ Download Claude CLI binary (pinned)"
         # macOS builds both arm64 + x64 (universal DMG/ZIP), so we need
-        # binaries for both architectures. --all downloads all 6 platforms
-        # but electron-builder only bundles the ones matching build.mac.target.
-        env:
-          DL_FLAG: ${{ matrix.os == 'macos-15' && '--all' || '' }}
+        # binaries for both architectures. Linux/Windows only need their own.
+        # Using --all downloads all 6 platforms — wasteful for Linux/Windows
+        # and increases API calls for Codex (which is rate-limited).
+        # macOS: download darwin-arm64 + darwin-x64 explicitly.
         shell: bash
-        run: bun run claude:download $DL_FLAG
+        run: |
+          if [ "${{ matrix.name }}" = "macos" ]; then
+            bun run claude:download --platform=darwin-arm64
+            bun run claude:download --platform=darwin-x64
+          else
+            bun run claude:download
+          fi
 
       - name: "⬇️ Download Codex binary (pinned)"
         # GITHUB_TOKEN is scoped to this repo (jrmatherly/1dev) but the Codex
         # binary lives at openai/codex. Sending a cross-org Bearer token to
         # GitHub's API returns 403. Unsetting it falls through to unauthenticated
-        # access, which is fine for public repos (60 req/hour rate limit).
+        # access (60 req/hour). GitHub Actions runners can hit secondary rate
+        # limits from shared IPs, so we retry with backoff. Download only the
+        # platforms needed for each OS (not --all) to minimize API calls.
         env:
-          DL_FLAG: ${{ matrix.os == 'macos-15' && '--all' || '' }}
           GITHUB_TOKEN: ""
         shell: bash
-        run: bun run codex:download $DL_FLAG
+        run: |
+          download_with_retry() {
+            local max_attempts=3
+            for attempt in $(seq 1 $max_attempts); do
+              if bun run codex:download "$@"; then
+                return 0
+              fi
+              if [ "$attempt" -lt "$max_attempts" ]; then
+                echo "⚠️ Codex download attempt $attempt failed, retrying in ${attempt}0s..."
+                sleep "${attempt}0"
+              fi
+            done
+            echo "❌ Codex download failed after $max_attempts attempts"
+            return 1
+          }
+          if [ "${{ matrix.name }}" = "macos" ]; then
+            download_with_retry --platform=darwin-arm64
+            download_with_retry --platform=darwin-x64
+          else
+            download_with_retry
+          fi
 
       - name: "🏗️ Build application"
         # macOS-15 standard runners have only 7 GB RAM. The renderer build
