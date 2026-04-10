@@ -1,6 +1,6 @@
 {
   "name": "1code-desktop",
-  "version": "0.0.74",
+  "version": "0.0.75",
   "private": true,
   "description": "1Code - UI for parallel work with AI agents",
   "homepage": "https://apollosai.dev",
@@ -132,6 +132,7 @@
     "electron": "~41.2",
     "electron-builder": "^26.8.1",
     "electron-vite": "5.0.0",
+    "eslint": "^10.2.0",
     "eslint-plugin-sonarjs": "^4.0.2",
     "postcss": "^8.5.9",
     "tailwindcss": "^4.2.2",
