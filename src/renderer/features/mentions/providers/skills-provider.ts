@@ -5,7 +5,7 @@
  * Provides skill search with descriptions and source indicators.
  */
 
-import { trpcClient } from "../../../lib/trpc"
+import { trpcClient } from "../../../lib/trpc";
 import {
   createMentionProvider,
   type MentionItem,
@@ -13,16 +13,16 @@ import {
   type MentionSearchResult,
   MENTION_PREFIXES,
   sortByRelevance,
-} from "../types"
+} from "../types";
 
 /**
  * Data payload for skill mentions
  */
 export interface SkillData {
-  name: string
-  description: string
-  source: "user" | "project"
-  path: string
+  name: string;
+  description: string;
+  source: "user" | "project";
+  path: string;
 }
 
 /**
@@ -42,19 +42,21 @@ export const skillsProvider = createMentionProvider<SkillData>({
   },
   priority: 80,
 
-  async search(context: MentionSearchContext): Promise<MentionSearchResult<SkillData>> {
-    const startTime = performance.now()
+  async search(
+    context: MentionSearchContext,
+  ): Promise<MentionSearchResult<SkillData>> {
+    const startTime = performance.now();
 
     // Check for abort
     if (context.signal.aborted) {
-      return { items: [], hasMore: false, timing: 0 }
+      return { items: [], hasMore: false, timing: 0 };
     }
 
     try {
       // Use tRPC to list skills
       const skills = await trpcClient.skills.listEnabled.query({
         cwd: context.projectPath,
-      })
+      });
 
       // Map to MentionItem format
       let items: MentionItem<SkillData>[] = skills.map((skill) => ({
@@ -73,51 +75,51 @@ export const skillsProvider = createMentionProvider<SkillData>({
         metadata: {
           type: "skill" as const,
         },
-      }))
+      }));
 
       // Apply relevance sorting if there's a query
       if (context.query) {
-        items = sortByRelevance(items, context.query)
+        items = sortByRelevance(items, context.query);
       }
 
       // Apply limit
-      const limitedItems = items.slice(0, context.limit)
+      const limitedItems = items.slice(0, context.limit);
 
-      const timing = performance.now() - startTime
+      const timing = performance.now() - startTime;
 
       return {
         items: limitedItems,
         hasMore: items.length > context.limit,
         totalCount: skills.length,
         timing,
-      }
+      };
     } catch (error) {
-      console.error("[SkillsProvider] Search error:", error)
+      console.error("[SkillsProvider] Search error:", error);
       return {
         items: [],
         hasMore: false,
         warning: "Failed to load skills",
         timing: performance.now() - startTime,
-      }
+      };
     }
   },
 
   serialize(item: MentionItem<SkillData>): string {
-    return `@[${item.id}]`
+    return `@[${item.id}]`;
   },
 
   deserialize(token: string): MentionItem<SkillData> | null {
     try {
       // Check if this token belongs to us
       if (!token.startsWith(MENTION_PREFIXES.SKILL)) {
-        return null
+        return null;
       }
 
       // Parse: skill:name
-      const name = token.slice(MENTION_PREFIXES.SKILL.length)
+      const name = token.slice(MENTION_PREFIXES.SKILL.length);
 
       if (!name) {
-        return null
+        return null;
       }
 
       return {
@@ -134,17 +136,20 @@ export const skillsProvider = createMentionProvider<SkillData>({
         metadata: {
           type: "skill",
         },
-      }
+      };
     } catch (error) {
-      console.warn(`[SkillsProvider] Failed to deserialize token: ${token}`, error)
-      return null
+      console.warn(
+        `[SkillsProvider] Failed to deserialize token: ${token}`,
+        error,
+      );
+      return null;
     }
   },
 
   // Skills are always available
   isAvailable() {
-    return true
+    return true;
   },
-})
+});
 
-export default skillsProvider
+export default skillsProvider;

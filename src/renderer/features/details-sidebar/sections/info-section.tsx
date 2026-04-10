@@ -173,7 +173,8 @@ export const InfoSection = memo(function InfoSection({
     }
   };
 
-  const isWorktree = !!worktreePath && worktreePath.includes(".1code/worktrees");
+  const isWorktree =
+    !!worktreePath && worktreePath.includes(".1code/worktrees");
   const openInEditorHotkey = useResolvedHotkeyDisplay("open-in-editor");
 
   const handleOpenInEditor = useCallback(() => {

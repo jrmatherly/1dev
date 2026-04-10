@@ -446,8 +446,7 @@ export function createFileIconElement(
     fallbackSvg.setAttribute("stroke-width", "2");
     fallbackSvg.setAttribute("stroke-linecap", "round");
     fallbackSvg.setAttribute("stroke-linejoin", "round");
-    fallbackSvg.className.baseVal =
-      "h-3 w-3 text-muted-foreground shrink-0";
+    fallbackSvg.className.baseVal = "h-3 w-3 text-muted-foreground shrink-0";
 
     const paths = [
       "M17 14.5L6.0001 14.4999",
@@ -469,10 +468,7 @@ export function createFileIconElement(
 
   // Clone the SVG to avoid issues
   const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement;
-  clonedSvg.setAttribute(
-    "class",
-    "h-3 w-3 text-muted-foreground shrink-0",
-  );
+  clonedSvg.setAttribute("class", "h-3 w-3 text-muted-foreground shrink-0");
 
   return clonedSvg;
 }

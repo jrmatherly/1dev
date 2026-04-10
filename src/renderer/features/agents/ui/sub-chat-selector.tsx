@@ -1,20 +1,29 @@
-"use client"
+"use client";
 
-import { useCallback, useMemo, useEffect, useRef, useState, memo, forwardRef, useImperativeHandle } from "react"
-import { useAtom, useAtomValue, useSetAtom } from "jotai"
+import {
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  useState,
+  memo,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   loadingSubChatsAtom,
   agentsSubChatUnseenChangesAtom,
   agentsSubChatsSidebarModeAtom,
   pendingUserQuestionsAtom,
-} from "../atoms"
+} from "../atoms";
 import {
   widgetVisibilityAtomFamily,
   unifiedSidebarEnabledAtom,
-} from "../../details-sidebar/atoms"
-import { chatSourceModeAtom } from "../../../lib/atoms"
-import { trpc } from "../../../lib/trpc"
-import { Plus, AlignJustify, Play, TerminalSquare, X } from "lucide-react"
+} from "../../details-sidebar/atoms";
+import { chatSourceModeAtom } from "../../../lib/atoms";
+import { trpc } from "../../../lib/trpc";
+import { Plus, AlignJustify, Play, TerminalSquare, X } from "lucide-react";
 import {
   IconSpinner,
   PlanIcon,
@@ -24,160 +33,186 @@ import {
   DiffIcon,
   ClockIcon,
   QuestionIcon,
-
-} from "../../../components/ui/icons"
-import { Button } from "../../../components/ui/button"
-import { cn } from "../../../lib/utils"
+} from "../../../components/ui/icons";
+import { Button } from "../../../components/ui/button";
+import { cn } from "../../../lib/utils";
 import {
   useAgentSubChatStore,
   type SubChatMeta,
-} from "../stores/sub-chat-store"
-import { useShallow } from "zustand/react/shallow"
-import { PopoverTrigger } from "../../../components/ui/popover"
+} from "../stores/sub-chat-store";
+import { useShallow } from "zustand/react/shallow";
+import { PopoverTrigger } from "../../../components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "../../../components/ui/tooltip"
-import { Kbd } from "../../../components/ui/kbd"
-import { getShortcutKey } from "../../../lib/utils/platform"
-import { useResolvedHotkeyDisplay } from "../../../lib/hotkeys"
+} from "../../../components/ui/tooltip";
+import { Kbd } from "../../../components/ui/kbd";
+import { getShortcutKey } from "../../../lib/utils/platform";
+import { useResolvedHotkeyDisplay } from "../../../lib/hotkeys";
 import {
   ContextMenu,
   ContextMenuTrigger,
-} from "../../../components/ui/context-menu"
-import { InlineEdit } from "./inline-edit"
-import { toast } from "sonner"
-import { SearchCombobox } from "../../../components/ui/search-combobox"
-import { SubChatContextMenu } from "./sub-chat-context-menu"
-import { formatTimeAgo } from "../utils/format-time-ago"
+} from "../../../components/ui/context-menu";
+import { InlineEdit } from "./inline-edit";
+import { toast } from "sonner";
+import { SearchCombobox } from "../../../components/ui/search-combobox";
+import { SubChatContextMenu } from "./sub-chat-context-menu";
+import { formatTimeAgo } from "../utils/format-time-ago";
 
 interface DiffStats {
-  fileCount: number
-  additions: number
-  deletions: number
-  isLoading: boolean
-  hasChanges: boolean
+  fileCount: number;
+  additions: number;
+  deletions: number;
+  isLoading: boolean;
+  hasChanges: boolean;
 }
 
 // Isolated Search History Popover - prevents parent re-renders when popover opens/closes
 interface SearchHistoryPopoverProps {
-  sortedSubChats: SubChatMeta[]
-  loadingSubChats: Map<string, string>
-  subChatUnseenChanges: Set<string>
-  pendingQuestionsMap: Map<string, { subChatId: string }>
-  pendingPlanApprovals: Set<string>
-  allSubChatsLength: number
-  onSelect: (subChat: SubChatMeta) => void
+  sortedSubChats: SubChatMeta[];
+  loadingSubChats: Map<string, string>;
+  subChatUnseenChanges: Set<string>;
+  pendingQuestionsMap: Map<string, { subChatId: string }>;
+  pendingPlanApprovals: Set<string>;
+  allSubChatsLength: number;
+  onSelect: (subChat: SubChatMeta) => void;
 }
 
 export interface SearchHistoryPopoverRef {
-  open: () => void
+  open: () => void;
 }
 
-const SearchHistoryPopover = memo(forwardRef<SearchHistoryPopoverRef, SearchHistoryPopoverProps>(function SearchHistoryPopover({
-  sortedSubChats,
-  loadingSubChats,
-  subChatUnseenChanges,
-  pendingQuestionsMap,
-  pendingPlanApprovals,
-  allSubChatsLength,
-  onSelect,
-}, ref) {
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+const SearchHistoryPopover = memo(
+  forwardRef<SearchHistoryPopoverRef, SearchHistoryPopoverProps>(
+    function SearchHistoryPopover(
+      {
+        sortedSubChats,
+        loadingSubChats,
+        subChatUnseenChanges,
+        pendingQuestionsMap,
+        pendingPlanApprovals,
+        allSubChatsLength,
+        onSelect,
+      },
+      ref,
+    ) {
+      const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
-  // Expose open function to parent
-  useImperativeHandle(ref, () => ({
-    open: () => setIsHistoryOpen(true)
-  }), [])
+      // Expose open function to parent
+      useImperativeHandle(
+        ref,
+        () => ({
+          open: () => setIsHistoryOpen(true),
+        }),
+        [],
+      );
 
-  const renderItem = useCallback((subChat: SubChatMeta) => {
-    const timeAgo = formatTimeAgo(subChat.updatedAt || subChat.createdAt || undefined)
-    const isLoading = loadingSubChats.has(subChat.id)
-    const hasUnseen = subChatUnseenChanges.has(subChat.id)
-    const mode = subChat.mode || "agent"
-    const hasPendingQuestion = pendingQuestionsMap.has(subChat.id)
-    const hasPendingPlan = pendingPlanApprovals.has(subChat.id)
+      const renderItem = useCallback(
+        (subChat: SubChatMeta) => {
+          const timeAgo = formatTimeAgo(
+            subChat.updatedAt || subChat.createdAt || undefined,
+          );
+          const isLoading = loadingSubChats.has(subChat.id);
+          const hasUnseen = subChatUnseenChanges.has(subChat.id);
+          const mode = subChat.mode || "agent";
+          const hasPendingQuestion = pendingQuestionsMap.has(subChat.id);
+          const hasPendingPlan = pendingPlanApprovals.has(subChat.id);
 
-    return (
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <div className="shrink-0 w-4 h-4 flex items-center justify-center relative">
-          {hasPendingQuestion ? (
-            <QuestionIcon className="w-4 h-4 text-blue-500" />
-          ) : isLoading ? (
-            <IconSpinner className="w-4 h-4 text-muted-foreground" />
-          ) : mode === "plan" ? (
-            <PlanIcon className="w-4 h-4 text-muted-foreground" />
-          ) : (
-            <AgentIcon className="w-4 h-4 text-muted-foreground" />
-          )}
-          {(hasPendingPlan || hasUnseen) && !isLoading && !hasPendingQuestion && (
-            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-popover flex items-center justify-center">
-              <div className={cn(
-                "w-1.5 h-1.5 rounded-full",
-                hasPendingPlan ? "bg-amber-500" : "bg-[#307BD0]"
-              )} />
+          return (
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="shrink-0 w-4 h-4 flex items-center justify-center relative">
+                {hasPendingQuestion ? (
+                  <QuestionIcon className="w-4 h-4 text-blue-500" />
+                ) : isLoading ? (
+                  <IconSpinner className="w-4 h-4 text-muted-foreground" />
+                ) : mode === "plan" ? (
+                  <PlanIcon className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <AgentIcon className="w-4 h-4 text-muted-foreground" />
+                )}
+                {(hasPendingPlan || hasUnseen) &&
+                  !isLoading &&
+                  !hasPendingQuestion && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-popover flex items-center justify-center">
+                      <div
+                        className={cn(
+                          "w-1.5 h-1.5 rounded-full",
+                          hasPendingPlan ? "bg-amber-500" : "bg-[#307BD0]",
+                        )}
+                      />
+                    </div>
+                  )}
+              </div>
+              <span className="text-sm truncate flex-1">
+                {subChat.name || "New Chat"}
+              </span>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {timeAgo}
+              </span>
             </div>
-          )}
-        </div>
-        <span className="text-sm truncate flex-1">
-          {subChat.name || "New Chat"}
-        </span>
-        <span className="text-sm text-muted-foreground whitespace-nowrap">
-          {timeAgo}
-        </span>
-      </div>
-    )
-  }, [loadingSubChats, subChatUnseenChanges, pendingQuestionsMap, pendingPlanApprovals])
+          );
+        },
+        [
+          loadingSubChats,
+          subChatUnseenChanges,
+          pendingQuestionsMap,
+          pendingPlanApprovals,
+        ],
+      );
 
-  return (
-    <SearchCombobox
-      isOpen={isHistoryOpen}
-      onOpenChange={setIsHistoryOpen}
-      items={sortedSubChats}
-      onSelect={onSelect}
-      placeholder="Search chats..."
-      emptyMessage="No results"
-      getItemValue={(subChat) => `${subChat.name || "New Chat"} ${subChat.id}`}
-      renderItem={renderItem}
-      trigger={
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md flex items-center justify-center"
-                disabled={allSubChatsLength === 0}
-              >
-                <ClockIcon className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            Search chats
-            <Kbd>/</Kbd>
-          </TooltipContent>
-        </Tooltip>
-      }
-    />
-  )
-}))
+      return (
+        <SearchCombobox
+          isOpen={isHistoryOpen}
+          onOpenChange={setIsHistoryOpen}
+          items={sortedSubChats}
+          onSelect={onSelect}
+          placeholder="Search chats..."
+          emptyMessage="No results"
+          getItemValue={(subChat) =>
+            `${subChat.name || "New Chat"} ${subChat.id}`
+          }
+          renderItem={renderItem}
+          trigger={
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md flex items-center justify-center"
+                    disabled={allSubChatsLength === 0}
+                  >
+                    <ClockIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Search chats
+                <Kbd>/</Kbd>
+              </TooltipContent>
+            </Tooltip>
+          }
+        />
+      );
+    },
+  ),
+);
 
 interface SubChatSelectorProps {
-  onCreateNew: () => void
-  isMobile?: boolean
-  onBackToChats?: () => void
-  onOpenPreview?: () => void
-  canOpenPreview?: boolean
-  onOpenDiff?: () => void
-  canOpenDiff?: boolean
-  isDiffSidebarOpen?: boolean
-  diffStats?: DiffStats
-  onOpenTerminal?: () => void
-  canOpenTerminal?: boolean
-  isTerminalOpen?: boolean
-  chatId?: string
+  onCreateNew: () => void;
+  isMobile?: boolean;
+  onBackToChats?: () => void;
+  onOpenPreview?: () => void;
+  canOpenPreview?: boolean;
+  onOpenDiff?: () => void;
+  canOpenDiff?: boolean;
+  isDiffSidebarOpen?: boolean;
+  diffStats?: DiffStats;
+  onOpenTerminal?: () => void;
+  canOpenTerminal?: boolean;
+  isTerminalOpen?: boolean;
+  chatId?: string;
 }
 
 export function SubChatSelector({
@@ -219,257 +254,274 @@ export function SubChatSelector({
       addToSplit: state.addToSplit,
       removeFromSplit: state.removeFromSplit,
       closeSplit: state.closeSplit,
-    }))
-  )
-  const [loadingSubChats] = useAtom(loadingSubChatsAtom)
-  const subChatUnseenChanges = useAtomValue(agentsSubChatUnseenChangesAtom)
-  const setSubChatUnseenChanges = useSetAtom(agentsSubChatUnseenChangesAtom)
+    })),
+  );
+  const [loadingSubChats] = useAtom(loadingSubChatsAtom);
+  const subChatUnseenChanges = useAtomValue(agentsSubChatUnseenChangesAtom);
+  const setSubChatUnseenChanges = useSetAtom(agentsSubChatUnseenChangesAtom);
   const [subChatsSidebarMode, setSubChatsSidebarMode] = useAtom(
     agentsSubChatsSidebarModeAtom,
-  )
-  const pendingQuestionsMap = useAtomValue(pendingUserQuestionsAtom)
+  );
+  const pendingQuestionsMap = useAtomValue(pendingUserQuestionsAtom);
 
   // Overview sidebar state - to check if widgets are visible
-  const isUnifiedSidebarEnabled = useAtomValue(unifiedSidebarEnabledAtom)
-  const chatSourceMode = useAtomValue(chatSourceModeAtom)
+  const isUnifiedSidebarEnabled = useAtomValue(unifiedSidebarEnabledAtom);
+  const chatSourceMode = useAtomValue(chatSourceModeAtom);
   const widgetVisibilityAtom = useMemo(
     () => widgetVisibilityAtomFamily(chatId || ""),
     [chatId],
-  )
-  const widgetVisibility = useAtomValue(widgetVisibilityAtom)
+  );
+  const widgetVisibility = useAtomValue(widgetVisibilityAtom);
 
   // Show standalone buttons when:
   // 1. Unified sidebar is disabled (use legacy sidebars), OR
   // 2. Unified sidebar is enabled but the widget is hidden by user, OR
   // 3. Sandbox mode (DetailsSidebar doesn't render without worktreePath)
-  const showDiffButton = !isUnifiedSidebarEnabled || !widgetVisibility.includes("diff") || chatSourceMode === "sandbox"
-  const showTerminalButton = !isUnifiedSidebarEnabled || !widgetVisibility.includes("terminal")
+  const showDiffButton =
+    !isUnifiedSidebarEnabled ||
+    !widgetVisibility.includes("diff") ||
+    chatSourceMode === "sandbox";
+  const showTerminalButton =
+    !isUnifiedSidebarEnabled || !widgetVisibility.includes("terminal");
 
   // Resolved hotkeys for tooltips
-  const openDiffHotkey = useResolvedHotkeyDisplay("open-diff")
-  const toggleTerminalHotkey = useResolvedHotkeyDisplay("toggle-terminal")
-  const archiveAgentHotkey = useResolvedHotkeyDisplay("archive-agent")
-  const newAgentHotkey = useResolvedHotkeyDisplay("new-agent")
+  const openDiffHotkey = useResolvedHotkeyDisplay("open-diff");
+  const toggleTerminalHotkey = useResolvedHotkeyDisplay("toggle-terminal");
+  const archiveAgentHotkey = useResolvedHotkeyDisplay("archive-agent");
+  const newAgentHotkey = useResolvedHotkeyDisplay("new-agent");
 
   // Pending plan approvals from DB - only for open sub-chats
-  const { data: pendingPlanApprovalsData } = trpc.chats.getPendingPlanApprovals.useQuery(
-    { openSubChatIds },
-    { refetchInterval: 5000, enabled: openSubChatIds.length > 0, placeholderData: (prev) => prev }
-  )
+  const { data: pendingPlanApprovalsData } =
+    trpc.chats.getPendingPlanApprovals.useQuery(
+      { openSubChatIds },
+      {
+        refetchInterval: 5000,
+        enabled: openSubChatIds.length > 0,
+        placeholderData: (prev) => prev,
+      },
+    );
   const pendingPlanApprovals = useMemo(() => {
-    const set = new Set<string>()
+    const set = new Set<string>();
     if (pendingPlanApprovalsData) {
       for (const { subChatId } of pendingPlanApprovalsData) {
-        set.add(subChatId)
+        set.add(subChatId);
       }
     }
-    return set
-  }, [pendingPlanApprovalsData])
+    return set;
+  }, [pendingPlanApprovalsData]);
 
-  const tabsContainerRef = useRef<HTMLDivElement>(null)
-  const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
-  const textRefs = useRef<Map<string, HTMLSpanElement>>(new Map())
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const textRefs = useRef<Map<string, HTMLSpanElement>>(new Map());
   // Using refs instead of state for gradients and truncation to avoid re-renders
-  const leftGradientRef = useRef<HTMLDivElement>(null)
-  const rightGradientRef = useRef<HTMLDivElement>(null)
-  const truncatedTabsRef = useRef<Set<string>>(new Set())
-  const searchHistoryPopoverRef = useRef<SearchHistoryPopoverRef>(null)
+  const leftGradientRef = useRef<HTMLDivElement>(null);
+  const rightGradientRef = useRef<HTMLDivElement>(null);
+  const truncatedTabsRef = useRef<Set<string>>(new Set());
+  const searchHistoryPopoverRef = useRef<SearchHistoryPopoverRef>(null);
 
   const allSubChatsById = useMemo(() => {
-    const map = new Map<string, SubChatMeta>()
+    const map = new Map<string, SubChatMeta>();
     for (const chat of allSubChats) {
-      map.set(chat.id, chat)
+      map.set(chat.id, chat);
     }
-    return map
-  }, [allSubChats])
+    return map;
+  }, [allSubChats]);
 
   // Map open IDs to metadata and sort: pinned first, then preserve user's tab order
   const openSubChats = useMemo(() => {
-    const pinnedChats: SubChatMeta[] = []
-    const unpinnedChats: SubChatMeta[] = []
+    const pinnedChats: SubChatMeta[] = [];
+    const unpinnedChats: SubChatMeta[] = [];
 
     // Separate pinned and unpinned while preserving order
     openSubChatIds.forEach((id) => {
-      const chat = allSubChatsById.get(id)
-      if (!chat) return
+      const chat = allSubChatsById.get(id);
+      if (!chat) return;
 
       if (pinnedSubChatIds.includes(id)) {
-        pinnedChats.push(chat)
+        pinnedChats.push(chat);
       } else {
-        unpinnedChats.push(chat)
+        unpinnedChats.push(chat);
       }
-    })
+    });
 
     // Sort pinned by recency (most recent first)
     pinnedChats.sort((a, b) => {
-      const aT = new Date(a.updatedAt || a.createdAt || "0").getTime()
-      const bT = new Date(b.updatedAt || b.createdAt || "0").getTime()
-      return bT - aT
-    })
+      const aT = new Date(a.updatedAt || a.createdAt || "0").getTime();
+      const bT = new Date(b.updatedAt || b.createdAt || "0").getTime();
+      return bT - aT;
+    });
 
     // Unpinned maintain their order from openSubChatIds (user's tab order)
-    const result = [...pinnedChats, ...unpinnedChats]
+    const result = [...pinnedChats, ...unpinnedChats];
 
     // Keep split tabs adjacent when split is active.
     if (splitPaneIds.length >= 2) {
-      const splitIdsSet = new Set(splitPaneIds)
-      const firstSplitIdx = result.findIndex((chat) => splitIdsSet.has(chat.id))
+      const splitIdsSet = new Set(splitPaneIds);
+      const firstSplitIdx = result.findIndex((chat) =>
+        splitIdsSet.has(chat.id),
+      );
       if (firstSplitIdx >= 0) {
         const splitChats = result
           .filter((chat) => splitIdsSet.has(chat.id))
-          .sort((a, b) => splitPaneIds.indexOf(a.id) - splitPaneIds.indexOf(b.id))
-        const nonSplitChats = result.filter((chat) => !splitIdsSet.has(chat.id))
-        const insertAt = Math.min(firstSplitIdx, nonSplitChats.length)
+          .sort(
+            (a, b) => splitPaneIds.indexOf(a.id) - splitPaneIds.indexOf(b.id),
+          );
+        const nonSplitChats = result.filter(
+          (chat) => !splitIdsSet.has(chat.id),
+        );
+        const insertAt = Math.min(firstSplitIdx, nonSplitChats.length);
         return [
           ...nonSplitChats.slice(0, insertAt),
           ...splitChats,
           ...nonSplitChats.slice(insertAt),
-        ]
+        ];
       }
     }
 
-    return result
-  }, [openSubChatIds, allSubChatsById, pinnedSubChatIds, splitPaneIds])
-  const splitPaneIdSet = useMemo(() => new Set(splitPaneIds), [splitPaneIds])
+    return result;
+  }, [openSubChatIds, allSubChatsById, pinnedSubChatIds, splitPaneIds]);
+  const splitPaneIdSet = useMemo(() => new Set(splitPaneIds), [splitPaneIds]);
 
   const onSwitch = useCallback(
     (subChatId: string) => {
-      const store = useAgentSubChatStore.getState()
-      store.setActiveSubChat(subChatId)
+      const store = useAgentSubChatStore.getState();
+      store.setActiveSubChat(subChatId);
 
       // Clear unseen indicator for this sub-chat
       setSubChatUnseenChanges((prev: Set<string>) => {
         if (prev.has(subChatId)) {
-          const next = new Set(prev)
-          next.delete(subChatId)
-          return next
+          const next = new Set(prev);
+          next.delete(subChatId);
+          return next;
         }
-        return prev
-      })
+        return prev;
+      });
     },
     [setSubChatUnseenChanges],
-  )
+  );
 
   const onSwitchFromHistory = useCallback((subChatId: string) => {
-    const state = useAgentSubChatStore.getState()
-    const isAlreadyOpen = state.openSubChatIds.includes(subChatId)
+    const state = useAgentSubChatStore.getState();
+    const isAlreadyOpen = state.openSubChatIds.includes(subChatId);
 
     if (!isAlreadyOpen) {
-      state.addToOpenSubChats(subChatId)
+      state.addToOpenSubChats(subChatId);
     }
-    state.setActiveSubChat(subChatId)
-  }, [])
+    state.setActiveSubChat(subChatId);
+  }, []);
 
   const onCloseTab = useCallback((subChatId: string) => {
-    useAgentSubChatStore.getState().removeFromOpenSubChats(subChatId)
-  }, [])
+    useAgentSubChatStore.getState().removeFromOpenSubChats(subChatId);
+  }, []);
 
   const onCloseOtherTabs = useCallback((subChatId: string) => {
-    const state = useAgentSubChatStore.getState()
-    const idsToClose = state.openSubChatIds.filter((id) => id !== subChatId)
-    idsToClose.forEach((id) => state.removeFromOpenSubChats(id))
-    state.setActiveSubChat(subChatId)
-  }, [])
+    const state = useAgentSubChatStore.getState();
+    const idsToClose = state.openSubChatIds.filter((id) => id !== subChatId);
+    idsToClose.forEach((id) => state.removeFromOpenSubChats(id));
+    state.setActiveSubChat(subChatId);
+  }, []);
 
   const onCloseTabsToRight = useCallback(
     (subChatId: string, visualIndex: number) => {
-      const state = useAgentSubChatStore.getState()
+      const state = useAgentSubChatStore.getState();
 
       // Use visual order from sorted openSubChats, not storage order
-      const idsToClose = openSubChats.slice(visualIndex + 1).map((sc) => sc.id)
-      idsToClose.forEach((id) => state.removeFromOpenSubChats(id))
+      const idsToClose = openSubChats.slice(visualIndex + 1).map((sc) => sc.id);
+      idsToClose.forEach((id) => state.removeFromOpenSubChats(id));
     },
     [openSubChats],
-  )
+  );
 
-  const [editingSubChatId, setEditingSubChatId] = useState<string | null>(null)
-  const [editName, setEditName] = useState("")
-  const [editLoading, setEditLoading] = useState(false)
+  const [editingSubChatId, setEditingSubChatId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
 
   const renameMutation = trpc.chats.renameSubChat.useMutation({
     onSuccess: (_, variables) => {
       // Update local store
       useAgentSubChatStore
         .getState()
-        .updateSubChatName(variables.id, variables.name)
+        .updateSubChatName(variables.id, variables.name);
     },
     onError: (error) => {
       // Show helpful error message (like Canvas)
       if (error.data?.code === "NOT_FOUND") {
-        toast.error("Send a message first before renaming this chat")
+        toast.error("Send a message first before renaming this chat");
       } else {
-        toast.error("Failed to rename chat")
+        toast.error("Failed to rename chat");
       }
     },
-  })
+  });
 
   const handleRenameClick = useCallback((subChat: SubChatMeta) => {
     // Allow rename attempt, will show toast if not in DB yet (like Canvas)
-    setEditingSubChatId(subChat.id)
-    setEditName(subChat.name || "")
-  }, [])
+    setEditingSubChatId(subChat.id);
+    setEditName(subChat.name || "");
+  }, []);
 
   const handleEditSave = useCallback(
     async (subChat: SubChatMeta) => {
-      const trimmedName = editName.trim()
+      const trimmedName = editName.trim();
 
       // If name hasn't changed, just exit editing mode
       if (trimmedName === subChat.name) {
-        setEditingSubChatId(null)
-        return
+        setEditingSubChatId(null);
+        return;
       }
 
       if (!trimmedName) {
         // Reset to original name if empty
-        setEditName(subChat.name || "")
-        setEditingSubChatId(null)
-        return
+        setEditName(subChat.name || "");
+        setEditingSubChatId(null);
+        return;
       }
 
       // Store old name for revert on error (like Canvas)
-      const oldName = subChat.name
+      const oldName = subChat.name;
 
       // Optimistic update
-      useAgentSubChatStore.getState().updateSubChatName(subChat.id, trimmedName)
+      useAgentSubChatStore
+        .getState()
+        .updateSubChatName(subChat.id, trimmedName);
 
-      setEditLoading(true)
-      setEditingSubChatId(null)
-      setEditName("")
+      setEditLoading(true);
+      setEditingSubChatId(null);
+      setEditName("");
 
       try {
         await renameMutation.mutateAsync({
           id: subChat.id,
           name: trimmedName,
-        })
+        });
       } catch {
         // Revert on error (like Canvas)
         useAgentSubChatStore
           .getState()
-          .updateSubChatName(subChat.id, oldName || "New Chat")
+          .updateSubChatName(subChat.id, oldName || "New Chat");
       } finally {
-        setEditLoading(false)
+        setEditLoading(false);
       }
     },
     [editName, renameMutation],
-  )
+  );
 
   const handleEditCancel = useCallback((subChat: SubChatMeta) => {
-    setEditName(subChat.name || "")
-    setEditingSubChatId(null)
-  }, [])
+    setEditName(subChat.name || "");
+    setEditingSubChatId(null);
+  }, []);
 
   const handleSelectFromHistory = useCallback(
     (subChat: SubChatMeta) => {
-      onSwitchFromHistory(subChat.id)
+      onSwitchFromHistory(subChat.id);
     },
     [onSwitchFromHistory],
-  )
+  );
 
   // Hotkey: / to open history popover when sidebar is closed (tabs mode)
   useEffect(() => {
     const handleHistoryHotkey = (e: KeyboardEvent) => {
       // Only in tabs mode (sidebar closed)
-      if (subChatsSidebarMode !== "tabs") return
+      if (subChatsSidebarMode !== "tabs") return;
 
       if (
         e.key === "/" &&
@@ -479,155 +531,162 @@ export function SubChatSelector({
         !e.shiftKey
       ) {
         // Don't trigger if already focused on an input/textarea
-        const activeEl = document.activeElement
+        const activeEl = document.activeElement;
         if (
           activeEl?.tagName === "INPUT" ||
           activeEl?.tagName === "TEXTAREA" ||
           activeEl?.hasAttribute("contenteditable")
         ) {
-          return
+          return;
         }
 
-        e.preventDefault()
-        e.stopPropagation()
-        searchHistoryPopoverRef.current?.open()
+        e.preventDefault();
+        e.stopPropagation();
+        searchHistoryPopoverRef.current?.open();
       }
-    }
+    };
 
-    window.addEventListener("keydown", handleHistoryHotkey, true)
+    window.addEventListener("keydown", handleHistoryHotkey, true);
     return () =>
-      window.removeEventListener("keydown", handleHistoryHotkey, true)
-  }, [subChatsSidebarMode])
+      window.removeEventListener("keydown", handleHistoryHotkey, true);
+  }, [subChatsSidebarMode]);
 
   // Keyboard shortcut: Cmd+Shift+T / Ctrl+Shift+T for new sub-chat
   // Scroll to active tab when it changes
   useEffect(() => {
-    if (!activeSubChatId || !tabsContainerRef.current) return
+    if (!activeSubChatId || !tabsContainerRef.current) return;
 
-    const container = tabsContainerRef.current
-    const activeTabElement = tabRefs.current.get(activeSubChatId)
+    const container = tabsContainerRef.current;
+    const activeTabElement = tabRefs.current.get(activeSubChatId);
 
     if (activeTabElement) {
       setTimeout(() => {
-        const containerRect = container.getBoundingClientRect()
-        const tabRect = activeTabElement.getBoundingClientRect()
+        const containerRect = container.getBoundingClientRect();
+        const tabRect = activeTabElement.getBoundingClientRect();
 
-        const isTabLeftOfView = tabRect.left < containerRect.left
-        const isTabRightOfView = tabRect.right > containerRect.right
+        const isTabLeftOfView = tabRect.left < containerRect.left;
+        const isTabRightOfView = tabRect.right > containerRect.right;
 
         if (isTabLeftOfView || isTabRightOfView) {
           const tabCenter =
-            activeTabElement.offsetLeft + activeTabElement.offsetWidth / 2
-          const containerCenter = container.offsetWidth / 2
-          const targetScroll = tabCenter - containerCenter
-          const maxScroll = container.scrollWidth - container.offsetWidth
-          const clampedScroll = Math.max(0, Math.min(targetScroll, maxScroll))
+            activeTabElement.offsetLeft + activeTabElement.offsetWidth / 2;
+          const containerCenter = container.offsetWidth / 2;
+          const targetScroll = tabCenter - containerCenter;
+          const maxScroll = container.scrollWidth - container.offsetWidth;
+          const clampedScroll = Math.max(0, Math.min(targetScroll, maxScroll));
 
           container.scrollTo({
             left: clampedScroll,
             behavior: "smooth",
-          })
+          });
         }
-      }, 0)
+      }, 0);
     }
-  }, [activeSubChatId, openSubChats])
+  }, [activeSubChatId, openSubChats]);
 
   // Check if text is truncated for each tab - updates ref and DOM directly
   useEffect(() => {
     const checkTruncation = () => {
-      const newTruncated = new Set<string>()
+      const newTruncated = new Set<string>();
       textRefs.current.forEach((el, subChatId) => {
         if (el && el.scrollWidth > el.clientWidth) {
-          newTruncated.add(subChatId)
+          newTruncated.add(subChatId);
         }
-      })
-      truncatedTabsRef.current = newTruncated
+      });
+      truncatedTabsRef.current = newTruncated;
 
       // Update gradient visibility for each tab via DOM
       tabRefs.current.forEach((tabEl, subChatId) => {
-        const gradientEl = tabEl.querySelector('[data-truncate-gradient]') as HTMLElement
+        const gradientEl = tabEl.querySelector(
+          "[data-truncate-gradient]",
+        ) as HTMLElement;
         if (gradientEl) {
-          gradientEl.style.display = newTruncated.has(subChatId) ? 'block' : 'none'
+          gradientEl.style.display = newTruncated.has(subChatId)
+            ? "block"
+            : "none";
         }
-      })
-    }
+      });
+    };
 
-    checkTruncation()
+    checkTruncation();
 
-    const resizeObserver = new ResizeObserver(() => checkTruncation())
-    textRefs.current.forEach((el) => el && resizeObserver.observe(el))
+    const resizeObserver = new ResizeObserver(() => checkTruncation());
+    textRefs.current.forEach((el) => el && resizeObserver.observe(el));
 
-    return () => resizeObserver.disconnect()
-  }, [openSubChats, activeSubChatId])
+    return () => resizeObserver.disconnect();
+  }, [openSubChats, activeSubChatId]);
 
   // Sort sub-chats by most recent first for history
   const sortedSubChats = useMemo(
     () =>
       [...allSubChats].sort((a, b) => {
-        const aT = new Date(a.updatedAt || a.createdAt || "0").getTime()
-        const bT = new Date(b.updatedAt || b.createdAt || "0").getTime()
-        return bT - aT
+        const aT = new Date(a.updatedAt || a.createdAt || "0").getTime();
+        const bT = new Date(b.updatedAt || b.createdAt || "0").getTime();
+        return bT - aT;
       }),
     [allSubChats],
-  )
+  );
 
-  const hasNoChats = openSubChats.length === 0
-  const hasSingleChat = openSubChats.length === 1
+  const hasNoChats = openSubChats.length === 0;
+  const hasSingleChat = openSubChats.length === 1;
 
   // Check scroll position for gradients - uses direct DOM manipulation
   const checkScrollPosition = useCallback(() => {
-    const container = tabsContainerRef.current
-    if (!container) return
+    const container = tabsContainerRef.current;
+    if (!container) return;
 
-    const { scrollLeft, scrollWidth, clientWidth } = container
-    const isScrollable = scrollWidth > clientWidth
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const isScrollable = scrollWidth > clientWidth;
 
-    const showLeft = isScrollable && scrollLeft > 0
-    const showRight = isScrollable && scrollLeft < scrollWidth - clientWidth - 1
+    const showLeft = isScrollable && scrollLeft > 0;
+    const showRight =
+      isScrollable && scrollLeft < scrollWidth - clientWidth - 1;
 
     if (leftGradientRef.current) {
-      leftGradientRef.current.style.display = showLeft ? "block" : "none"
+      leftGradientRef.current.style.display = showLeft ? "block" : "none";
     }
     if (rightGradientRef.current) {
-      rightGradientRef.current.style.display = showRight ? "block" : "none"
+      rightGradientRef.current.style.display = showRight ? "block" : "none";
     }
-  }, [])
+  }, []);
 
   // Update gradients on scroll
   useEffect(() => {
-    const container = tabsContainerRef.current
-    if (!container) return
+    const container = tabsContainerRef.current;
+    if (!container) return;
 
-    checkScrollPosition()
+    checkScrollPosition();
 
-    container.addEventListener("scroll", checkScrollPosition, { passive: true })
-    return () => container.removeEventListener("scroll", checkScrollPosition)
-  }, [checkScrollPosition])
+    container.addEventListener("scroll", checkScrollPosition, {
+      passive: true,
+    });
+    return () => container.removeEventListener("scroll", checkScrollPosition);
+  }, [checkScrollPosition]);
 
   // Update gradients when tabs change
   useEffect(() => {
-    checkScrollPosition()
-  }, [openSubChats, checkScrollPosition])
+    checkScrollPosition();
+  }, [openSubChats, checkScrollPosition]);
 
   // Update gradients on window resize
   useEffect(() => {
-    const handleResize = () => checkScrollPosition()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [checkScrollPosition])
+    const handleResize = () => checkScrollPosition();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [checkScrollPosition]);
 
   // Cleanup refs for closed tabs to prevent memory leaks
   useEffect(() => {
-    const openIds = new Set(openSubChatIds)
+    const openIds = new Set(openSubChatIds);
 
     // Remove refs for tabs that are no longer open
     tabRefs.current.forEach((_, id) => {
       if (!openIds.has(id)) {
-        tabRefs.current.delete(id)
-        textRefs.current.delete(id)
+        tabRefs.current.delete(id);
+        textRefs.current.delete(id);
       }
-    })
-  }, [openSubChatIds])
+    });
+  }, [openSubChatIds]);
 
   return (
     <div
@@ -696,27 +755,30 @@ export function SubChatSelector({
           className={cn(
             "flex items-center px-1 py-1 -my-1 gap-1 flex-1 min-w-0 overflow-x-auto scrollbar-hide pr-12",
             // Hide tabs when sidebar is open (desktop) or when only one chat exists
-            (subChatsSidebarMode === "sidebar" && !isMobile) && "hidden",
+            subChatsSidebarMode === "sidebar" && !isMobile && "hidden",
             hasSingleChat && "invisible",
           )}
         >
           {hasNoChats
             ? null
             : openSubChats.map((subChat, index) => {
-                const isActive = activeSubChatId === subChat.id
-                const isInSplitPair = splitPaneIdSet.has(subChat.id)
-                const hasSplitPrev = index > 0 && splitPaneIdSet.has(openSubChats[index - 1]?.id)
-                const hasSplitNext = index < openSubChats.length - 1 && splitPaneIdSet.has(openSubChats[index + 1]?.id)
-                const isLoading = loadingSubChats.has(subChat.id)
-                const hasUnseen = subChatUnseenChanges.has(subChat.id)
-                const hasTabsToRight = index < openSubChats.length - 1
-                const isPinned = pinnedSubChatIds.includes(subChat.id)
+                const isActive = activeSubChatId === subChat.id;
+                const isInSplitPair = splitPaneIdSet.has(subChat.id);
+                const hasSplitPrev =
+                  index > 0 && splitPaneIdSet.has(openSubChats[index - 1]?.id);
+                const hasSplitNext =
+                  index < openSubChats.length - 1 &&
+                  splitPaneIdSet.has(openSubChats[index + 1]?.id);
+                const isLoading = loadingSubChats.has(subChat.id);
+                const hasUnseen = subChatUnseenChanges.has(subChat.id);
+                const hasTabsToRight = index < openSubChats.length - 1;
+                const isPinned = pinnedSubChatIds.includes(subChat.id);
                 // Get mode from sub-chat itself (defaults to "agent")
-                const mode = subChat.mode || "agent"
+                const mode = subChat.mode || "agent";
                 // Check if this chat is waiting for user answer
-                const hasPendingQuestion = pendingQuestionsMap.has(subChat.id)
+                const hasPendingQuestion = pendingQuestionsMap.has(subChat.id);
                 // Check if this chat has a pending plan approval
-                const hasPendingPlan = pendingPlanApprovals.has(subChat.id)
+                const hasPendingPlan = pendingPlanApprovals.has(subChat.id);
 
                 return (
                   <ContextMenu key={subChat.id}>
@@ -724,38 +786,38 @@ export function SubChatSelector({
                       <button
                         ref={(el) => {
                           if (el) {
-                            tabRefs.current.set(subChat.id, el)
+                            tabRefs.current.set(subChat.id, el);
                           } else {
-                            tabRefs.current.delete(subChat.id)
+                            tabRefs.current.delete(subChat.id);
                           }
                         }}
                         onClick={(e) => {
-                          e.stopPropagation()
-                          e.preventDefault()
+                          e.stopPropagation();
+                          e.preventDefault();
                           if (editingSubChatId !== subChat.id) {
-                            onSwitch(subChat.id)
+                            onSwitch(subChat.id);
                           }
                         }}
                         onMouseDown={(e) => {
                           // Middle-click to close tab (like Chrome)
                           if (e.button === 1 && openSubChats.length > 1) {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            onCloseTab(subChat.id)
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onCloseTab(subChat.id);
                           }
                         }}
                         onAuxClick={(e) => {
                           // Prevent context menu on middle-click
                           if (e.button === 1) {
-                            e.preventDefault()
-                            e.stopPropagation()
+                            e.preventDefault();
+                            e.stopPropagation();
                           }
                         }}
                         onDoubleClick={(e) => {
-                          e.stopPropagation()
-                          e.preventDefault()
+                          e.stopPropagation();
+                          e.preventDefault();
                           if (editingSubChatId !== subChat.id) {
-                            handleRenameClick(subChat)
+                            handleRenameClick(subChat);
                           }
                         }}
                         className={cn(
@@ -768,8 +830,12 @@ export function SubChatSelector({
                             ? "bg-muted text-foreground max-w-[180px]"
                             : "hover:bg-muted/80 max-w-[150px]",
                           isInSplitPair && "border border-border/60",
-                          isInSplitPair && !isActive && "bg-muted/40 hover:bg-muted/60",
-                          isInSplitPair && hasSplitPrev && "-ml-1 rounded-l-none",
+                          isInSplitPair &&
+                            !isActive &&
+                            "bg-muted/40 hover:bg-muted/60",
+                          isInSplitPair &&
+                            hasSplitPrev &&
+                            "-ml-1 rounded-l-none",
                           isInSplitPair && hasSplitNext && "rounded-r-none",
                         )}
                       >
@@ -826,9 +892,9 @@ export function SubChatSelector({
                           <span
                             ref={(el) => {
                               if (el) {
-                                textRefs.current.set(subChat.id, el)
+                                textRefs.current.set(subChat.id, el);
                               } else {
-                                textRefs.current.delete(subChat.id)
+                                textRefs.current.delete(subChat.id);
                               }
                             }}
                             className="relative z-0 text-left flex-1 min-w-0 pr-1 overflow-hidden block whitespace-nowrap"
@@ -847,7 +913,11 @@ export function SubChatSelector({
                                 ? "bg-linear-to-l from-muted to-transparent"
                                 : "bg-linear-to-l from-background to-transparent",
                             )}
-                            style={{ display: truncatedTabsRef.current.has(subChat.id) ? "block" : "none" }}
+                            style={{
+                              display: truncatedTabsRef.current.has(subChat.id)
+                                ? "block"
+                                : "none",
+                            }}
                           />
                         )}
 
@@ -867,8 +937,8 @@ export function SubChatSelector({
                                 role="button"
                                 tabIndex={-1}
                                 onClick={(e) => {
-                                  e.stopPropagation()
-                                  onCloseTab(subChat.id)
+                                  e.stopPropagation();
+                                  onCloseTab(subChat.id);
                                 }}
                                 className="relative z-20 hover:text-foreground rounded p-0.5 transition-[color,transform] duration-150 ease-out active:scale-[0.97] cursor-pointer"
                                 title={
@@ -907,7 +977,7 @@ export function SubChatSelector({
                       isSplitTab={isInSplitPair}
                     />
                   </ContextMenu>
-                )
+                );
               })}
         </div>
 
@@ -991,33 +1061,36 @@ export function SubChatSelector({
       )}
 
       {/* Terminal button - visible on desktop when unified sidebar is disabled OR terminal widget is hidden, and terminal is not already open */}
-      {!isMobile && canOpenTerminal && showTerminalButton && !isTerminalOpen && (
-        <div
-          className="rounded-md bg-background/10 backdrop-blur-[10px] flex items-center justify-center"
-          style={{
-            // @ts-expect-error - WebKit-specific property
-            WebkitAppRegion: "no-drag",
-          }}
-        >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onOpenTerminal?.()}
-                className="h-6 w-6 p-0 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md flex items-center justify-center hover:bg-foreground/10"
-              >
-                <TerminalSquare className="h-4 w-4" />
-                <span className="sr-only">Open terminal</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <span>Open terminal</span>
-              {toggleTerminalHotkey && <Kbd>{toggleTerminalHotkey}</Kbd>}
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      )}
+      {!isMobile &&
+        canOpenTerminal &&
+        showTerminalButton &&
+        !isTerminalOpen && (
+          <div
+            className="rounded-md bg-background/10 backdrop-blur-[10px] flex items-center justify-center"
+            style={{
+              // @ts-expect-error - WebKit-specific property
+              WebkitAppRegion: "no-drag",
+            }}
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onOpenTerminal?.()}
+                  className="h-6 w-6 p-0 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md flex items-center justify-center hover:bg-foreground/10"
+                >
+                  <TerminalSquare className="h-4 w-4" />
+                  <span className="sr-only">Open terminal</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <span>Open terminal</span>
+                {toggleTerminalHotkey && <Kbd>{toggleTerminalHotkey}</Kbd>}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
 
       {/* Diff button - only on mobile when diff is available */}
       {isMobile && onOpenDiff && canOpenDiff && (
@@ -1060,7 +1133,6 @@ export function SubChatSelector({
           </Button>
         </div>
       )}
-
     </div>
-  )
+  );
 }

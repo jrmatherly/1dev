@@ -188,9 +188,7 @@ const GitHubAvatar = React.memo(function GitHubAvatar({
 
   if (hasError) {
     return (
-      <GitHubLogo
-        className={cn(className, "text-muted-foreground shrink-0")}
-      />
+      <GitHubLogo className={cn(className, "text-muted-foreground shrink-0")} />
     );
   }
 
@@ -740,9 +738,7 @@ const AgentChatItem = React.memo(function AgentChatItem({
               </div>
               <div className="flex items-center gap-1 text-[11px] text-muted-foreground/60 min-w-0">
                 {/* Cloud icon for remote chats */}
-                {isRemote && (
-                  <CloudIcon className="h-2.5 w-2.5 shrink-0" />
-                )}
+                {isRemote && <CloudIcon className="h-2.5 w-2.5 shrink-0" />}
                 <span className="truncate flex-1 min-w-0">{displayText}</span>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {stats && (stats.additions > 0 || stats.deletions > 0) && (

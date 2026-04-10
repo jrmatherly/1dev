@@ -132,7 +132,9 @@ const SidebarSearchHistoryPopover = memo(function SidebarSearchHistoryPopover({
 
   const renderItem = useCallback(
     (subChat: SubChatMeta) => {
-      const timeAgo = formatTimeAgo(subChat.updatedAt || subChat.createdAt || undefined);
+      const timeAgo = formatTimeAgo(
+        subChat.updatedAt || subChat.createdAt || undefined,
+      );
       const isLoading = loadingSubChats.has(subChat.id);
       const hasUnseen = subChatUnseenChanges.has(subChat.id);
       const mode = subChat.mode || "agent";
