@@ -18,8 +18,15 @@ const mockDb = {
   ),
 };
 
+// Mock db/connection.js — Bun's mock.module is process-global, so any symbol
+// imported elsewhere must be re-exported here. Integration tests in
+// tests/integration/ import all 5 functions from this module.
 mock.module("../src/db/connection.js", () => ({
   getDb: () => mockDb,
+  connectDatabase: async () => undefined,
+  closeDatabase: async () => undefined,
+  runMigrations: async () => undefined,
+  isDatabaseHealthy: async () => true,
 }));
 
 // Mock drizzle-orm operators used across the whole service.

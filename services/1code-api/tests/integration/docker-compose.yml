@@ -1,0 +1,87 @@
+# Ephemeral test harness for `add-1code-api-litellm-provisioning` integration tests.
+#
+# Spins up a throwaway Postgres + LiteLLM for tasks 8.10-8.12. Uses distinct
+# ports (55432 for Postgres, 54000 for LiteLLM) so local developers can run
+# the real 1code-api service and this harness simultaneously without
+# collision.
+#
+# Lifecycle:
+#   ./run.sh              — start, run tests, tear down
+#   docker compose up -d  — manual start (for debugging)
+#   docker compose down -v — manual teardown (removes volumes)
+#
+# Why LiteLLM at all: the provisioning service calls /team/new, /user/new,
+# /team/member_add, /key/generate, /key/delete. The unit tests mock fetch,
+# but the integration tests exercise the REAL LiteLLM admin API so we catch
+# wire-format drift. LiteLLM accepts any valid config.yaml and will serve
+# its admin endpoints even if the configured models never actually answer
+# chat completions (we don't care — we're testing provisioning, not
+# inference).
+
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: 1code-api-test-db
+    restart: "no"
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: onecode_api_test
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d onecode_api_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  litellm-db:
+    image: postgres:18-alpine
+    container_name: 1code-api-test-litellm-db
+    restart: "no"
+    environment:
+      POSTGRES_USER: litellm
+      POSTGRES_PASSWORD: litellm
+      POSTGRES_DB: litellm
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.82.3-stable.patch.2
+    container_name: 1code-api-test-litellm
+    restart: "no"
+    depends_on:
+      litellm-db:
+        condition: service_healthy
+    ports:
+      - "54000:4000"
+    environment:
+      LITELLM_MASTER_KEY: "sk-test-master-integration"
+      LITELLM_SALT_KEY: "sk-test-salt-integration"
+      DATABASE_URL: "postgresql://litellm:litellm@litellm-db:5432/litellm"
+      STORE_MODEL_IN_DB: "True"
+      # A "fake" provider that LiteLLM knows about but never actually hits
+      # externally — we only care that /team/new, /user/new, /key/generate
+      # accept our writes and persist them. The fake provider keeps
+      # LiteLLM's model-loading path happy without requiring real API keys.
+      OPENAI_API_KEY: "sk-test-fake-will-never-be-called"
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:4000/health/liveliness', timeout=2)",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s

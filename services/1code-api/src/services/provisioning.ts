@@ -85,7 +85,7 @@ export async function getProvisionStatus(
   if (!user) return null;
 
   const memberships = await db
-    .select({ teamId: userTeamMemberships.teamId, teamAlias: userTeamMemberships.teamAlias })
+    .select({ team_id: userTeamMemberships.teamId, team_alias: userTeamMemberships.teamAlias })
     .from(userTeamMemberships)
     .where(eq(userTeamMemberships.userId, user.id));
 

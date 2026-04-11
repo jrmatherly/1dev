@@ -67,9 +67,9 @@
 - [x] 8.7 Create `services/1code-api/tests/services/rotation.test.ts` — expired key rotated with `rotatedFromId` link, LiteLLM delete failure logged but proceeds
 - [x] 8.8 Create `services/1code-api/tests/routes/provision.test.ts` — feature flag off returns 503, happy path end-to-end
 - [x] 8.9 Create `services/1code-api/tests/routes/keys.test.ts` — feature flag off returns 503, ownership enforcement, rate limiting (smoke only)
-- [ ] 8.10 Create `services/1code-api/tests/integration/provision-flow.test.ts` — docker-compose with Postgres + LiteLLM, real end-to-end provision flow
-- [ ] 8.11 Create `services/1code-api/tests/integration/deprovisioning-flow.test.ts` — seed → group removal → manual cron run → verify state
-- [ ] 8.12 Create `services/1code-api/tests/integration/rotation-flow.test.ts` — seed expired key → manual cron run → verify new key + DB link
+- [x] 8.10 Create `services/1code-api/tests/integration/provision-flow.test.ts` — docker-compose with Postgres + LiteLLM, real end-to-end provision flow
+- [x] 8.11 Create `services/1code-api/tests/integration/deprovisioning-flow.test.ts` — seed → group removal → manual cron run → verify state
+- [x] 8.12 Create `services/1code-api/tests/integration/rotation-flow.test.ts` — seed expired key → manual cron run → verify new key + DB link
 
 ## 9. Deployment manifests
 

@@ -1,0 +1,21 @@
+# Minimal LiteLLM config for the integration test harness.
+#
+# LiteLLM needs at least one `model_list` entry to start. We register a
+# single fake model that points at the fake OPENAI_API_KEY — the integration
+# tests never actually exercise chat completions, only the admin endpoints
+# (/team/new, /user/new, /team/member_add, /key/generate, /key/delete,
+# /team/info, /user/info, /health).
+#
+# DO NOT reuse this config in production. The master_key and all model
+# credentials are fake values for integration testing only.
+
+model_list:
+  - model_name: fake-gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+
+general_settings:
+  master_key: "sk-test-master-integration"
+  database_url: "postgresql://litellm:litellm@litellm-db:5432/litellm"
+  store_model_in_db: true
