@@ -1,0 +1,107 @@
+---
+# DRAFT — Envoy Gateway SecurityPolicy for 1code-api
+#
+# Status: REVIEW ONLY. This file is NOT listed in kustomization.yaml and
+# therefore NOT reconciled by Flux. Promote to production by:
+#   1. Reviewing with the cluster operator (see cluster-agent prompt in
+#      the CodeQL remediation session log for 2026-04-11).
+#   2. Renaming to `securitypolicy.yaml` (drop the `.draft` suffix).
+#   3. Adding `./securitypolicy.yaml` to `kustomization.yaml` resources.
+#   4. Committing and pushing — Flux will reconcile on the next sync.
+#
+# Why a SECOND SecurityPolicy instead of extending the existing one?
+# ------------------------------------------------------------------
+# The existing `envoy-auth-policy/app/securitypolicy.yaml` targets the
+# LiteLLM HTTPRoute and mixes JWT + OIDC:
+#   - `jwt.optional: true`  ← load-bearing for browser OIDC fallback
+#   - `oidc.*`              ← browser admin UI flow (LiteLLM UI)
+#
+# 1code-api has NO browser UI. It is a pure API consumed exclusively by
+# the 1Code desktop app via `Authorization: Bearer <token>`. Extending
+# the existing SecurityPolicy's `targetRefs` would broaden the OIDC
+# redirect to 1code-api too, meaning unauthenticated requests would get
+# a 302 to login.microsoftonline.com instead of a 401 — breaking the
+# desktop client's error handling and creating a confusing UX.
+#
+# This second SecurityPolicy:
+#   - Has NO `oidc:` block (no browser redirect).
+#   - Sets `jwt.optional: false` so unauthenticated requests get 401.
+#   - Uses the same Entra issuer/audience/claimToHeaders as the
+#     LiteLLM policy (single source of truth for the Entra tenant).
+#
+# The `claimToHeaders` mapping is IDENTICAL to the LiteLLM policy so
+# that src/auth.ts:extractUser() sees the same `x-user-*` shape
+# regardless of which HTTPRoute the traffic came through.
+#
+# What this fixes
+# ---------------
+# Before this policy is applied, the 1code-api HTTPRoute accepts any
+# `x-user-oid`/`x-user-email`/`x-user-name` header from an external
+# client. The CiliumNetworkPolicy prevents direct pod-to-pod bypass,
+# but any client reaching Envoy can currently spoof the claim headers
+# because nothing validates the JWT or strips the headers on ingress.
+# Closing this gap is a blocking prerequisite for flipping
+# `PROVISIONING_ENABLED=true` in production.
+#
+# References
+# ----------
+# - docs/enterprise/auth-strategy.md §3.1 (cluster lock-down)
+# - docs/operations/roadmap.md "Extend Envoy SecurityPolicy to cover
+#   `1code-api` HTTPRoute" (added 2026-04-11)
+# - CodeQL alert #28 js/request-forgery remediation commit 9dd468a
+# - Envoy Gateway SecurityPolicy reference:
+#   https://gateway.envoyproxy.io/docs/api/extension_types/#securitypolicy
+#
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: 1code-api-jwt-auth
+  # The SecurityPolicy must live in the same namespace as the HTTPRoute
+  # it targets. 1code-api's HTTPRoute is in the namespace where this
+  # Kustomization is applied (see ks.yaml for the target namespace).
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: 1code-api
+  jwt:
+    # `optional: false` rejects unauthenticated requests with 401.
+    # Unlike the LiteLLM policy, there is no OIDC redirect fallback
+    # path here — the desktop client always sends a Bearer token, so
+    # any unauthenticated request is genuinely a client error.
+    optional: false
+    providers:
+      - name: entra-id
+        issuer: "${ENTRA_ISSUER_URL}"
+        audiences:
+          - "${ENTRA_CLIENT_ID}"
+        remoteJWKS:
+          uri: "https://login.microsoftonline.com/${ENTRA_TENANT_ID}/discovery/v2.0/keys"
+          cacheDuration: 300s
+        # `claimToHeaders` maps validated JWT claims into request
+        # headers that Envoy injects into the upstream request.
+        # `extractUser()` in services/1code-api/src/auth.ts reads
+        # x-user-oid, x-user-email, and x-user-name — those three are
+        # required. x-user-tid and x-user-azp are included for future
+        # tenant-scoping logic (see auth-strategy.md).
+        #
+        # IMPORTANT: Envoy Gateway's `claimToHeaders` REPLACES any
+        # existing header with the same name, so an attacker cannot
+        # bypass validation by sending their own x-user-oid header —
+        # the injected claim always wins. This is the mechanism that
+        # closes CodeQL alert #28 at the ingress layer.
+        claimToHeaders:
+          - header: x-user-oid
+            claim: oid
+          - header: x-user-tid
+            claim: tid
+          - header: x-user-azp
+            claim: azp
+          - header: x-user-name
+            claim: name
+          - header: x-user-email
+            claim: email
+        extractFrom:
+          headers:
+            - name: Authorization
+              valuePrefix: "Bearer "

@@ -31,6 +31,14 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ## P1 -- High Priority
 
+### [Ready] Extend Envoy SecurityPolicy to cover `1code-api` HTTPRoute
+
+**Added:** 2026-04-11 (discovered during CodeQL alert #28 remediation analysis)
+**Scope:** The existing `SecurityPolicy/entra-oidc-jwt-auth` in `deploy/kubernetes/envoy-auth-policy/app/securitypolicy.yaml` targets **only** the `litellm` HTTPRoute (`targetRefs[0].name: litellm`). The `1code-api` HTTPRoute at `deploy/kubernetes/1code-api/app/httproute.yaml` has **no** JWT validation and **no** `RequestHeaderModifier` filter to strip `x-user-*` headers from ingress. The service's `auth.ts:extractUser()` trusts `x-user-oid`/`x-user-email`/`x-user-name` headers unconditionally ("trust-the-edge" pattern) — which means any external client reaching the HTTPRoute could spoof the headers if Envoy doesn't validate them first. Two safe remediations: (a) extend `targetRefs` in the existing SecurityPolicy to include the `1code-api` HTTPRoute so the same JWT validation and `claimToHeaders` mapping apply (preferred — single source of truth), or (b) add a `RequestHeaderModifier` filter on the 1code-api HTTPRoute that removes `x-user-*` from ingress (defence-in-depth, but doesn't actually authenticate the caller). Currently mitigated in layers by: `CiliumNetworkPolicy` locking ingress to Envoy pods, `PROVISIONING_ENABLED=false` keeping the routes inactive, and the UUID-format validation added to `getUserGroups()` in commit `9dd468a` as defense-in-depth. **Blocks flipping `PROVISIONING_ENABLED=true` in production.**
+**Effort:** Small (SecurityPolicy edit + smoke test)
+**Prereqs:** Cluster access to `/Users/jason/dev/ai-k8s/talos-ai-cluster/`, ability to verify SecurityPolicy `targetRefs` binding in a running Envoy Gateway
+**Canonical reference:** `docs/enterprise/auth-strategy.md` §3.1 (cluster lock-down prerequisite), `deploy/kubernetes/envoy-auth-policy/app/securitypolicy.yaml` (current SecurityPolicy), `deploy/kubernetes/1code-api/app/httproute.yaml` (target HTTPRoute), CodeQL alert #28 remediation commit `9dd468a`
+
 ### [Ready] F2 -- Automations & Inbox restoration
 
 **Added:** 2026-04-09
