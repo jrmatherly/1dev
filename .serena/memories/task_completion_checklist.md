@@ -3,7 +3,7 @@
 ## Required — All Quality Gates
 1. `bun run ts:check` — baseline 32 errors (`.claude/.tscheck-baseline`, improved from 80 → 63 → 54 → 45 → 38 → 34 → 32 via successive SonarLint remediation + Cluster A + Cluster C + sidebar sweep + 4-file targeted fixes + SettingsTab/McpServerStatus narrowing 2026-04-10), only fail if count increases
 2. `bun run build` — electron-vite build
-3. `bun test` — 14 regression guards + 5 service tests = 75 tests across 19 files
+3. `bun test` — 15 regression guards + service tests in `services/1code-api/tests/` = 162 tests across 31 files
 4. `bun audit` — focus on NEW advisories only
 5. CI also runs `cd docs && bun run build` — recommended locally too
 

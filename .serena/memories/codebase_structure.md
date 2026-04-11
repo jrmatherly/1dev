@@ -11,7 +11,7 @@ openspec/      — OpenSpec change proposals + 11 capability specs
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
 tests/regression/ — 14 bun:test regression guards, 58 tests
 drizzle/       — 9 database migration files
-services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). Phase 1: health, changelog, plan, profile endpoints. 17 tests.
+services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). Phase 1 baseline (health, changelog, plan, profile) + LiteLLM provisioning subsystem behind PROVISIONING_ENABLED feature flag (user/team/key lifecycle, deprovisioning + rotation crons, audit log). 103 tests across 16 files.
 .github/workflows/container-build.yml — Container build: multi-arch (amd64+arm64), GHCR push, Cosign signing, SLSA provenance
 ```
 
@@ -38,12 +38,12 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). P
 - `operations/roadmap.md` — **Single source of truth** for outstanding work
 - Build: `cd docs && bun run build` (cleans .xyd/ artifacts first)
 
-## OpenSpec Specs (10 capabilities, 53 requirements)
+## OpenSpec Specs (11 capabilities, 59 requirements)
 brand-identity, feature-flags, claude-code-auth-import, documentation-site,
 credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime, self-hosted-api
 
 ## Active OpenSpec Changes (3)
-upgrade-vite-8-build-stack (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable), upgrade-electron-41 (26/27, ready to archive), add-1code-api-litellm-provisioning (0/77, scaffolded 2026-04-10 — replicates Apollos provisioning inside 1code-api, enables Apollos portal decommission)
+upgrade-vite-8-build-stack (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable), upgrade-electron-41 (26/27, ready to archive), add-1code-api-litellm-provisioning (67/77 as of 2026-04-11 — Phases 1-10 complete: DB schema, config, core libs, service layer, Zod schemas, routes, K8s manifests, single-replica regression guard, docs. Remaining: 8.10-8.12 integration tests + 12.1-12.7 cluster repo operator tasks)
 (implement-1code-api, upgrade-typescript-6, upgrade-tailwind-4, upgrade-shiki-4 all archived 2026-04-10)
 
 ## IDE Configuration

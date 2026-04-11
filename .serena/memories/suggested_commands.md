@@ -9,7 +9,7 @@
 - `bun run ts:check` — TypeScript check via tsgo (baseline: 32 errors, see `.claude/.tscheck-baseline`)
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — Full electron-vite build
-- `bun test` — 14 regression guards + 5 service test files = 75 tests (~2.5s)
+- `bun test` — 15 regression guards + service tests in `services/1code-api/tests/` = 162 tests across 31 files (~6s)
 - `bun audit` — Dependency vulnerability scan
 - `cd docs && bun run build` — Docs site build (also a CI gate)
 - Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md)

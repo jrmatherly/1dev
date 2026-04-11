@@ -3,7 +3,7 @@
 ## Quality Gates — ALL REQUIRED
 - `bun run ts:check` — tsgo (baseline: 32 errors in `.claude/.tscheck-baseline`, reduced from 54 via Cluster A + Cluster C + sidebar dead-code sweep + 4-file targeted fixes + SettingsTab/McpServerStatus literal-union narrowing 2026-04-10)
 - `bun run build` — electron-vite 5 build
-- `bun test` — 14 regression guards + 5 service test files = 75 tests, ~2.5s
+- `bun test` — 15 regression guards + service tests in `services/1code-api/tests/` = 162 tests across 31 files, ~6s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
 
