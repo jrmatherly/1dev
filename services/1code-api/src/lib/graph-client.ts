@@ -16,6 +16,14 @@ export interface GraphClientConfig {
 }
 
 /**
+ * Entra/AAD Object IDs are UUIDs. Anchored match prevents path-traversal
+ * payloads like "me/messages?$filter=..." from being interpolated into
+ * the Graph API URL. See `getUserGroups()` for the load-bearing rationale.
+ */
+const OID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
  * Thin wrapper around the Microsoft Graph API for reading Entra group
  * membership. Uses MSAL ConfidentialClientApplication (client credentials
  * flow) with an in-memory token cache that expires 60 seconds before the
@@ -70,8 +78,23 @@ export class GraphClient {
    * Return all Entra security group Object IDs the user is a (direct or
    * transitive) member of. Follows `@odata.nextLink` pagination so large
    * group sets are fully resolved.
+   *
+   * The `oid` is validated as a UUID before being interpolated into the
+   * Graph API URL. This is defense-in-depth: in production the value comes
+   * from Envoy Gateway's `claimToHeaders` after JWT validation, but we
+   * validate at the module boundary to:
+   *   (1) close CodeQL `js/request-forgery` (CWE-918) without a dismissal,
+   *   (2) act as a runtime tripwire if the gateway config ever regresses,
+   *   (3) reject path-traversal payloads (e.g. `me/messages?$filter=...`)
+   *       that would otherwise pivot the request to a different endpoint.
    */
   async getUserGroups(oid: string): Promise<string[]> {
+    if (!OID_PATTERN.test(oid)) {
+      throw new Error(
+        `graph-client: invalid oid format (expected UUID, got ${oid.length}-char value starting with "${oid.slice(0, 8)}")`,
+      );
+    }
+
     const token = await this.getAccessToken();
     const groupIds: string[] = [];
 
