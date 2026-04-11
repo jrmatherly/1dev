@@ -1,6 +1,6 @@
 ---
 name: project-orchestrator
-description: Project-native orchestrator for the 1Code enterprise fork. Use this skill IMMEDIATELY whenever a task touches auth / credentials / tokens / env vars / LiteLLM config / upstream boundary (`src/renderer/` calls to `remoteTrpc.*` or `fetch(${apiUrl})`) / OpenSpec workflow / Phase 0 gates / version-pin bumps / `.claude/.tscheck-baseline` / credential-store.ts — the Step 0 hard-rule gate catches dead-end routes before they start. Also use when the task is ambiguous or multi-step, when you're unsure which skill/subagent/MCP to use, when the user mentions "orchestrate", "coordinate", "plan this work", "what's the right approach", "who handles X", "where do I start", "route this task", "what's already done vs. pending", or when the task could intersect with an active OpenSpec change (`upgrade-vite-8-build-stack`, `replace-gray-matter-with-front-matter`) that already covers the work. Understands the fork posture, Phase 0 status (15/15 complete), 10 hard rules, 16 project skills, 5 project subagents, 8 available MCPs, and canonical docs under `docs/enterprise/` + `docs/conventions/`.
+description: Project-native orchestrator for the 1Code enterprise fork. Use this skill IMMEDIATELY whenever a task touches auth / credentials / tokens / env vars / LiteLLM config / upstream boundary (`src/renderer/` calls to `remoteTrpc.*` or `fetch(${apiUrl})`) / OpenSpec workflow / Phase 0 gates / version-pin bumps / `.claude/.tscheck-baseline` / credential-store.ts — the Step 0 hard-rule gate catches dead-end routes before they start. Also use when the task is ambiguous or multi-step, when you're unsure which skill/subagent/MCP to use, when the user mentions "orchestrate", "coordinate", "plan this work", "what's the right approach", "who handles X", "where do I start", "route this task", "what's already done vs. pending", or when the task could intersect with an active OpenSpec change (`upgrade-vite-8-build-stack`, `replace-gray-matter-with-front-matter`) that already covers the work. Understands the fork posture, Phase 0 status (15/15 complete), 10 hard rules, 17 project skills (16 routing targets + this orchestrator itself), 5 project subagents, 8 available MCPs, and canonical docs under `docs/enterprise/` + `docs/conventions/`.
 argument-hint: [task description or leave blank for interactive mode]
 ---
 
@@ -161,7 +161,7 @@ Drift is easier to fix in small passes than as a backlog at the next PR review.
 
 ## 2. Inventory — what's available in this repo
 
-### 2.1 Project skills (16 total)
+### 2.1 Project skills (17 total — 16 routing targets + this orchestrator)
 
 **Auto-triggering workflow skills:**
 - `session-sync` — End-of-task drift sync across CLAUDE.md, Serena memories, roadmap, code-review graph
@@ -379,4 +379,4 @@ This skill adds value for ambiguous, multi-step, or constraint-sensitive work. I
 
 ---
 
-**Authorship note**: This skill's design is grounded in an audit of the repo's 16 skills, 5 subagents, 10 behavioral rules, 12 OpenSpec capability specs, and the LiteLLM OSS vs Enterprise briefing from 2026-04-11. The canonical home for the fork's strategy and constraints is `docs/enterprise/`; the canonical home for conventions is `docs/conventions/`; the auto-memory files in `~/.claude/projects/.../memory/MEMORY.md` hold session-persistent rules. This skill is a routing layer on top of those canonical sources — update the sources, not this skill, when the underlying truth changes.
+**Authorship note**: This skill's design is grounded in an audit of the repo's (then) 16 skills — now 17 including this orchestrator — 5 subagents, 10 behavioral rules, 12 OpenSpec capability specs, and the LiteLLM OSS vs Enterprise briefing from 2026-04-11. The canonical home for the fork's strategy and constraints is `docs/enterprise/`; the canonical home for conventions is `docs/conventions/`; the auto-memory files in `~/.claude/projects/.../memory/MEMORY.md` hold session-persistent rules. This skill is a routing layer on top of those canonical sources — update the sources, not this skill, when the underlying truth changes.

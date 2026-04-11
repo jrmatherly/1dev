@@ -7,7 +7,7 @@ docs/          — Canonical xyd-js documentation site (Operations tab has roadm
 deploy/        — K8s Flux v2 manifests: 1code-api, envoy-auth-policy (all ${PLACEHOLDER}). 1code-update-server DELETED (F5 resolved via GitHub Releases).
 openspec/      — OpenSpec change proposals + 12 capability specs (85 requirements)
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
-.claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, session-sync, etc.)
+.claude/skills/ — 17 workflow skills incl. `project-orchestrator` (routing + hard-rule gate, added 2026-04-11), roadmap-tracker, phase-0-progress, docs-drift-check, session-sync, 6 openspec-* skills, new-router, new-regression-guard, release, upstream-boundary-check, verify-strategy-compliance, verify-pin
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
 tests/regression/ — 15 bun:test regression guards
 drizzle/       — Database migration files
