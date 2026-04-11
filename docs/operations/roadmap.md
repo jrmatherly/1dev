@@ -57,6 +57,16 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ---
 
+### [Ready] `add-1code-api-litellm-provisioning` — LiteLLM user/team/key provisioning in 1code-api
+
+**Added:** 2026-04-10
+**Scope:** Replicate the Apollos portal's LiteLLM provisioning subset (user + team + API key lifecycle) inside `services/1code-api`, driven by Entra security group membership. Enables 1Code desktop app users to self-provision LiteLLM access without visiting an external portal, and unblocks the eventual decommission of the Apollos portal service in the `talos-ai-cluster`. Scope is deliberately narrow — usage tracking, model sync, admin endpoints, email notifications, reconciliation cron, and React frontend are explicitly out of scope. Apollos decommission is a separate operational runbook (`docs/enterprise/apollos-decommission-runbook.md`, task 10.4) that runs AFTER this change soaks in production with `PROVISIONING_ENABLED=false`.
+**Effort:** Large (~27 dev days: 19 build + 2 dry-run + 4.5 cutover + 1.5 decommission per the research doc)
+**Prereqs:** (1) Mint NEW confidential Entra app registration with `GroupMember.Read.All` application permission and admin consent — distinct from the existing public client `52d25f5d-688a-46fe-8356-305cec17f375` used by MSAL Node. (2) Cluster repo scaffolding (7 steps per `.scratchpad/cluster-agent-prompt-final.md`). (3) `LITELLM_MASTER_KEY` available via `secretKeyRef` from existing `litellm-secret` in the `ai` namespace.
+**Canonical reference:** `openspec/changes/add-1code-api-litellm-provisioning/` (10 Decisions, 18 Requirements, 77 tasks, passes `openspec validate --strict`)
+
+---
+
 ## P2 -- Medium Priority
 
 ### [Ready] SLSA provenance attestation for release artifacts

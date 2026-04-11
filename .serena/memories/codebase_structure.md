@@ -5,7 +5,7 @@
 src/           — Application source code
 docs/          — Canonical xyd-js documentation site (Operations tab has roadmap)
 deploy/        — K8s Flux v2 manifests: 1code-api, envoy-auth-policy (all ${PLACEHOLDER}). 1code-update-server DELETED (F5 resolved via GitHub Releases).
-openspec/      — OpenSpec change proposals + 9 capability specs
+openspec/      — OpenSpec change proposals + 11 capability specs
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — Workflow skills (roadmap-tracker, phase-0-progress, docs-drift-check, etc.)
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
@@ -42,9 +42,9 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). P
 brand-identity, feature-flags, claude-code-auth-import, documentation-site,
 credential-storage, renderer-data-access, enterprise-auth, enterprise-auth-wiring, electron-runtime, self-hosted-api
 
-## Active OpenSpec Changes (2)
-upgrade-vite-8-build-stack (15/59, Phase A done), upgrade-electron-41 (26/27, ready to archive)
-(implement-1code-api, upgrade-typescript-6, upgrade-tailwind-4 all archived 2026-04-10)
+## Active OpenSpec Changes (3)
+upgrade-vite-8-build-stack (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable), upgrade-electron-41 (26/27, ready to archive), add-1code-api-litellm-provisioning (0/77, scaffolded 2026-04-10 — replicates Apollos provisioning inside 1code-api, enables Apollos portal decommission)
+(implement-1code-api, upgrade-typescript-6, upgrade-tailwind-4, upgrade-shiki-4 all archived 2026-04-10)
 
 ## IDE Configuration
 .vscode/settings.json — tracked in git (`.gitignore` uses `!.vscode/settings.json`).
