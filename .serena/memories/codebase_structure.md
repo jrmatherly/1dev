@@ -69,4 +69,4 @@ no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamp
 credential-storage-tier, enterprise-auth-module, enterprise-auth-wiring, electron-version-pin,
 mock-api-consumer-migration, and one 1code-api single-replica regression guard.
 
-Combined `bun test` total: **172 tests across 34 files** (162 pass + 10 skipped integration tests, 0 fail) — `services/1code-api/tests/integration/` contains 3 new integration tests that skip without a docker-compose harness.
+Combined `bun test` total: **199 tests across 35 files** (189 pass + 10 skipped integration tests, 0 fail) — `services/1code-api/tests/integration/` contains 3 new integration tests that skip without a docker-compose harness. The 2026-04-11 CodeQL remediation added `services/1code-api/tests/lib/slugify.test.ts` (16 cases) and extended `graph-client.test.ts` with 11 new OID validation cases (commit `9dd468a`).

@@ -4,7 +4,7 @@
 1. `bun run ts:check` — **baseline 0 errors** (`.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2`). **CI now fails on ANY new TS error.**
 2. `bun run lint` — ESLint + eslint-plugin-sonarjs (~8s)
 3. `bun run build` — electron-vite build
-4. `bun test` — 15 regression guards + 19 1code-api test files = 172 tests across 34 files (162 pass + 10 skipped integration, 0 fail)
+4. `bun test` — 15 regression guards + 20 1code-api test files = 199 tests across 35 files (189 pass + 10 skipped integration, 0 fail)
 5. `bun audit` — focus on NEW advisories only
 6. CI also runs `cd docs && bun run build` — recommended locally too
 

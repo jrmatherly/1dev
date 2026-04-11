@@ -4,7 +4,7 @@
 - `bun run ts:check` — tsgo (**baseline: 0 errors** in `.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2` via full 10-bucket sweep from `.scratchpad/code-problems/002-analysis.md`). **CI now fails on ANY new TS error.**
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — electron-vite 5 build
-- `bun test` — 15 regression guards + 19 1code-api test files = **172 tests across 34 files** (162 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~6s
+- `bun test` — 15 regression guards + 20 1code-api test files = **199 tests across 35 files** (189 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~7s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
 

@@ -232,25 +232,23 @@ bun run release =
 
 ---
 
-## 5. Tests (`tests/regression/`) — bun:test
+## 5. Tests (`tests/regression/` + `services/1code-api/tests/`) — bun:test
 
-Phase 0 regression guards (no Jest/Vitest/Playwright). Run with `bun test`.
+Regression guards (no Jest/Vitest/Playwright). Run with `bun test` from the repo root to execute the full suite across the main app and the `1code-api` service.
 
-| Test | Guards Against |
-|------|----------------|
-| `auth-get-token-deleted.test.ts` | Re-introducing the dead `auth:get-token` IPC handler (gates #1–4) |
-| `token-leak-logs-removed.test.ts` | Re-introducing token preview log strings in `src/main/` (gates #5–6) |
-| `credential-manager-deleted.test.ts` | Re-creating `credential-manager.ts` orphan |
-| `gpg-verification-present.test.ts` | Removing GPG signature verification from Claude binary downloader (gate #7) |
-| `feature-flags-shape.test.ts` | Renaming feature flag keys without migration |
+- **15 regression guards** under `tests/regression/`: authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Examples include `auth-get-token-deleted`, `credential-storage-tier`, `enterprise-auth-module`, `enterprise-auth-wiring`, `electron-version-pin`, `no-scratchpad-references`, `mock-api-no-snake-timestamps`, etc.
+- **20 service test files** under `services/1code-api/tests/` covering unit tests (`tests/lib/`, `tests/services/`, `tests/routes/`) and 3 docker-compose integration tests (`tests/integration/`) that skip without the harness.
+- **Combined total: 199 tests across 35 files** (189 pass + 10 skipped integration, 0 fail) as of 2026-04-11 post-CodeQL remediation.
 
-**Quality gates (run all 5 before PR — none is a superset):**
-1. `bun run ts:check` — tsgo TypeScript check
-2. `bun run build` — esbuild packaging validation
-3. `bun test` — regression guards
-4. `bun audit` — dependency advisories
+**Quality gates (run all 6 before PR — none is a superset):**
+1. `bun run ts:check` — tsgo TypeScript check (baseline 0)
+2. `bun run lint` — ESLint + eslint-plugin-sonarjs
+3. `bun run build` — electron-vite 5 packaging validation
+4. `bun test` — 15 regression guards + 20 1code-api test files (199 tests, 189 pass + 10 skipped integration)
+5. `bun audit` — dependency advisories
+6. `cd docs && bun run build` — xyd-js documentation site
 
-CI enforces the same 5 in `.github/workflows/ci.yml`.
+CI enforces the same 6 in `.github/workflows/ci.yml`.
 
 ---
 
@@ -336,7 +334,7 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 3. Create feature directory in `src/renderer/features/`
 4. Use Jotai atoms for UI state, tRPC queries for data
 5. Use Radix UI + `cn()` + CVA for components
-6. Run all 5 quality gates: `bun run ts:check && bun run build && bun test && bun audit && cd docs && bun run build`
+6. Run all 6 quality gates: `bun run ts:check && bun run lint && bun run build && bun test && bun audit && cd docs && bun run build`
 
 ### File Naming
 - Components: PascalCase (`ActiveChat.tsx`)
@@ -379,10 +377,10 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 | 8 | Upstream sandbox OAuth extraction | ✅ Done (archived `remove-upstream-sandbox-oauth`) |
 | 9 | Minimum CI workflow | ✅ Done (`.github/workflows/ci.yml`) |
 | 10 | Dependabot config | ✅ Done |
-| 11 | Test framework + regression guards | ✅ Done (bun:test, 14 guards / 58 tests) |
+| 11 | Test framework + regression guards | ✅ Done (bun:test, 15 guards; combined repo total 199 tests / 189 pass post-CodeQL remediation 2026-04-11) |
 | 12 | Feature flag infrastructure + Drizzle schema | ✅ Done |
 | 13 | OpenSpec 1.2.0 migration | ✅ Done |
-| 14 | Electron upgrade (39 → 40) | ✅ Done (archived `upgrade-electron-40`) |
+| 14 | Electron upgrade (39 → 40 → 41) | ✅ Done (archived `upgrade-electron-40` + `2026-04-11-upgrade-electron-41`, currently on Electron 41.2.0) |
 | 15 | F1–F10 upstream restoration decisions | ✅ Done |
 
 ---
