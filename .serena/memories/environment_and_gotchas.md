@@ -1,7 +1,7 @@
 # Environment Notes and Gotchas
 
 ## Quality Gates — ALL REQUIRED
-- `bun run ts:check` — tsgo (baseline: 32 errors in `.claude/.tscheck-baseline`, reduced from 54 via Cluster A + Cluster C + sidebar dead-code sweep + 4-file targeted fixes + SettingsTab/McpServerStatus literal-union narrowing 2026-04-10)
+- `bun run ts:check` — tsgo (baseline: 26 errors in `.claude/.tscheck-baseline`, reduced from 32 on 2026-04-11 incidentally during 1code-api-litellm-provisioning work)
 - `bun run build` — electron-vite 5 build
 - `bun test` — 15 regression guards + service tests in `services/1code-api/tests/` = 162 tests across 31 files, ~6s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)

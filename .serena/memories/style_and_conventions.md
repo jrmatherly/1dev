@@ -13,7 +13,7 @@
 - Zod for runtime validation on tRPC procedure inputs
 - Type inference preferred over explicit annotations
 - `tsgo` used instead of `tsc` — faster but has known gaps with mapped-type recursion
-- Current baseline: 32 pre-existing errors (stored in `.claude/.tscheck-baseline`) — improved from 80 via SonarLint remediation + Cluster A/C type fixes + sidebar dead-code sweep + 4-file targeted fixes + SettingsTab/McpServerStatus narrowing 2026-04-10
+- Current baseline: 26 pre-existing errors (stored in `.claude/.tscheck-baseline`) — improved from 80 → 63 → 54 → 45 → 38 → 34 → 32 → 26 via successive SonarLint remediation + type fixes + 2026-04-11 incidental reduction during `add-1code-api-litellm-provisioning` work
 
 ## State Management
 - **Jotai**: UI state (selected chat, sidebar, preview)

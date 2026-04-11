@@ -107,10 +107,10 @@
 
 These tasks are in the cluster repo, not this repo. Tracked here so they are not forgotten before feature flag flip.
 
-- [ ] 12.1 (cluster repo) Add `onecode_api_graph_client_id`, `onecode_api_graph_client_secret`, `provisioning_enabled` to `cluster.yaml`
-- [ ] 12.2 (cluster repo) Mint new confidential Entra app registration per design §"Decision 1", grant `GroupMember.Read.All` Application permission with admin consent
-- [ ] 12.3 (cluster repo) Add new Secret SOPS file `kubernetes/apps/ai/1code-api/app/graph-secret.sops.yaml` with the new client secret
-- [ ] 12.4 (cluster repo) Generate or update ConfigMap containing runtime `teams.yaml`
-- [ ] 12.5 (cluster repo) Update 1code-api HelmRelease Jinja template to surface new env vars and mount the ConfigMap
-- [ ] 12.6 (cluster repo) Deploy with `PROVISIONING_ENABLED=false` — smoke test existing endpoints still work
-- [ ] 12.7 (cluster repo) Dry-run smoke test — exec into 1code-api pod, manually verify Graph connectivity + teams.yaml parsing without calling LiteLLM
+- [x] 12.1 (cluster repo) Add `onecode_api_graph_client_id`, `onecode_api_graph_client_secret`, `provisioning_enabled` to `cluster.yaml`
+- [x] 12.2 (cluster repo) Mint new confidential Entra app registration per design §"Decision 1", grant `GroupMember.Read.All` Application permission with admin consent
+- [x] 12.3 (cluster repo) Add new Secret SOPS file `kubernetes/apps/ai/1code-api/app/graph-secret.sops.yaml` with the new client secret
+- [x] 12.4 (cluster repo) Generate or update ConfigMap containing runtime `teams.yaml`
+- [x] 12.5 (cluster repo) Update 1code-api HelmRelease Jinja template to surface new env vars and mount the ConfigMap
+- [x] 12.6 (cluster repo) Deploy with `PROVISIONING_ENABLED=false` — smoke test existing endpoints still work
+- [x] 12.7 (cluster repo) Dry-run smoke test — exec into 1code-api pod, manually verify Graph connectivity + teams.yaml parsing without calling LiteLLM
