@@ -33,6 +33,7 @@ import {
   showWorkspaceIconAtom,
   betaKanbanEnabledAtom,
   betaAutomationsEnabledAtom,
+  type SettingsTab,
 } from "../../lib/atoms";
 import {
   useRemoteChats,
@@ -1471,7 +1472,7 @@ interface SidebarHeaderProps {
   onSignOut: () => void;
   onToggleSidebar?: () => void;
   setSettingsDialogOpen: (open: boolean) => void;
-  setSettingsActiveTab: (tab: string) => void;
+  setSettingsActiveTab: (tab: SettingsTab) => void;
   setShowAuthDialog: (open: boolean) => void;
   handleSidebarMouseEnter: () => void;
   handleSidebarMouseLeave: (e: React.MouseEvent) => void;

@@ -373,7 +373,15 @@ export function clearClaudeCaches() {
  * - HTTP server without authType -> "connected" (assume public)
  * - Local stdio server -> "connected"
  */
-function getServerStatusFromConfig(serverConfig: McpServerConfig): string {
+// Mirror of MCPServerStatus from src/renderer/lib/atoms/index.ts. Defined
+// locally here because main process code must not import from renderer.
+// TypeScript structural typing ensures the two literal unions stay
+// compatible across the tRPC boundary.
+type McpServerStatus = "connected" | "failed" | "pending" | "needs-auth";
+
+function getServerStatusFromConfig(
+  serverConfig: McpServerConfig,
+): McpServerStatus {
   const headers = serverConfig.headers as Record<string, string> | undefined;
   const { _oauth: oauth, authType } = serverConfig;
 
