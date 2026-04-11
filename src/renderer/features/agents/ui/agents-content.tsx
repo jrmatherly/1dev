@@ -187,8 +187,11 @@ export function AgentsContent() {
     }
   }, [activeSubChatName]);
 
-  // Teams stub: upstream F-entry feature, not yet restored. Dead in desktop fork.
-  // When teams is restored, replace with trpc.teams.list.useQuery() or equivalent.
+  // Teams stub — F3 (Remote Agent Chats / Teams, P1 in docs/enterprise/upstream-features.md).
+  // Option B: single-tenant no-op returning an empty array. When F3 is restored,
+  // replace with a local tRPC router or hide the UI behind a feature flag.
+  // SonarLint S4158 ("teams can only be empty here") is intentional — the warning
+  // IS the reminder to restore this before re-enabling multi-tenant UI.
   const teams: { id: string; [key: string]: unknown }[] = [];
   const selectedTeam = teams.find((t) => t.id === selectedTeamId) as any;
 
