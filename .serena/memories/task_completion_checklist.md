@@ -1,11 +1,12 @@
 # Task Completion Checklist
 
 ## Required — All Quality Gates
-1. `bun run ts:check` — baseline 26 errors (`.claude/.tscheck-baseline`, improved from 80 → 63 → 54 → 45 → 38 → 34 → 32 → 26 via successive SonarLint remediation + 2026-04-11 incidental reduction during `add-1code-api-litellm-provisioning` work), only fail if count increases
-2. `bun run build` — electron-vite build
-3. `bun test` — 15 regression guards + service tests in `services/1code-api/tests/` = 162 tests across 31 files
-4. `bun audit` — focus on NEW advisories only
-5. CI also runs `cd docs && bun run build` — recommended locally too
+1. `bun run ts:check` — **baseline 0 errors** (`.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2`). **CI now fails on ANY new TS error.**
+2. `bun run lint` — ESLint + eslint-plugin-sonarjs (~8s)
+3. `bun run build` — electron-vite build
+4. `bun test` — 15 regression guards + 19 1code-api test files = 172 tests across 34 files (162 pass + 10 skipped integration, 0 fail)
+5. `bun audit` — focus on NEW advisories only
+6. CI also runs `cd docs && bun run build` — recommended locally too
 
 Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md).
 
@@ -38,18 +39,26 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 - Run `bun run dev` and verify rendering
 - Check accessibility: keyboard navigation, aria labels
 
+## If TS Baseline Needs Update
+- The baseline file is `.claude/.tscheck-baseline`, currently `0`
+- To legitimately REDUCE the baseline: `bun run ts:check 2>&1 | grep -c "error TS" > .claude/.tscheck-baseline`
+- To legitimately INCREASE: requires explicit justification; prefer fixing the error
+- The PostToolUse hook blocks any edit that increases the count — if blocked, investigate the root cause before increasing
+- DO NOT delete the baseline file
+
 ## Before Committing
 - No `.env` files or secrets staged
 - No `console.log` debugging left behind
 - Run `/docs-drift-check` skill if you touched schema, routers, version pins, or any doc surface. The skill catalog of drift points lives in `.claude/skills/docs-drift-check/SKILL.md`.
 - Verify `docs/conventions/pinned-deps.md` accuracy before touching version-sensitive code
 - Grep for actual imports (ground truth) rather than trusting research patterns alone
+- If a parallel agent is working in the same repo, stage only YOUR files explicitly with `git add <files>` — never `git add -A`
 
 ## OpenSpec Workflow (for larger changes)
 1. `/opsx:propose <description>` — create change with all artifacts
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:archive <name>` — archive and promote capability specs
-- 9 capability specs in `openspec/specs/`: `brand-identity`, `feature-flags`, `claude-code-auth-import`, `documentation-site`, `credential-storage`, `renderer-data-access`, `enterprise-auth`, `enterprise-auth-wiring`, `electron-runtime`
+- **12 capability specs (82 requirements)** in `openspec/specs/`: `1code-api-litellm-provisioning`, `brand-identity`, `claude-code-auth-import`, `credential-storage`, `documentation-site`, `electron-runtime`, `enterprise-auth`, `enterprise-auth-wiring`, `feature-flags`, `renderer-data-access`, `self-hosted-api`, `shiki-highlighter`
 - Full rules: [`.claude/rules/openspec.md`](../../.claude/rules/openspec.md)
 
 ## Phase 0 Status (15 of 15 complete ✅)

@@ -6,10 +6,10 @@
 - `bun run preview` — Preview built app
 
 ## Quality Gates (ALL 6 REQUIRED)
-- `bun run ts:check` — TypeScript check via tsgo (baseline: 26 errors, see `.claude/.tscheck-baseline`)
+- `bun run ts:check` — TypeScript check via tsgo (**baseline: 0 errors**, see `.claude/.tscheck-baseline`)
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — Full electron-vite build
-- `bun test` — 15 regression guards + service tests in `services/1code-api/tests/` = 162 tests across 31 files (~6s)
+- `bun test` — 15 regression guards + 19 1code-api test files = **172 tests across 34 files** (162 pass + 10 skipped integration tests, ~6s)
 - `bun audit` — Dependency vulnerability scan
 - `cd docs && bun run build` — Docs site build (also a CI gate)
 - Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md)
