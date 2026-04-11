@@ -178,11 +178,9 @@ export function ResizableBottomPanel({
           const finalHeight = clampHeight(startHeight + (startY - e.clientY));
           setPanelHeight(finalHeight);
           setLocalHeight(null);
-        } else {
-          if (currentLocalHeight !== null) {
-            setPanelHeight(currentLocalHeight);
-            setLocalHeight(null);
-          }
+        } else if (currentLocalHeight !== null) {
+          setPanelHeight(currentLocalHeight);
+          setLocalHeight(null);
         }
       };
 
@@ -237,137 +235,135 @@ export function ResizableBottomPanel({
   );
 
   return (
-    <>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            ref={panelRef}
-            initial={
-              !shouldAnimate
-                ? { height: currentHeight, opacity: 1 }
-                : { height: 0, opacity: 0 }
-            }
-            animate={{ height: currentHeight, opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{
-              duration: isResizing ? 0 : 0,
-              ease: [0.4, 0, 0.2, 1],
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          ref={panelRef}
+          initial={
+            !shouldAnimate
+              ? { height: currentHeight, opacity: 1 }
+              : { height: 0, opacity: 0 }
+          }
+          animate={{ height: currentHeight, opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{
+            duration: isResizing ? 0 : 0,
+            ease: [0.4, 0, 0.2, 1],
+          }}
+          className={`relative shrink-0 ${className}`}
+          style={{ minHeight, overflow: "hidden", ...style }}
+        >
+          {/* Extended hover area */}
+          <div
+            data-extended-hover-area
+            className="absolute left-0 right-0 cursor-row-resize"
+            style={{
+              height: `${EXTENDED_HOVER_AREA_HEIGHT}px`,
+              top: 0,
+              pointerEvents: isResizing ? "none" : "auto",
+              zIndex: isResizing ? 5 : 10,
             }}
-            className={`relative shrink-0 ${className}`}
-            style={{ minHeight, overflow: "hidden", ...style }}
-          >
-            {/* Extended hover area */}
-            <div
-              data-extended-hover-area
-              className="absolute left-0 right-0 cursor-row-resize"
-              style={{
-                height: `${EXTENDED_HOVER_AREA_HEIGHT}px`,
-                top: 0,
-                pointerEvents: isResizing ? "none" : "auto",
-                zIndex: isResizing ? 5 : 10,
-              }}
-              onPointerDown={handleResizePointerDown}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            />
+            onPointerDown={handleResizePointerDown}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          />
 
-            {/* Resize handle — top edge */}
-            <div
-              ref={resizeHandleRef}
-              onPointerDown={handleResizePointerDown}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={(e) => {
-                if (isResizing) return;
-                if (tooltipTimeoutRef.current) {
-                  clearTimeout(tooltipTimeoutRef.current);
-                  tooltipTimeoutRef.current = null;
-                }
-                const relatedTarget = e.relatedTarget;
-                if (
-                  relatedTarget instanceof Element &&
-                  relatedTarget.closest("[data-extended-hover-area]")
-                ) {
-                  return;
-                }
-                setIsHoveringResizeHandle(false);
-                setTooltipX(null);
-                setIsTooltipDismissed(false);
-              }}
-              className="absolute top-0 left-0 right-0 h-[4px] cursor-row-resize z-10"
-              style={{ marginTop: "-2px" }}
-            />
+          {/* Resize handle — top edge */}
+          <div
+            ref={resizeHandleRef}
+            onPointerDown={handleResizePointerDown}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={(e) => {
+              if (isResizing) return;
+              if (tooltipTimeoutRef.current) {
+                clearTimeout(tooltipTimeoutRef.current);
+                tooltipTimeoutRef.current = null;
+              }
+              const relatedTarget = e.relatedTarget;
+              if (
+                relatedTarget instanceof Element &&
+                relatedTarget.closest("[data-extended-hover-area]")
+              ) {
+                return;
+              }
+              setIsHoveringResizeHandle(false);
+              setTooltipX(null);
+              setIsTooltipDismissed(false);
+            }}
+            className="absolute top-0 left-0 right-0 h-[4px] cursor-row-resize z-10"
+            style={{ marginTop: "-2px" }}
+          />
 
-            {/* Hover Tooltip — Notion style */}
-            {showResizeTooltip &&
-              isHoveringResizeHandle &&
-              !isResizing &&
-              !isTooltipDismissed &&
-              tooltipPosition &&
-              typeof window !== "undefined" &&
-              createPortal(
-                <AnimatePresence>
-                  {tooltipPosition && (
-                    <motion.div
-                      key="tooltip"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.05, ease: "easeOut" }}
-                      className="fixed z-10"
-                      style={{
-                        left: `${tooltipPosition.x}px`,
-                        top: `${tooltipPosition.y}px`,
-                        transform: "translateX(-50%) translateY(-100%)",
-                        transformOrigin: "center bottom",
-                        pointerEvents: "none",
-                      }}
-                    >
-                      <div
-                        ref={tooltipRef}
-                        role="dialog"
-                        data-tooltip="true"
-                        className="relative rounded-md border border-border bg-popover px-2 py-1 flex flex-col items-start gap-0.5 text-xs text-popover-foreground shadow-lg dark pointer-events-auto"
-                        onPointerDown={(e) => {
-                          e.stopPropagation();
-                          if (e.button === 0) {
-                            setIsTooltipDismissed(true);
-                            handleClose();
-                          }
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
+          {/* Hover Tooltip — Notion style */}
+          {showResizeTooltip &&
+            isHoveringResizeHandle &&
+            !isResizing &&
+            !isTooltipDismissed &&
+            tooltipPosition &&
+            typeof window !== "undefined" &&
+            createPortal(
+              <AnimatePresence>
+                {tooltipPosition && (
+                  <motion.div
+                    key="tooltip"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.05, ease: "easeOut" }}
+                    className="fixed z-10"
+                    style={{
+                      left: `${tooltipPosition.x}px`,
+                      top: `${tooltipPosition.y}px`,
+                      transform: "translateX(-50%) translateY(-100%)",
+                      transformOrigin: "center bottom",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <div
+                      ref={tooltipRef}
+                      role="dialog"
+                      data-tooltip="true"
+                      className="relative rounded-md border border-border bg-popover px-2 py-1 flex flex-col items-start gap-0.5 text-xs text-popover-foreground shadow-lg dark pointer-events-auto"
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        if (e.button === 0) {
                           setIsTooltipDismissed(true);
                           handleClose();
-                        }}
-                      >
-                        <div className="flex items-center gap-1 text-xs">
-                          <span>Close</span>
-                          <span className="text-muted-foreground inline-flex items-center gap-1">
-                            <span>Click</span>
-                            {closeHotkey && (
-                              <>
-                                <span>or</span>
-                                <Kbd>{closeHotkey}</Kbd>
-                              </>
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs">
-                          <span>Resize</span>
-                          <span className="text-muted-foreground">Drag</span>
-                        </div>
+                        }
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setIsTooltipDismissed(true);
+                        handleClose();
+                      }}
+                    >
+                      <div className="flex items-center gap-1 text-xs">
+                        <span>Close</span>
+                        <span className="text-muted-foreground inline-flex items-center gap-1">
+                          <span>Click</span>
+                          {closeHotkey && (
+                            <>
+                              <span>or</span>
+                              <Kbd>{closeHotkey}</Kbd>
+                            </>
+                          )}
+                        </span>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>,
-                document.body,
-              )}
+                      <div className="flex items-center gap-1 text-xs">
+                        <span>Resize</span>
+                        <span className="text-muted-foreground">Drag</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>,
+              document.body,
+            )}
 
-            {children}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

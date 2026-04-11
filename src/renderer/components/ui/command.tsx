@@ -114,7 +114,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
           case "End":
             e.preventDefault();
             if (keys.length > 0) {
-              const lastKey = keys[keys.length - 1];
+              const lastKey = keys.at(-1);
               setSelectedValue(lastKey!);
               itemsRef.current
                 .get(lastKey!)

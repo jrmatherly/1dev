@@ -5,8 +5,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { cn } from "../../lib/utils";
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useLayoutEffect,
@@ -74,23 +76,39 @@ function PromptInput({
 }: PromptInputProps) {
   const [internalValue, setInternalValue] = useState(value || "");
 
-  const handleChange = (newValue: string) => {
-    setInternalValue(newValue);
-    onValueChange?.(newValue);
-  };
+  const handleChange = useCallback(
+    (newValue: string) => {
+      setInternalValue(newValue);
+      onValueChange?.(newValue);
+    },
+    [onValueChange],
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      isLoading,
+      value: value ?? internalValue,
+      setValue: onValueChange ?? handleChange,
+      maxHeight,
+      onSubmit,
+      selectedVariant,
+      contextItems,
+    }),
+    [
+      isLoading,
+      value,
+      internalValue,
+      onValueChange,
+      handleChange,
+      maxHeight,
+      onSubmit,
+      selectedVariant,
+      contextItems,
+    ],
+  );
 
   return (
-    <PromptInputContext.Provider
-      value={{
-        isLoading,
-        value: value ?? internalValue,
-        setValue: onValueChange ?? handleChange,
-        maxHeight,
-        onSubmit,
-        selectedVariant,
-        contextItems,
-      }}
-    >
+    <PromptInputContext.Provider value={contextValue}>
       <div className={cn("flex flex-col gap-2", className)}>{children}</div>
     </PromptInputContext.Provider>
   );
@@ -135,7 +153,7 @@ const PromptInputTextareaInner = (
     const maxHeightPx =
       typeof maxHeight === "number"
         ? maxHeight
-        : parseInt(maxHeight as string, 10) || 240;
+        : Number.parseInt(maxHeight as string, 10) || 240;
 
     const newHeight = Math.min(scrollHeight, maxHeightPx);
     textarea.style.height = `${newHeight}px`;

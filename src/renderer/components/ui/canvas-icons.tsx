@@ -507,21 +507,6 @@ export function IconTextStrikethrough(props: IconProps) {
   );
 }
 
-export function IconTextOverline(props: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="currentColor"
-      {...props}
-    >
-      <path d="M11.2002 9.25C11.2002 7.48269 9.76731 6.0498 8 6.0498C6.23269 6.0498 4.7998 7.48269 4.7998 9.25C4.7998 11.0173 6.23269 12.4502 8 12.4502V14.25C5.23858 14.25 3 12.0114 3 9.25C3 6.48858 5.23858 4.25 8 4.25C10.7614 4.25 13 6.48858 13 9.25C13 12.0114 10.7614 14.25 8 14.25V12.4502C9.76731 12.4502 11.2002 11.0173 11.2002 9.25Z" />
-      <path d="M3 1.25H13V2.75H3V1.25Z" />
-    </svg>
-  );
-}
-
 export function IconTextStriked(props: IconProps) {
   return (
     <svg
@@ -734,49 +719,6 @@ export function IconStrikethroughNew(props: IconProps) {
   );
 }
 
-export function IconUnderlineNew(props: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="currentColor"
-      {...props}
-    >
-      <path d="M13.75 14.7504H2.25V13.2504H13.75V14.7504ZM5.25 8.00037C5.25009 8.8024 5.54638 9.4272 6.00977 9.85583C6.47885 10.2896 7.16404 10.5629 8 10.5629C8.83596 10.5629 9.52115 10.2896 9.99023 9.85583C10.4536 9.4272 10.7499 8.8024 10.75 8.00037V1.00037H12.25V8.00037C12.2499 9.19792 11.7961 10.2299 11.0098 10.9574C10.2289 11.6796 9.16375 12.0629 8 12.0629C6.83625 12.0629 5.77113 11.6796 4.99023 10.9574C4.20387 10.2299 3.75009 9.19792 3.75 8.00037V1.00037H5.25V8.00037Z" />
-    </svg>
-  );
-}
-
-export function IconOverlineNew(props: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="currentColor"
-      {...props}
-    >
-      <path d="M11.2002 9.25C11.2002 7.48269 9.76731 6.0498 8 6.0498C6.23269 6.0498 4.7998 7.48269 4.7998 9.25C4.7998 11.0173 6.23269 12.4502 8 12.4502V14.25C5.23858 14.25 3 12.0114 3 9.25C3 6.48858 5.23858 4.25 8 4.25C10.7614 4.25 13 6.48858 13 9.25C13 12.0114 10.7614 14.25 8 14.25V12.4502C9.76731 12.4502 11.2002 11.0173 11.2002 9.25Z" />
-      <path d="M3 1.25H13V2.75H3V1.25Z" />
-    </svg>
-  );
-}
-
-export function IconTextNone(props: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="currentColor"
-      {...props}
-    >
-      <path d="M8.00371 14.804C5.07771 14.804 3.23471 12.068 3.23471 7.774C3.23471 3.442 5.07771 0.706 8.00371 0.706C10.9297 0.706 12.7727 3.442 12.7727 7.774C12.7727 12.068 10.9297 14.804 8.00371 14.804ZM4.88771 7.774C4.88771 9.047 5.05871 10.149 5.40071 11.023L9.80871 3.1C9.31471 2.568 8.70671 2.264 8.00371 2.264C6.10371 2.264 4.88771 4.392 4.88771 7.774ZM6.17971 12.41C6.67371 12.942 7.30071 13.246 8.00371 13.246C9.90371 13.246 11.1197 11.118 11.1197 7.774C11.1197 6.463 10.9297 5.323 10.5877 4.43L6.17971 12.41Z" />
-    </svg>
-  );
-}
-
 export function IconColorDefault(props: IconProps) {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" fill="none" {...props}>
@@ -801,20 +743,6 @@ export function IconColorDefault(props: IconProps) {
           <rect width="16" height="16" fill="white"></rect>
         </clipPath>
       </defs>
-    </svg>
-  );
-}
-
-export function IconBorderWidth(props: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="currentColor"
-      {...props}
-    >
-      <path d="M15 14.5H1V9.5H15V14.5ZM2.5 13H13.5V11H2.5V13ZM15 8.5H1V4.5H15V8.5ZM2.5 7H13.5V6H2.5V7ZM15 3.5H1V2H15V3.5Z" />
     </svg>
   );
 }
@@ -890,35 +818,6 @@ export function IconMarginRight(props: IconProps) {
       {...props}
     >
       <path d="M14 1V15H12.5V1H14ZM5.00488 5.89746C5.05621 5.39333 5.48232 5 6 5H10L10.1025 5.00488C10.573 5.05278 10.9472 5.42703 10.9951 5.89746L11 6V10L10.9951 10.1025C10.9472 10.573 10.573 10.9472 10.1025 10.9951L10 11H6C5.48232 11 5.05621 10.6067 5.00488 10.1025L5 10L5 6L5.00488 5.89746ZM9.5 9.5V6.5H6.5V9.5H9.5Z" />
-    </svg>
-  );
-}
-
-// Spacing X/Y icons for grouped controls
-export function IconSpacingX(props: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="currentColor"
-      {...props}
-    >
-      <path d="M14.9951 14.1025C14.9438 14.6067 14.5177 15 14 15H2L1.89746 14.9951C1.42703 14.9472 1.05278 14.573 1.00488 14.1025L1 14V2L1.00488 1.89746C1.05278 1.42703 1.42703 1.05278 1.89746 1.00488L2 1H14C14.5177 1 14.9438 1.39333 14.9951 1.89746L15 2V14L14.9951 14.1025ZM2.5 2.5V13.5H13.5V2.5H2.5ZM4.2666 12.375V3.625H5.66699V12.375H4.2666ZM10.333 12.375V3.625H11.7334V12.375H10.333Z" />
-    </svg>
-  );
-}
-
-export function IconSpacingY(props: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="currentColor"
-      {...props}
-    >
-      <path d="M14.1025 1.00488C14.6067 1.05621 15 1.48232 15 2V14L14.9951 14.1025C14.9472 14.573 14.573 14.9472 14.1025 14.9951L14 15H2L1.89746 14.9951C1.42703 14.9472 1.05278 14.573 1.00488 14.1025L1 14V2C1 1.48232 1.39333 1.05621 1.89746 1.00488L2 1H14L14.1025 1.00488ZM2.5 13.5H13.5V2.5H2.5V13.5ZM12.375 11.7334H3.625V10.333H12.375V11.7334ZM12.375 5.66699H3.625V4.2666H12.375V5.66699Z" />
     </svg>
   );
 }
