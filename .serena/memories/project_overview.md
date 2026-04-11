@@ -26,7 +26,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
   - `upgrade-vite-8-build-stack` (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable)
   - `upgrade-electron-41` was archived 2026-04-11 as `2026-04-11-upgrade-electron-41` (26/27 — task 5.3 packaged-build auto-updater verification carved out as deferred roadmap item, blocked on code-signing)
 - **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → ~~Shiki4~~ ✅ → Vite8-B (blocked on `electron-vite 6.0.0` stable)
-- **Recently archived (2026-04-10 + 2026-04-11):** `upgrade-tailwind-4`, `upgrade-typescript-6`, `upgrade-shiki-4`, `implement-1code-api`, `add-1code-api-litellm-provisioning` (Phases 1-10 complete; remaining cluster-repo tasks split to `talos-ai-cluster`)
+- **Recently archived (2026-04-10 + 2026-04-11):** `upgrade-tailwind-4`, `upgrade-typescript-6`, `upgrade-shiki-4`, `implement-1code-api`, `add-1code-api-litellm-provisioning` (77/77 tasks — shipped with docker-compose integration test harness, cluster deployed with PROVISIONING_ENABLED=false), `upgrade-electron-41` (26/27 — task 5.3 auto-updater packaged-build verification carved out as deferred roadmap item, blocked on code-signing)
 
 ## Architecture (3-tier)
 - CLAUDE.md is a ~125-line thin index (links, doesn't contain content)
