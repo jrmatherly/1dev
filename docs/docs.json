@@ -72,6 +72,8 @@
                     "enterprise/auth-strategy",
                     "enterprise/auth-fallback",
                     "enterprise/entra-app-registration-1code-api",
+                    "enterprise/1code-api-provisioning",
+                    "enterprise/apollos-decommission-runbook",
                     "enterprise/envoy-smoke-test",
                     "enterprise/phase-0-gates",
                     "enterprise/cluster-facts"

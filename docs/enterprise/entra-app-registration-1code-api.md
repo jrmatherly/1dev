@@ -300,9 +300,56 @@ With the desktop app built and `enterpriseAuthEnabled` feature flag ON:
 - Treat as a new app registration. Follow this entire guide from Step 1.
 - Both secrets (`ENTRA_CLIENT_ID` in `cluster-secrets` + `entra-oidc-client-secret`) must be updated in the same Flux reconcile — inconsistent state causes a transient 401 storm.
 
+## Server-side Graph client app registration (for LiteLLM provisioning)
+
+The preceding sections cover the **public client** used by MSAL Node in the Electron desktop app. The `add-1code-api-litellm-provisioning` change introduces a **separate, confidential-client** app registration used exclusively by the 1code-api server to call Microsoft Graph's `/users/{oid}/memberOf` endpoint.
+
+**Why a second app reg?** Per design Decision 1 of the OpenSpec change:
+
+1. The existing public client has no client secret (by design — RFC 8252 loopback flow) and cannot perform the `client_credentials` OAuth flow needed for app-only Graph calls.
+2. Adding `GroupMember.Read.All` as an application permission to the existing public client would pollute its scope surface and make rotation riskier.
+3. Keeping the two roles in separate app registrations means rotating the Graph client secret has zero impact on the desktop app's JWT validation.
+
+### Create the confidential client
+
+1. In the Entra portal, **App registrations → New registration**.
+2. Name: `1code-api-graph-client` (or similar).
+3. Supported account types: match your existing 1code-api app reg (typically "single tenant").
+4. Leave **Redirect URI** blank — this app never participates in an interactive flow.
+
+### Grant `GroupMember.Read.All` Application permission
+
+1. On the new app → **API permissions → Add a permission → Microsoft Graph → Application permissions**.
+2. Select `GroupMember.Read.All`.
+3. Click **Add permissions**.
+4. **Click "Grant admin consent for &lt;tenant&gt;"** — a Global Administrator (or Application Administrator with the right scope) must click this button. Without admin consent, the `client_credentials` flow returns `AADSTS65001` at runtime.
+
+### Create a client secret
+
+1. **Certificates & secrets → Client secrets → New client secret**.
+2. Description: `1code-api Graph client secret <YYYY-MM>`.
+3. Expiry: 12 months recommended (set a calendar reminder for rotation).
+4. **Copy the Value** column immediately — it cannot be retrieved later.
+
+### Wire the secret into the cluster
+
+The confidential client ID goes in the unencrypted HelmRelease env block (`AZURE_GRAPH_CLIENT_ID`). The client secret goes in the SOPS-encrypted secret (`deploy/kubernetes/1code-api/app/graph-secret.sops.yaml`) as `AZURE_GRAPH_CLIENT_SECRET`.
+
+In the cluster repo (`talos-ai-cluster`), add `onecode_api_graph_client_id` and `onecode_api_graph_client_secret` to `cluster.yaml`; the Jinja template substitutes them into the HelmRelease and SOPS secret at reconcile time.
+
+### Rotate the Graph client secret
+
+1. Create a new client secret alongside the old one.
+2. Update the SOPS secret with the new value and commit.
+3. Flux reconciles; the pod rolling-restarts and picks up the new secret.
+4. After verifying that `getUserGroups` calls succeed with the new secret, delete the old secret from the Entra portal.
+
+Because the Graph client is consumed exclusively by the 1code-api pod (no browser flow, no downstream services), rotation is a single-pod concern — no user-visible disruption.
+
 ## Related
 
 - [`auth-strategy.md`](./auth-strategy.md) — the chosen v2.1 Envoy Gateway dual-auth design, with the full threat model and trade-offs
+- [`1code-api-provisioning.md`](./1code-api-provisioning.md) — the provisioning subsystem this confidential client powers
 - [`auth-fallback.md`](./auth-fallback.md) — the v5 MSAL-in-Electron fallback (not currently deployed; kept as an escape hatch)
 - [`cluster-facts.md`](./cluster-facts.md) — Talos cluster and tenant specifics (tenant ID, hostnames, Envoy Gateway version)
 - [`envoy-smoke-test.md`](./envoy-smoke-test.md) — the dual-auth smoke test that empirically validated this design (2026-04-08)

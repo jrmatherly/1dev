@@ -147,6 +147,8 @@ The architecture has **three trust boundaries** that must be enforced separately
 
 > **Critical:** TB-2 is the strategy's most important boundary and the most under-specified in v1. The cluster's existing `CiliumNetworkPolicy` for LiteLLM (`ciliumnetworkpolicy.yaml.j2:15-22`) allows ingress from the Envoy Gateway namespace but does NOT exclude same-namespace pods. Without the §3.1 lock-down, **every claim in §7 collapses** because any pod in `ai` can curl LiteLLM and claim to be any user.
 
+> **Implementation scope on `1code-api`:** The v2.1 **JWT half** of the dual-auth pattern is implemented on the 1code-api HTTPRoute — the service validates the Envoy-injected `x-user-oid`/`x-user-email`/`x-user-name` headers as trust-the-edge per the OpenSpec change `add-1code-api-litellm-provisioning`. The v2.1 **OIDC half** (browser-facing cookie flow) is explicitly **not** implemented on the 1code-api route — 1code-api is a backend-for-frontend consumed exclusively by the Electron desktop app, which already holds its own MSAL Node tokens. The OIDC half is deployed only on the LiteLLM HTTPRoute. See [`1code-api-provisioning.md`](./1code-api-provisioning.md) for the full provisioning API architecture.
+
 ---
 
 ## 2. Cluster Prerequisites

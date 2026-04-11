@@ -92,10 +92,10 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **`.claude/skills/`** — Claude Code workflow skills (on-demand).
 - **`.claude/agents/`** — Claude Code subagents (task-specific: `db-schema-auditor`, `trpc-router-auditor`, `upstream-dependency-auditor`, `security-reviewer`, `ui-reviewer`).
 - **`.serena/memories/`** — Serena project memories. Read via `mcp__serena__read_memory` **after** activating the project with `mcp__serena__activate_project` (project: `ai-coding-cli`).
-- **`services/1code-api/`** — Self-hosted backend API (Fastify + tRPC + Drizzle/PostgreSQL). Replaces upstream `1code.dev`. Container built via `.github/workflows/container-build.yml` → `ghcr.io/jrmatherly/1code-api`. See [`services/1code-api/README.md`](services/1code-api/README.md).
+- **`services/1code-api/`** — Self-hosted backend API (Fastify + tRPC + Drizzle/PostgreSQL). Replaces upstream `1code.dev` AND owns LiteLLM provisioning (`add-1code-api-litellm-provisioning`) — absorbs the Apollos portal's user/team/key lifecycle subset behind a `PROVISIONING_ENABLED` feature flag. Container built via `.github/workflows/container-build.yml` → `ghcr.io/jrmatherly/1code-api`. See [`services/1code-api/README.md`](services/1code-api/README.md) and [`docs/enterprise/1code-api-provisioning.md`](docs/enterprise/1code-api-provisioning.md).
 - **`deploy/`** — Kubernetes deployment manifests (Flux v2). Components: `1code-api`, `envoy-auth-policy`. All values use `${PLACEHOLDER}` substitution. See [`deploy/README.md`](deploy/README.md).
 - **`openspec/`** — OpenSpec 1.2.0 change proposals and 11 capability specs (59 requirements). See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
-- **`tests/regression/`** — 14 bun:test regression guards + service tests in `services/1code-api/tests/` (75 tests across 19 files total). See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
+- **`tests/regression/`** — 15 bun:test regression guards + service tests in `services/1code-api/tests/` (162 tests across 31 files total). See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
 - **`.scratchpad/`** — Ephemeral local-only notes (gitignored). Never referenced from tracked files.
 
 **Deployment target cluster repo:** `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos K8s, Envoy Gateway, LiteLLM, OIDC stack). Coordinate cross-repo for auth/backend work. See [`docs/operations/cluster-access.md`](docs/operations/cluster-access.md).
@@ -114,7 +114,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 
 ## Shipped features (v0.0.72+)
 
-Multi-backend AI (Claude, Codex, Ollama) · Drizzle ORM with 7 tables + auto-migration · 22 tRPC routers · Integrated terminal (node-pty) · Plugin and skills system · File viewer, kanban, automations · Voice, @-mentions, search · Encrypted credential storage · Enterprise Entra ID auth (MSAL) · Auto-update with notarization.
+Multi-backend AI (Claude, Codex, Ollama) · Drizzle ORM with 7 tables + auto-migration · 22 tRPC routers · Integrated terminal (node-pty) · Plugin and skills system · File viewer, kanban, automations · Voice, @-mentions, search · Encrypted credential storage · Enterprise Entra ID auth (MSAL) · Self-hosted LiteLLM provisioning (1code-api + teams.yaml, feature-flagged) · Auto-update with notarization.
 
 ## Documentation maintenance
 

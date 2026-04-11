@@ -34,26 +34,26 @@
 - [x] 4.1 Create `services/1code-api/src/services/provisioning.ts` — `getProvisionStatus(session, user)` + `provisionUser(session, litellm, graph, teamsConfig, user)` following the 10-step state machine in design.md §"Transaction boundary for provisioning state changes"
 - [x] 4.2 Create `services/1code-api/src/services/key-service.ts` — `listUserKeys`, `createKey` (with alias collision suffix), `rotateKey` (with `rotatedFromId` linkage), `revokeKey`; include `_makeKeyPreview`, `_computeStatus`, `_daysUntilExpiry` helpers
 - [x] 4.3 Create `services/1code-api/src/services/deprovisioning.ts` — `runDeprovisioningJob` + `_deprovisionUser` per design §"Deprovisioning cron"
-- [ ] 4.4 Create `services/1code-api/src/services/rotation.ts` — `runRotationJob` + `_autoRotateKey` per design §"Rotation cron"
+- [x] 4.4 Create `services/1code-api/src/services/rotation.ts` — `runRotationJob` + `_autoRotateKey` per design §"Rotation cron"
 
 ## 5. Zod schemas
 
 - [x] 5.1 Create `services/1code-api/src/schemas/provision.ts` — `ProvisionStatusResponse`, `ProvisionResponse`, `UserSummary`, `TeamSummary` Zod schemas
-- [ ] 5.2 Create `services/1code-api/src/schemas/keys.ts` — `KeyListItem`, `KeyListResponse`, `KeyCreateRequest`, `KeyCreateResponse`, `KeyRotateResponse`, `KeyRevokeResponse` Zod schemas
+- [x] 5.2 Create `services/1code-api/src/schemas/keys.ts` — `KeyListItem`, `KeyListResponse`, `KeyCreateRequest`, `KeyCreateResponse`, `KeyRotateResponse`, `KeyRevokeResponse` Zod schemas
 
 ## 6. Route handlers
 
 - [x] 6.1 Create `services/1code-api/src/routes/provision.ts` — `GET /api/provision/status` (60/min rate limit) + `POST /api/provision` (5/min rate limit) handlers with feature flag guard returning 503 when off, Zod validation of responses
-- [ ] 6.2 Create `services/1code-api/src/routes/keys.ts` — `GET /api/keys` (60/min) + `POST /api/keys/new` (10/min) + `POST /api/keys/:keyId/rotate` (5/min) + `POST /api/keys/:keyId/revoke` (5/min) handlers with feature flag guard, Zod validation, ownership enforcement (return 404 if key is not owned by the authenticated user)
-- [ ] 6.3 Register `@fastify/rate-limit` plugin in `services/1code-api/src/index.ts` before route registration with a **global `keyGenerator` that returns `request.headers["x-user-oid"]`** (NOT the default IP-based key, which would global-rate-limit the entire fleet because all requests share the Envoy Gateway pod IP). When the header is missing (e.g., health check before auth hook), fall back to the source IP to preserve existing health-check rate limits.
-- [ ] 6.4 Register `registerProvisionRoute` and `registerKeysRoute` in `services/1code-api/src/index.ts` alongside existing route registrations
-- [ ] 6.5 Add app state initialization in `services/1code-api/src/index.ts` for `LiteLLMClient`, `GraphClient`, `TeamsConfig`, wired into Fastify decorators for DI — eagerly initialize ONLY when `PROVISIONING_ENABLED=true`, lazy/null when flag is false
+- [x] 6.2 Create `services/1code-api/src/routes/keys.ts` — `GET /api/keys` (60/min) + `POST /api/keys/new` (10/min) + `POST /api/keys/:keyId/rotate` (5/min) + `POST /api/keys/:keyId/revoke` (5/min) handlers with feature flag guard, Zod validation, ownership enforcement (return 404 if key is not owned by the authenticated user)
+- [x] 6.3 Register `@fastify/rate-limit` plugin in `services/1code-api/src/index.ts` before route registration with a **global `keyGenerator` that returns `request.headers["x-user-oid"]`** (NOT the default IP-based key, which would global-rate-limit the entire fleet because all requests share the Envoy Gateway pod IP). When the header is missing (e.g., health check before auth hook), fall back to the source IP to preserve existing health-check rate limits.
+- [x] 6.4 Register `registerProvisionRoute` and `registerKeysRoute` in `services/1code-api/src/index.ts` alongside existing route registrations
+- [x] 6.5 Add app state initialization in `services/1code-api/src/index.ts` for `LiteLLMClient`, `GraphClient`, `TeamsConfig`, wired into Fastify decorators for DI — eagerly initialize ONLY when `PROVISIONING_ENABLED=true`, lazy/null when flag is false
 - [x] 6.6 Add a unit test for the rate-limit `keyGenerator` that asserts two requests with different `x-user-oid` values do NOT share a rate limit bucket, even when they originate from the same simulated source IP
 
 ## 7. Scheduler lifecycle
 
-- [ ] 7.1 In `services/1code-api/src/index.ts`, call `setupScheduler` only when `PROVISIONING_ENABLED === true`; store handle for shutdown
-- [ ] 7.2 In the `shutdown` handler, stop scheduled jobs via the handle before closing Fastify
+- [x] 7.1 In `services/1code-api/src/index.ts`, call `setupScheduler` only when `PROVISIONING_ENABLED === true`; store handle for shutdown
+- [x] 7.2 In the `shutdown` handler, stop scheduled jobs via the handle before closing Fastify
 - [x] 7.3 Verify scheduler does not start when flag is false via log output
 
 ## 8. Tests
@@ -84,24 +84,24 @@
 
 ## 10. Documentation
 
-- [ ] 10.1 Create `docs/enterprise/1code-api-provisioning.md` — architecture overview, API reference, operator runbook, troubleshooting, teams.yaml schema reference
-- [ ] 10.2 Update `docs/enterprise/entra-app-registration-1code-api.md` with a new "Server-side Graph client app registration" section covering the new confidential client, `GroupMember.Read.All` permission, admin consent steps, and client secret rotation
-- [ ] 10.3 Update `docs/enterprise/auth-strategy.md` with a note that the v2.1 dual-auth JWT half is implemented by this change and the OIDC half is explicitly not implemented on the 1code-api route
-- [ ] 10.4 Create `docs/enterprise/apollos-decommission-runbook.md` — operational runbook for the post-change Apollos removal (Phase B/C/D/E from research doc §11). MUST include: (a) a dedicated "Cutover race window" section documenting that Apollos pod SIGTERM and 1code-api pod restart with `PROVISIONING_ENABLED=true` are NOT atomic under Flux reconcile, and specifying a `MIGRATION_COMPLETE` env var pattern (or equivalent) that prevents the 1code-api deprovisioning cron from running its first pass until the operator manually confirms the one-shot Apollos data migration script has completed; (b) the one-shot migration script design (read from `apollos_portal_db.provisioned_users` / `provisioned_keys` / `user_team_memberships`, INSERT into 1code-api's DB preserving UUIDs since both schemas use uuid PKs — Decision 2); (c) an explicit "audit log portability" section stating whether Apollos's historical `audit_log` rows are copied (recommended: yes, for compliance continuity) or abandoned at cutover; (d) a rollback plan if Phase C cutover fails; (e) the exact order for Apollos Entra app reg deletion (LAST — never before the 1-week soak).
-- [ ] 10.5 Update `CLAUDE.md` architecture summary — note 1code-api now owns LiteLLM provisioning, reference the new doc, update shipped features bullet
-- [ ] 10.6 Update `.claude/PROJECT_INDEX.md` — add new source files and new doc pages
-- [ ] 10.7 Add roadmap entry to `docs/operations/roadmap.md` — "Pending" section with this change ID, flipping to "Recently Completed" after archive
-- [ ] 10.8 Register `docs/enterprise/1code-api-provisioning.md` and `docs/enterprise/apollos-decommission-runbook.md` in `docs/docs.json` enterprise sidebar
+- [x] 10.1 Create `docs/enterprise/1code-api-provisioning.md` — architecture overview, API reference, operator runbook, troubleshooting, teams.yaml schema reference
+- [x] 10.2 Update `docs/enterprise/entra-app-registration-1code-api.md` with a new "Server-side Graph client app registration" section covering the new confidential client, `GroupMember.Read.All` permission, admin consent steps, and client secret rotation
+- [x] 10.3 Update `docs/enterprise/auth-strategy.md` with a note that the v2.1 dual-auth JWT half is implemented by this change and the OIDC half is explicitly not implemented on the 1code-api route
+- [x] 10.4 Create `docs/enterprise/apollos-decommission-runbook.md` — operational runbook for the post-change Apollos removal (Phase B/C/D/E from research doc §11). MUST include: (a) a dedicated "Cutover race window" section documenting that Apollos pod SIGTERM and 1code-api pod restart with `PROVISIONING_ENABLED=true` are NOT atomic under Flux reconcile, and specifying a `MIGRATION_COMPLETE` env var pattern (or equivalent) that prevents the 1code-api deprovisioning cron from running its first pass until the operator manually confirms the one-shot Apollos data migration script has completed; (b) the one-shot migration script design (read from `apollos_portal_db.provisioned_users` / `provisioned_keys` / `user_team_memberships`, INSERT into 1code-api's DB preserving UUIDs since both schemas use uuid PKs — Decision 2); (c) an explicit "audit log portability" section stating whether Apollos's historical `audit_log` rows are copied (recommended: yes, for compliance continuity) or abandoned at cutover; (d) a rollback plan if Phase C cutover fails; (e) the exact order for Apollos Entra app reg deletion (LAST — never before the 1-week soak).
+- [x] 10.5 Update `CLAUDE.md` architecture summary — note 1code-api now owns LiteLLM provisioning, reference the new doc, update shipped features bullet
+- [x] 10.6 Update `.claude/PROJECT_INDEX.md` — add new source files and new doc pages
+- [x] 10.7 Add roadmap entry to `docs/operations/roadmap.md` — "Pending" section with this change ID, flipping to "Recently Completed" after archive
+- [x] 10.8 Register `docs/enterprise/1code-api-provisioning.md` and `docs/enterprise/apollos-decommission-runbook.md` in `docs/docs.json` enterprise sidebar
 
 ## 11. Quality gates
 
 - [x] 11.1 `bun run ts:check` — no new errors above baseline (32)
-- [ ] 11.2 `bun run lint` — no new SonarLint findings
-- [ ] 11.3 `bun test` — all existing regression guards + new unit tests pass
-- [ ] 11.4 `bun run build` — esbuild packaging validation
-- [ ] 11.5 `cd services/1code-api && bun test` — service tests pass
-- [ ] 11.6 `cd docs && bun run build` — xyd-js docs site builds cleanly
-- [ ] 11.7 `bunx @fission-ai/openspec@1.2.0 validate add-1code-api-litellm-provisioning --strict --no-interactive` passes
+- [x] 11.2 `bun run lint` — no new SonarLint findings
+- [x] 11.3 `bun test` — all existing regression guards + new unit tests pass
+- [x] 11.4 `bun run build` — esbuild packaging validation
+- [x] 11.5 `cd services/1code-api && bun test` — service tests pass
+- [x] 11.6 `cd docs && bun run build` — xyd-js docs site builds cleanly
+- [x] 11.7 `bunx @fission-ai/openspec@1.2.0 validate add-1code-api-litellm-provisioning --strict --no-interactive` passes
 
 ## 12. Cross-repo coordination (talos-ai-cluster)
 

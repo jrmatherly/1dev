@@ -170,23 +170,40 @@ Radix-based primitives: accordion, alert-dialog, badge, button, button-group, ca
 
 ## 3. Backend API Service (`services/1code-api/`)
 
-Self-hosted replacement for the upstream `1code.dev` SaaS backend. Fastify + tRPC server with Drizzle/PostgreSQL.
+Self-hosted replacement for the upstream `1code.dev` SaaS backend. Fastify + tRPC server with Drizzle/PostgreSQL. Also owns **LiteLLM provisioning** (user/team/key lifecycle absorbed from the Apollos portal) behind a `PROVISIONING_ENABLED` feature flag.
 
 | File | Purpose |
 |------|---------|
-| `src/index.ts` | Server entry — Fastify lifecycle, graceful shutdown |
-| `src/config.ts` | Zod-validated environment config (PORT, DATABASE_URL, DEV_BYPASS_AUTH, LOG_LEVEL) |
+| `src/index.ts` | Server entry — Fastify lifecycle, rate-limit plugin, provisioning service DI, graceful shutdown |
+| `src/config.ts` | Zod-validated env config with conditional `.superRefine()` for provisioning vars |
 | `src/auth.ts` | Envoy Gateway header extraction + dev bypass mode |
-| `src/db/schema.ts` | Drizzle PostgreSQL schema (`users` table) |
+| `src/db/schema.ts` | Drizzle schema — `users`, `provisionedKeys`, `userTeamMemberships`, `auditLog` (UUID PKs) |
 | `src/db/connection.ts` | Connection pool, auto-migration, health check |
+| `src/lib/teams-config.ts` | YAML loader, `getQualifyingTeams` (default suppression), `isUserAuthorized` |
+| `src/lib/graph-client.ts` | MSAL confidential client + in-memory token cache + paginated `getUserGroups` |
+| `src/lib/litellm-client.ts` | LiteLLM admin API client (8 methods) with 404-returns-null for `getUser`/`getTeam` |
+| `src/lib/audit.ts` | Closed `AuditAction` literal union + `logAction` helper |
+| `src/lib/scheduler.ts` | `node-cron` deprovisioning + rotation jobs with stop handle |
+| `src/lib/slugify.ts` | Kebab-case slugifier for key aliases |
+| `src/services/provisioning.ts` | Two-phase read-then-write provisioning state machine (Decision 8) |
+| `src/services/key-service.ts` | Decision 9 five-state key status, list/create/rotate/revoke |
+| `src/services/deprovisioning.ts` | Deprovisioning cron with mass-threshold abort guard |
+| `src/services/rotation.ts` | Rotation cron with `rotatedFromId` linkage |
+| `src/schemas/provision.ts` | Zod response schemas for `/api/provision*` |
+| `src/schemas/keys.ts` | Zod request/response schemas for `/api/keys*` |
 | `src/routes/health.ts` | `GET /health` — K8s probe (no auth) |
 | `src/routes/changelog.ts` | `GET /api/changelog/desktop` — markdown file changelog feed |
 | `src/routes/plan.ts` | `GET /api/desktop/user/plan` — enterprise plan resolution |
 | `src/routes/profile.ts` | `PATCH /api/user/profile` — display name upsert |
+| `src/routes/provision.ts` | `GET /api/provision/status` + `POST /api/provision` (rate-limited, flag-gated) |
+| `src/routes/keys.ts` | `GET /api/keys` + `POST /api/keys/new` + rotate/revoke (ownership 404) |
+| `config/teams.yaml.example` | Committed template for the runtime `teams.yaml` (gitignored) |
 | `Dockerfile` | Multi-stage build (bun install → bun build → distroless) |
 | `drizzle.config.ts` | Drizzle Kit config for PostgreSQL migrations |
 
 **Container:** `ghcr.io/jrmatherly/1code-api` — built by `.github/workflows/container-build.yml` on `v*` tags, multi-arch (amd64+arm64), Cosign signed.
+
+**Docs:** [`docs/enterprise/1code-api-provisioning.md`](../docs/enterprise/1code-api-provisioning.md) · [`docs/enterprise/apollos-decommission-runbook.md`](../docs/enterprise/apollos-decommission-runbook.md)
 
 ---
 
