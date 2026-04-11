@@ -5,5 +5,7 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./secret.sops.yaml
+  - ./graph-secret.sops.yaml
+  - ./teams-configmap.yaml
   - ./httproute.yaml
   - ./ciliumnetworkpolicy.yaml

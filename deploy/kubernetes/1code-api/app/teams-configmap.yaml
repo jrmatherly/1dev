@@ -1,0 +1,50 @@
+---
+# teams.yaml ConfigMap — COMMITTED PLACEHOLDER per task 9.5 of
+# openspec/changes/add-1code-api-litellm-provisioning.
+#
+# This file contains placeholder-only Entra group IDs. The cluster repo
+# (`talos-ai-cluster`) substitutes real values from `cluster.yaml`'s
+# `onecode_api_teams:` array at Flux reconcile time via postBuild
+# substitution. The real GUIDs never land in this repo.
+#
+# Schema reference: docs/enterprise/1code-api-provisioning.md §"teams.yaml"
+# Example file: services/1code-api/config/teams.yaml.example
+#
+# The ConfigMap is mounted at `/app/config/teams.yaml` inside the pod via
+# the `teams-config` persistence entry in helmrelease.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: 1code-api-teams-config
+data:
+  teams.yaml: |
+    # 1code-api LiteLLM team configuration (placeholder).
+    #
+    # This file is substituted by the cluster repo at reconcile time.
+    # Edit `cluster.yaml` in `talos-ai-cluster`, not this ConfigMap.
+    #
+    # When PROVISIONING_ENABLED=false, this file is not read and the
+    # placeholder values below have no effect.
+    teams:
+      - entra_group_id: "00000000-0000-0000-0000-000000000001"
+        team_alias: "Placeholder Engineering Team"
+        models:
+          - "gpt-4o"
+          - "claude-3-5-sonnet"
+        max_budget: 500.0
+        budget_duration: "1mo"
+        team_member_budget: 50.0
+        litellm_role: "user"
+
+      - entra_group_id: "00000000-0000-0000-0000-000000000002"
+        team_alias: "Placeholder Default Team"
+        models:
+          - "gpt-3.5-turbo"
+        max_budget: 100.0
+        budget_duration: "1mo"
+        team_member_budget: 10.0
+        litellm_role: "user"
+        is_default: true
+
+    required_groups:
+      - "00000000-0000-0000-0000-000000000099"

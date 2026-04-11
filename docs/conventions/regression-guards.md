@@ -25,6 +25,7 @@ The fork maintains structural regression guards that protect invariants establis
 | `enterprise-auth-wiring.test.ts` | Enterprise auth wiring invariants (exports, STRIPPED_ENV_KEYS, imports, router, no TOKEN_FILE injection) | wire-enterprise-auth |
 | `electron-version-pin.test.ts` | Electron version pin matches expected major version | upgrade-electron-40 |
 | `mock-api-consumer-migration.test.ts` | No mock-api imports / api.agents.* / utils.agents.* in migrated consumers; message-parser.ts exports verified | migrate-mock-api-consumers |
+| `1code-api-single-replica.test.ts` | 1code-api HelmRelease pins `controllers['1code-api'].replicas = 1` (prevents duplicate cron runs before distributed-lock machinery is added) | add-1code-api-litellm-provisioning (Decision 10) |
 
 ## Adding a New Guard
 

@@ -50,15 +50,41 @@ spec:
               # -- Public-facing URLs
               API_BASE_URL: "https://${APP_HOSTNAME}"
               CORS_ORIGINS: "https://${APP_HOSTNAME}"
-              # -- Entra ID configuration
+              # -- Entra ID configuration (desktop-app JWT validation)
               ENTRA_TENANT_ID: "${ENTRA_TENANT_ID}"
               ENTRA_CLIENT_ID: "${ENTRA_CLIENT_ID}"
+              # -- Provisioning (add-1code-api-litellm-provisioning)
+              # Feature flag: when "false", provisioning endpoints return
+              # 503 and the cron scheduler does not start. Flip to "true"
+              # only after the Azure Graph secret is populated and the
+              # teams.yaml ConfigMap is mounted below.
+              PROVISIONING_ENABLED: "${PROVISIONING_ENABLED:=false}"
+              # Server-side Graph client (confidential app reg). Distinct
+              # from ENTRA_CLIENT_ID which is the public desktop-app client.
+              AZURE_TENANT_ID: "${ENTRA_TENANT_ID}"
+              AZURE_GRAPH_CLIENT_ID: "${ONECODE_API_GRAPH_CLIENT_ID}"
+              # teams.yaml ConfigMap mount path (see persistence below)
+              TEAMS_CONFIG_PATH: "/app/config/teams.yaml"
+              # Safety guard for the deprovisioning cron
+              DEPROVISIONING_MAX_PER_RUN: "${DEPROVISIONING_MAX_PER_RUN:=20}"
               # -- Logging
               LOG_LEVEL: "INFO"
               LOG_JSON: "true"
             envFrom:
               - secretRef:
                   name: 1code-api-secret
+              # LITELLM_MASTER_KEY comes from the shared litellm-secret
+              # (same secret LiteLLM itself reads; reused so we don't need
+              # to duplicate rotation workflows)
+              - secretRef:
+                  name: litellm-secret
+                  optional: true
+              # AZURE_GRAPH_CLIENT_SECRET comes from a dedicated SOPS secret
+              # provisioned per design Decision 1. Optional so the baseline
+              # health/changelog endpoints still work when provisioning is off.
+              - secretRef:
+                  name: 1code-api-graph-secret
+                  optional: true
             ports:
               - name: http
                 containerPort: 8000
@@ -132,3 +158,15 @@ spec:
         sizeLimit: 100Mi
         globalMounts:
           - path: /tmp
+      # teams.yaml ConfigMap for LiteLLM provisioning
+      # (see docs/enterprise/1code-api-provisioning.md for schema).
+      # The ConfigMap is mounted read-only at /app/config/teams.yaml.
+      # When PROVISIONING_ENABLED=false, this file is not read and the
+      # mount is effectively inert.
+      teams-config:
+        type: configMap
+        name: 1code-api-teams-config
+        globalMounts:
+          - path: /app/config/teams.yaml
+            subPath: teams.yaml
+            readOnly: true

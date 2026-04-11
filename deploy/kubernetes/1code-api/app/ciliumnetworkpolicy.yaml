@@ -51,3 +51,16 @@ spec:
         - ports:
             - port: "4000"
               protocol: TCP
+    # Allow traffic to Microsoft Graph API (external, FQDN-based).
+    # Required by the provisioning server-side GraphClient for
+    # /users/{oid}/memberOf lookups and MSAL token acquisition.
+    # DNS-based egress entries let the Cilium agent resolve and pin
+    # the matching IPs at runtime.
+    # See openspec/changes/add-1code-api-litellm-provisioning task 9.6.
+    - toFQDNs:
+        - matchName: "graph.microsoft.com"
+        - matchName: "login.microsoftonline.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
