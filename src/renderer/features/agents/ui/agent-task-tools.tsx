@@ -224,9 +224,9 @@ function updateTaskSnapshotFromParts(
  * Sort helper for task IDs - sorts numerically when possible, falls back to string comparison
  */
 function compareTaskIds(a: string, b: string): number {
-  const numA = parseInt(a, 10);
-  const numB = parseInt(b, 10);
-  if (!isNaN(numA) && !isNaN(numB)) {
+  const numA = Number.parseInt(a, 10);
+  const numB = Number.parseInt(b, 10);
+  if (!Number.isNaN(numA) && !Number.isNaN(numB)) {
     return numA - numB;
   }
   return a.localeCompare(b);
@@ -849,7 +849,7 @@ export const AgentTaskToolsGroup = memo(function AgentTaskToolsGroup({
       previousSnapshot = historyMap.get(prevGroupKey) ?? emptySnapshot;
     } else if (groupIndex === -1 && groupOrder.length > 0) {
       // New group, use the last group's snapshot as previous
-      const lastGroupKey = groupOrder[groupOrder.length - 1];
+      const lastGroupKey = groupOrder.at(-1)!;
       previousSnapshot = historyMap.get(lastGroupKey) ?? emptySnapshot;
     }
 
@@ -890,7 +890,7 @@ export const AgentTaskToolsGroup = memo(function AgentTaskToolsGroup({
     const historyMap = snapshotHistoryCache.get(subChatId);
     if (!groupOrder || !historyMap || groupOrder.length === 0) return;
 
-    const lastGroupKey = groupOrder[groupOrder.length - 1];
+    const lastGroupKey = groupOrder.at(-1)!;
     const fullSnapshot = historyMap.get(lastGroupKey);
     if (!fullSnapshot || fullSnapshot.size === 0) return;
 
@@ -903,9 +903,9 @@ export const AgentTaskToolsGroup = memo(function AgentTaskToolsGroup({
     }));
     // Sort by ID for consistent order
     tasks.sort((a, b) => {
-      const numA = parseInt(a.id, 10);
-      const numB = parseInt(b.id, 10);
-      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      const numA = Number.parseInt(a.id, 10);
+      const numB = Number.parseInt(b.id, 10);
+      if (!Number.isNaN(numA) && !Number.isNaN(numB)) return numA - numB;
       return a.id.localeCompare(b.id);
     });
     setTaskToolsState({ tasks });

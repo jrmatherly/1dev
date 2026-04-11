@@ -209,7 +209,7 @@ function parseMention(id: string): ParsedMention | null {
     if (parts.length < 3) return null;
 
     const filePath = parts[0] || "";
-    const lineNumber = parseInt(parts[1] || "0", 10) || undefined;
+    const lineNumber = Number.parseInt(parts[1] || "0", 10) || undefined;
     const preview = parts[2] || "";
     const encodedText = parts.slice(3).join(":"); // Handle colons in base64
 
@@ -249,7 +249,7 @@ function parseMention(id: string): ParsedMention | null {
     const colonIndex = beforePipe.indexOf(":");
     if (colonIndex === -1) return null;
 
-    const size = parseInt(beforePipe.slice(0, colonIndex) || "0", 10);
+    const size = Number.parseInt(beforePipe.slice(0, colonIndex) || "0", 10);
     const preview = beforePipe.slice(colonIndex + 1);
 
     return {
@@ -274,7 +274,7 @@ function parseMention(id: string): ParsedMention | null {
     const colonIndex = beforePipe.indexOf(":");
     if (colonIndex === -1) return null;
 
-    const size = parseInt(beforePipe.slice(0, colonIndex) || "0", 10);
+    const size = Number.parseInt(beforePipe.slice(0, colonIndex) || "0", 10);
     const preview = beforePipe.slice(colonIndex + 1);
 
     return {

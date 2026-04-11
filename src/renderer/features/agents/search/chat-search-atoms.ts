@@ -78,7 +78,7 @@ export const highlightRangesAtomFamily = atomFamily(
 
       // Parse key
       const [messageId, partIndexStr, partType] = key.split(":");
-      const partIndex = parseInt(partIndexStr, 10);
+      const partIndex = Number.parseInt(partIndexStr, 10);
 
       // Filter matches for this message/part
       const relevantMatches = matches.filter(

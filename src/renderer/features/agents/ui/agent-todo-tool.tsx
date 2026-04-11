@@ -462,9 +462,7 @@ export const AgentTodoTool = memo(function AgentTodoTool({
       // If this is a new generation, reset the creationToolCallId to this tool call
       const newCreationId = isNewGenerationLocal
         ? part.toolCallId
-        : currentCreationToolCallId === null
-          ? part.toolCallId
-          : currentCreationToolCallId;
+        : (currentCreationToolCallId ?? part.toolCallId);
 
       if (shouldUpdate) {
         // Prevent infinite loop: check if todos actually changed before updating
@@ -657,7 +655,7 @@ export const AgentTodoTool = memo(function AgentTodoTool({
 
   // Find current task index for progress display
   const currentTaskIndex = currentTask
-    ? displayTodos.findIndex((t) => t === currentTask) + 1
+    ? displayTodos.indexOf(currentTask) + 1
     : completedCount;
 
   return (

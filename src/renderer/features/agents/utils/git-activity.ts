@@ -32,7 +32,7 @@ function extractCommitInfo(
 
   // Verify commit actually succeeded by checking stdout for git's commit output
   // Format: [branch-name hash] commit message
-  const stdoutMatch = stdout.match(/\[[\w/.:-]+\s+([\da-f]+)\]\s+(.+)/);
+  const stdoutMatch = /\[[\w/.:-]+\s+([\da-f]+)\]\s+(.+)/.exec(stdout);
   if (!stdoutMatch) return null;
 
   const hash = stdoutMatch[1];
@@ -40,7 +40,7 @@ function extractCommitInfo(
 
   // If stdout message is truncated, try to get full message from command
   // Pattern 1: HEREDOC pattern (Claude's preferred format)
-  const heredocMatch = command.match(/<<'?EOF'?\s*\n([\s\S]*?)\n\s*EOF/);
+  const heredocMatch = /<<'?EOF'?\s*\n([\s\S]*?)\n\s*EOF/.exec(command);
   if (heredocMatch) {
     const heredocFirstLine = heredocMatch[1]!.split("\n")[0]!.trim();
     if (heredocFirstLine) {
@@ -50,7 +50,7 @@ function extractCommitInfo(
 
   // Pattern 2: -m "message" or -m 'message' (simple inline message)
   if (!heredocMatch) {
-    const mFlagMatch = command.match(/-m\s+["']([^"']+)["']/);
+    const mFlagMatch = /-m\s+["']([^"']+)["']/.exec(command);
     if (mFlagMatch) {
       message = mFlagMatch[1]!.trim();
     }
@@ -66,15 +66,15 @@ function extractPrInfo(command: string, stdout: string): GitPrInfo | null {
   if (!/gh\s+pr\s+create/.test(command)) return null;
 
   // Extract URL from stdout
-  const urlMatch = stdout.match(/(https:\/\/github\.com\/[^\s]+\/pull\/\d+)/);
+  const urlMatch = /(https:\/\/github\.com\/[^\s]+\/pull\/\d+)/.exec(stdout);
   if (!urlMatch) return null;
 
   const url = urlMatch[1]!;
-  const numberMatch = url.match(/\/pull\/(\d+)/);
-  const number = numberMatch ? parseInt(numberMatch[1]!, 10) : undefined;
+  const numberMatch = /\/pull\/(\d+)/.exec(url);
+  const number = numberMatch ? Number.parseInt(numberMatch[1]!, 10) : undefined;
 
   // Extract title from --title flag in command
-  const titleMatch = command.match(/--title\s+["']([^"']+)["']/);
+  const titleMatch = /--title\s+["']([^"']+)["']/.exec(command);
   const title = titleMatch?.[1] || `PR #${number || ""}`;
 
   return { type: "pr", title, url, number };
@@ -115,8 +115,8 @@ export function extractGitActivity(parts: any[]): GitActivity | null {
     if (/git\s+push/.test(command) && !stderr.includes("error")) {
       // Check stdout and stderr for push ref update (git push outputs to stderr)
       const pushOutput = stdout + "\n" + stderr;
-      const pushMatch = pushOutput.match(
-        /[\da-f]+\.\.([\da-f]+)\s+\S+\s*->\s*\S+/,
+      const pushMatch = /[\da-f]+\.\.([\da-f]+)\s+\S+\s*->\s*\S+/.exec(
+        pushOutput,
       );
       if (pushMatch) {
         lastPushHash = pushMatch[1]!;
@@ -162,8 +162,8 @@ function toRelativePath(filePath: string, projectPath?: string): string {
     return relative.startsWith("/") ? relative.slice(1) : relative;
   }
   // Handle worktree paths: /Users/.../.1code/worktrees/{chatId}/{subChatId}/relativePath
-  const worktreeMatch = filePath.match(
-    /\.1code\/worktrees\/[^/]+\/[^/]+\/(.+)$/,
+  const worktreeMatch = /\.1code\/worktrees\/[^/]+\/[^/]+\/(.+)$/.exec(
+    filePath,
   );
   if (worktreeMatch) {
     return worktreeMatch[1]!;

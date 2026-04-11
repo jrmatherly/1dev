@@ -90,7 +90,7 @@ export const currentSubChatIdAtom = atom<string>("default");
 // Last message ID - derived (uses stable messageIdsAtom)
 export const lastMessageIdAtom = atom((get) => {
   const ids = get(messageIdsAtom);
-  return ids.length > 0 ? ids[ids.length - 1] : null;
+  return ids.length > 0 ? (ids.at(-1) ?? null) : null;
 });
 
 // ============================================================================
@@ -110,7 +110,7 @@ export const isLastMessagePerChatAtomFamily = atomFamily((key: string) => {
   const messageId = key.slice(sepIdx + 1);
   return atom((get) => {
     const ids = get(messageIdsPerChatAtom(subChatId));
-    return ids.length > 0 && ids[ids.length - 1] === messageId;
+    return ids.length > 0 && ids.at(-1) === messageId;
   });
 });
 
@@ -143,7 +143,7 @@ export const textPartAtomFamily = atomFamily((key: string) => {
   const sepIdx = key.lastIndexOf(":");
   const messageKey = key.slice(0, sepIdx);
   const partIndexStr = key.slice(sepIdx + 1);
-  const partIndex = parseInt(partIndexStr!, 10);
+  const partIndex = Number.parseInt(partIndexStr!, 10);
 
   return atom((get) => {
     const message = get(messageAtomFamily(messageKey));
@@ -468,7 +468,7 @@ export const isLastUserMessagePerChatAtomFamily = atomFamily((key: string) => {
   const userMsgId = key.slice(sepIdx + 1);
   return atom((get) => {
     const userIds = get(userMessageIdsPerChatAtom(subChatId));
-    return userIds[userIds.length - 1] === userMsgId;
+    return userIds.at(-1) === userMsgId;
   });
 });
 
@@ -502,7 +502,7 @@ export const assistantIdsForUserMsgAtomFamily = atomFamily(
 export const isLastUserMessageAtomFamily = atomFamily((userMsgId: string) =>
   atom((get) => {
     const userIds = get(userMessageIdsAtom);
-    return userIds[userIds.length - 1] === userMsgId;
+    return userIds.at(-1) === userMsgId;
   }),
 );
 
@@ -741,7 +741,7 @@ export const messageTokenDataAtom = atom((get) => {
   const subChatId = get(currentSubChatIdAtom);
 
   // Get the last message to check if its tokens changed
-  const lastId = ids[ids.length - 1];
+  const lastId = ids.at(-1);
   const lastMsg = lastId
     ? get(messageAtomFamily(getPerChatMessageKey(subChatId, lastId)))
     : null;
@@ -750,7 +750,7 @@ export const messageTokenDataAtom = atom((get) => {
   const lastMsgParts = (lastMsg as any)?.parts as
     | Array<{ type?: string; state?: string }>
     | undefined;
-  const lastPart = lastMsgParts?.[lastMsgParts.length - 1];
+  const lastPart = lastMsgParts?.at(-1);
   const lastMsgPartsKey = `${lastMsgParts?.length ?? 0}:${lastPart?.type ?? ""}:${(lastPart as any)?.state ?? ""}`;
 
   const cached = tokenDataCacheByChat.get(subChatId);
@@ -866,7 +866,7 @@ function hasMessageChanged(
   const cacheKey = `${subChatId}:${msgId}`;
   const prev = previousMessageState.get(cacheKey);
   const parts = msg.parts || [];
-  const lastPart = parts[parts.length - 1];
+  const lastPart = parts.at(-1);
 
   const current = {
     partsLength: parts.length,
@@ -1003,7 +1003,7 @@ export const syncMessagesWithStatusAtom = atom(
     // 1. msg object itself is mutated in-place
     // 2. msg.parts array is mutated in-place
     // 3. Individual part objects inside parts are mutated in-place
-    const lastMessageId = newIds[newIds.length - 1] ?? null;
+    const lastMessageId = newIds.at(-1) ?? null;
     for (const msg of messages) {
       const messageKey = getPerChatMessageKey(currentSubChatId, msg.id);
       const currentAtomValue = get(messageAtomFamily(messageKey));
@@ -1052,7 +1052,7 @@ export const syncMessagesWithStatusAtom = atom(
     // Legacy global streaming state: update only for active pane.
     if (updateGlobal) {
       if (status === "streaming" || status === "submitted") {
-        const lastId = newIds[newIds.length - 1] ?? null;
+        const lastId = newIds.at(-1) ?? null;
         set(streamingMessageIdAtom, lastId);
       } else {
         set(streamingMessageIdAtom, null);

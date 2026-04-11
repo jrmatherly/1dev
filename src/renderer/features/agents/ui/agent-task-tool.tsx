@@ -98,7 +98,7 @@ export const AgentTaskTool = memo(function AgentTaskTool({
   // Build subtitle - show latest tool activity when running, description otherwise
   const getSubtitle = () => {
     if (isPending && hasNestedTools) {
-      const lastTool = nestedTools[nestedTools.length - 1];
+      const lastTool = nestedTools.at(-1);
       const meta = lastTool ? AgentToolRegistry[lastTool.type] : null;
       if (meta) {
         const title = meta.title(lastTool);

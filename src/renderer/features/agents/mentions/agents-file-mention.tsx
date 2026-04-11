@@ -427,7 +427,7 @@ export function createFileIconElement(
   // Clean up
   root.unmount();
   if (container.parentNode) {
-    document.body.removeChild(container);
+    container.remove();
   }
 
   if (!svgElement || !(svgElement instanceof SVGSVGElement)) {
@@ -631,7 +631,7 @@ function sortFilesByRelevance<T extends { label: string; path?: string }>(
     // When search ends with space, prioritize files with hyphen/underscore after first word
     // e.g. "agents " should show "agents-sidebar" before "agents" folder
     if (endsWithSpace && searchWords.length >= 1) {
-      const lastWord = searchWords[searchWords.length - 1];
+      const lastWord = searchWords.at(-1);
       // Check if filename has hyphen/underscore continuation after matching word
       const aHasContinuation =
         aNameNoExt.includes(`${lastWord}-`) ||

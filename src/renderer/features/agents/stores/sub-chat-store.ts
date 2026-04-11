@@ -118,7 +118,7 @@ const findNumericWindowIdValue = (
     if (!storageKey) continue;
 
     // Check if this key matches pattern: <number>:<legacyKey>
-    const match = storageKey.match(/^(\d+):(.+)$/);
+    const match = /^(\d+):(.+)$/.exec(storageKey);
     if (match && match[2] === legacyKey) {
       const value = localStorage.getItem(storageKey);
       if (value !== null) {
@@ -275,7 +275,7 @@ export const useAgentSubChatStore = create<AgentSubChatStore>((set, get) => ({
     // If closing active tab, switch to last remaining tab
     let newActive = activeSubChatId;
     if (activeSubChatId === subChatId) {
-      newActive = newIds[newIds.length - 1] || null;
+      newActive = newIds.at(-1) || null;
     }
 
     // If closing a tab in the split group, remove it and update ratios

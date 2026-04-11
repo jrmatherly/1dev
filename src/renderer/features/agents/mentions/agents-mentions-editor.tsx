@@ -193,7 +193,7 @@ function buildContentFromSerialized(
 ) {
   // Clear safely
   while (root.firstChild) {
-    root.removeChild(root.firstChild);
+    root.firstChild.remove();
   }
 
   const regex = /@\[([^\]]+)\]/g;

@@ -32,11 +32,11 @@ export function ScaleControl({
   }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9]/g, "");
+    const raw = e.target.value.replace(/\D/g, "");
     setInputValue(raw);
-    const num = parseInt(raw);
+    const num = Number.parseInt(raw);
     if (
-      !isNaN(num) &&
+      !Number.isNaN(num) &&
       num >= AGENTS_PREVIEW_CONSTANTS.MIN_SCALE &&
       num <= AGENTS_PREVIEW_CONSTANTS.MAX_SCALE
     ) {
@@ -45,9 +45,9 @@ export function ScaleControl({
   };
 
   const handleCommit = () => {
-    const num = parseInt(inputValue);
+    const num = Number.parseInt(inputValue);
     if (
-      !isNaN(num) &&
+      !Number.isNaN(num) &&
       num >= AGENTS_PREVIEW_CONSTANTS.MIN_SCALE &&
       num <= AGENTS_PREVIEW_CONSTANTS.MAX_SCALE
     ) {

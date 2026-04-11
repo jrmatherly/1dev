@@ -153,7 +153,7 @@ export function ChatSearchBar({
         "max-w-[340px] ml-auto cursor-text", // Max width, but can shrink; ml-auto pushes to right
         className,
       )}
-      style={{ top: topOffset ? topOffset : "0px" }}
+      style={{ top: topOffset || "0px" }}
       onClick={handleContainerClick}
     >
       {/* Search input - grows to fill space, shrinks on narrow screens */}

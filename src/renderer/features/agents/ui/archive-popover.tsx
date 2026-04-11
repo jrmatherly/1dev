@@ -431,7 +431,7 @@ export const ArchivePopover = memo(function ArchivePopover({
       const currentIndex = filteredChats.findIndex(
         (chat) => chat.id === selectedChatId,
       );
-      setSelectedIndex(currentIndex >= 0 ? currentIndex : 0);
+      setSelectedIndex(Math.max(currentIndex, 0));
     }
   }, [open, filteredChats, selectedChatId]);
 

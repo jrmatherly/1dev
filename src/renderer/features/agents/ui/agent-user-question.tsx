@@ -250,7 +250,7 @@ export const AgentUserQuestion = memo(
               );
             }
           } else if (e.key >= "1" && e.key <= "9") {
-            const numberIndex = parseInt(e.key, 10) - 1;
+            const numberIndex = Number.parseInt(e.key, 10) - 1;
             if (numberIndex >= 0 && numberIndex < currentOptions.length) {
               e.preventDefault();
               handleOptionClick(
