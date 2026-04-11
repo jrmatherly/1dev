@@ -4,9 +4,26 @@ import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from "fast
 // We test the auth logic by importing extractUser and authHook
 // and simulating Fastify request/reply objects.
 
-// Mock config before importing auth
+// Mock config before importing auth.
+//
+// NOTE: Bun's `mock.module` is process-global and persists across test files
+// within a single `bun test` run. Any symbol imported elsewhere from
+// `../src/config.js` must be re-exported here or those tests will see
+// "Export named 'X' not found in module config.ts" when the mock wins the
+// module-graph race.
+//
+// We must also set DATABASE_URL in process.env BEFORE any dynamic import of
+// `../src/config.js` fires, because the real module parses env at module
+// load and process.exit(1)s on missing values. The real `parseConfig`
+// function is re-exported so tests/config.test.ts still sees the real
+// implementation.
+if (!process.env.DATABASE_URL) process.env.DATABASE_URL = "postgres://localhost:5432/test";
 let mockConfig = { DEV_BYPASS_AUTH: false, PORT: 8000, DATABASE_URL: "postgresql://localhost/test", LOG_LEVEL: "info" as const };
-mock.module("../src/config.js", () => ({ config: mockConfig }));
+const realConfigModule = await import("../src/config.js");
+mock.module("../src/config.js", () => ({
+  ...realConfigModule,
+  config: mockConfig,
+}));
 
 const { extractUser, authHook } = await import("../src/auth.js");
 

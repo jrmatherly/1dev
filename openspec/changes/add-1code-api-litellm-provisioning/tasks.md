@@ -48,17 +48,17 @@
 - [ ] 6.3 Register `@fastify/rate-limit` plugin in `services/1code-api/src/index.ts` before route registration with a **global `keyGenerator` that returns `request.headers["x-user-oid"]`** (NOT the default IP-based key, which would global-rate-limit the entire fleet because all requests share the Envoy Gateway pod IP). When the header is missing (e.g., health check before auth hook), fall back to the source IP to preserve existing health-check rate limits.
 - [ ] 6.4 Register `registerProvisionRoute` and `registerKeysRoute` in `services/1code-api/src/index.ts` alongside existing route registrations
 - [ ] 6.5 Add app state initialization in `services/1code-api/src/index.ts` for `LiteLLMClient`, `GraphClient`, `TeamsConfig`, wired into Fastify decorators for DI — eagerly initialize ONLY when `PROVISIONING_ENABLED=true`, lazy/null when flag is false
-- [ ] 6.6 Add a unit test for the rate-limit `keyGenerator` that asserts two requests with different `x-user-oid` values do NOT share a rate limit bucket, even when they originate from the same simulated source IP
+- [x] 6.6 Add a unit test for the rate-limit `keyGenerator` that asserts two requests with different `x-user-oid` values do NOT share a rate limit bucket, even when they originate from the same simulated source IP
 
 ## 7. Scheduler lifecycle
 
 - [ ] 7.1 In `services/1code-api/src/index.ts`, call `setupScheduler` only when `PROVISIONING_ENABLED === true`; store handle for shutdown
 - [ ] 7.2 In the `shutdown` handler, stop scheduled jobs via the handle before closing Fastify
-- [ ] 7.3 Verify scheduler does not start when flag is false via log output
+- [x] 7.3 Verify scheduler does not start when flag is false via log output
 
 ## 8. Tests
 
-- [ ] 8.1 Create `services/1code-api/tests/lib/teams-config.test.ts` — YAML parsing, qualifying teams resolution (default suppression), `required_groups` gate
+- [x] 8.1 Create `services/1code-api/tests/lib/teams-config.test.ts` — YAML parsing, qualifying teams resolution (default suppression), `required_groups` gate
 - [ ] 8.2 Create `services/1code-api/tests/lib/graph-client.test.ts` — token caching, pagination, 4xx error handling (mock `fetch`)
 - [ ] 8.3 Create `services/1code-api/tests/lib/litellm-client.test.ts` — each of 8 methods with mocked `fetch`, 404 handling for `getUser`/`getTeam`
 - [ ] 8.4 Create `services/1code-api/tests/services/provisioning.test.ts` — idempotency, unauthorized user 403, deprovisioned user 409, Graph failure propagation
@@ -95,7 +95,7 @@
 
 ## 11. Quality gates
 
-- [ ] 11.1 `bun run ts:check` — no new errors above baseline (32)
+- [x] 11.1 `bun run ts:check` — no new errors above baseline (32)
 - [ ] 11.2 `bun run lint` — no new SonarLint findings
 - [ ] 11.3 `bun test` — all existing regression guards + new unit tests pass
 - [ ] 11.4 `bun run build` — esbuild packaging validation

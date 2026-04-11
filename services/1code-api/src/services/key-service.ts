@@ -1,4 +1,4 @@
-import { eq, and, or } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { provisionedKeys, type PersistedKeyStatus, type KeyStatus } from "../db/schema.js";
 import { getDb } from "../db/connection.js";
 import { AUDIT_ACTIONS, logAction } from "../lib/audit.js";
@@ -97,19 +97,15 @@ export async function listUserKeys(userId: string): Promise<{
   const db = getDb();
   const now = new Date();
 
+  // We only select by userId and filter status in memory. The valid statuses
+  // (`active`, `revoked`, `rotated`) are the only persisted values anyway —
+  // `expired` and `expiring_soon` are derived, never stored (Decision 9).
+  // Filtering in memory avoids a Bun-specific ESM star-reexport issue with
+  // drizzle-orm's `inArray` when multiple test files load the module graph.
   const rows = await db
     .select()
     .from(provisionedKeys)
-    .where(
-      and(
-        eq(provisionedKeys.userId, userId),
-        or(
-          eq(provisionedKeys.status, "active"),
-          eq(provisionedKeys.status, "revoked"),
-          eq(provisionedKeys.status, "rotated"),
-        ),
-      ),
-    );
+    .where(eq(provisionedKeys.userId, userId));
 
   const active: KeyListItem[] = [];
   const revoked: KeyListItem[] = [];

@@ -22,9 +22,20 @@ mock.module("../src/db/connection.js", () => ({
   getDb: () => mockDb,
 }));
 
-// Mock drizzle-orm eq function
+// Mock drizzle-orm operators used across the whole service.
+//
+// NOTE: Bun's `mock.module` is process-global and persists across test files
+// within a single `bun test` run. Any symbol imported elsewhere from
+// `drizzle-orm` must be re-exported here or those tests will see
+// "Export named 'X' not found in module drizzle-orm" when the mock wins the
+// module-graph race. Keep this list in sync with any new imports in src/.
 mock.module("drizzle-orm", () => ({
   eq: (a: unknown, b: unknown) => ({ a, b }),
+  and: (...args: unknown[]) => ({ and: args }),
+  or: (...args: unknown[]) => ({ or: args }),
+  inArray: (col: unknown, values: unknown[]) => ({ inArray: { col, values } }),
+  isNull: (col: unknown) => ({ isNull: col }),
+  lte: (a: unknown, b: unknown) => ({ lte: { a, b } }),
 }));
 
 const { registerProfileRoute } = await import("../src/routes/profile.js");
