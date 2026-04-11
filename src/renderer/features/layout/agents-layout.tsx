@@ -349,7 +349,15 @@ export function AgentsLayout() {
               <SettingsSidebar />
             ) : (
               <AgentsSidebar
-                desktopUser={desktopUser}
+                desktopUser={
+                  desktopUser
+                    ? {
+                        id: desktopUser.id,
+                        email: desktopUser.email,
+                        name: desktopUser.name ?? undefined,
+                      }
+                    : null
+                }
                 onSignOut={handleSignOut}
                 onToggleSidebar={handleCloseSidebar}
               />

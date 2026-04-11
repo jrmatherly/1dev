@@ -51,9 +51,11 @@ export const McpServersIndicator = memo(function McpServersIndicator({
     if (mcpConfig?.mcpServers?.length && !sessionInfo?.mcpServers?.length) {
       setSessionInfo((prev) => ({
         tools: prev?.tools || [],
+        // tRPC widens the status union to `string` across the process boundary.
+        // Cast back — the backend guarantees values match MCPServerStatus.
         mcpServers: mcpConfig.mcpServers.map((s) => ({
           name: s.name,
-          status: s.status,
+          status: s.status as MCPServerStatus,
         })),
         plugins: prev?.plugins || [],
         skills: prev?.skills || [],

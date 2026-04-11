@@ -79,6 +79,11 @@ export function WorkModeSelector({
               key={option.id}
               onClick={() => {
                 if (isDisabled) return;
+                // `option.id` is "local" | "worktree" | "sandbox"; the disabled
+                // guard above ensures "sandbox" can never reach this callsite
+                // (it's a future Background-mode feature marked soon+disabled),
+                // but TS can't narrow through the runtime flag.
+                if (option.id === "sandbox") return;
                 onChange(option.id);
                 setOpen(false);
               }}

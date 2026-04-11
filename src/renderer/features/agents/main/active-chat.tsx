@@ -231,6 +231,7 @@ import {
   diffViewModeAtom,
   splitUnifiedDiffByFile,
   type AgentDiffViewRef,
+  type DiffStats,
   type DiffViewMode,
   type ParsedDiffFile,
 } from "../ui/agent-diff-view";
@@ -1070,8 +1071,9 @@ interface DiffSidebarContentProps {
   selectedFilePath: string | null;
   onFileSelect: (file: { path: string }, category: string) => void;
   chatId: string;
-  sandboxId: string | null;
-  repository: { owner: string; name: string } | null;
+  sandboxId: string | null | undefined;
+  /** Flat repository slug (e.g. "owner/name") — parent extracts from agentChat.meta.repository. */
+  repository?: string;
   diffStats: {
     isLoading: boolean;
     hasChanges: boolean;
@@ -1094,7 +1096,12 @@ interface DiffSidebarContentProps {
     allExpanded: boolean;
   }) => void;
   diffViewRef: React.RefObject<AgentDiffViewRef | null>;
-  agentChat: { prUrl?: string; prNumber?: number } | null | undefined;
+  // Accept the wider chat shape; only prUrl/prNumber are read downstream and
+  // both may be null on the Drizzle row.
+  agentChat:
+    | { prUrl?: string | null; prNumber?: number | null }
+    | null
+    | undefined;
   // Real-time sidebar width for responsive layout during resize
   sidebarWidth: number;
   // Commit with AI
@@ -1800,8 +1807,9 @@ const DiffStateProvider = memo(function DiffStateProvider({
 interface DiffSidebarRendererProps {
   worktreePath: string | null;
   chatId: string;
-  sandboxId: string | null;
-  repository: { owner: string; name: string } | null;
+  sandboxId: string | null | undefined;
+  /** Flat repository slug (e.g. "owner/name") — parent extracts from agentChat.meta.repository. */
+  repository?: string;
   diffStats: {
     isLoading: boolean;
     hasChanges: boolean;
@@ -1818,7 +1826,13 @@ interface DiffSidebarRendererProps {
   }) => void;
   diffViewRef: React.RefObject<AgentDiffViewRef | null>;
   diffSidebarRef: React.RefObject<HTMLDivElement | null>;
-  agentChat: { prUrl?: string; prNumber?: number } | null | undefined;
+  // Accept the full chat object; only `prUrl`/`prNumber` are read but widening the
+  // type avoids a lossy projection at every callsite. `prUrl` is `string | null` on
+  // the Drizzle row, so we accept null here.
+  agentChat:
+    | { prUrl?: string | null; prNumber?: number | null }
+    | null
+    | undefined;
   branchData: { current: string } | undefined;
   gitStatus:
     | {
@@ -1855,7 +1869,7 @@ interface DiffSidebarRendererProps {
   handleMarkAllViewed: () => void;
   handleMarkAllUnviewed: () => void;
   isDesktop: boolean;
-  isFullscreen: boolean;
+  isFullscreen: boolean | null;
   setDiffDisplayMode: (mode: "side-peek" | "center-peek" | "full-page") => void;
   handleCommitToPr: (selectedPaths?: string[]) => void;
   isCommittingToPr: boolean;
@@ -1988,7 +2002,7 @@ const DiffSidebarRenderer = memo(function DiffSidebarRenderer({
           onMarkAllViewed={handleMarkAllViewed}
           onMarkAllUnviewed={handleMarkAllUnviewed}
           isDesktop={isDesktop}
-          isFullscreen={isFullscreen}
+          isFullscreen={isFullscreen ?? false}
           displayMode={diffDisplayMode}
           onDisplayModeChange={setDiffDisplayMode}
         />
@@ -5387,7 +5401,7 @@ export function ChatView({
 
   // Smart setters that update the cache
   const setDiffStats = useCallback(
-    (val: any) => {
+    (val: DiffStats | ((prev: DiffStats) => DiffStats)) => {
       setDiffCache((prev) => {
         const newVal = typeof val === "function" ? val(prev.diffStats) : val;
         // Only update if something changed
@@ -7530,7 +7544,7 @@ Make sure to preserve all functionality from both branches when resolving confli
     notifyAgentComplete,
     syncFinishedMessagesToChatCache,
     pruneIfDetachedAndIdle,
-    agentChat?.isRemote,
+    agentChat && "isRemote" in agentChat ? agentChat.isRemote : undefined,
     agentChat?.name,
   ]);
 

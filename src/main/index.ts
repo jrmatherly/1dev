@@ -894,7 +894,8 @@ if (gotTheLock) {
       Menu.setApplicationMenu(Menu.buildFromTemplate(template));
     };
 
-    // macOS: Set dock menu (right-click on dock icon)
+    // macOS: Set dock menu (right-click on dock icon).
+    // `app.dock` is undefined on non-macOS platforms; optional chaining narrows it.
     if (process.platform === "darwin") {
       const dockMenu = Menu.buildFromTemplate([
         {
@@ -905,7 +906,7 @@ if (gotTheLock) {
           },
         },
       ]);
-      app.dock.setMenu(dockMenu);
+      app.dock?.setMenu(dockMenu);
     }
 
     // Set update state and rebuild menu

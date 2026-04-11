@@ -1044,7 +1044,8 @@ export interface DiffStats {
 
 interface AgentDiffViewProps {
   chatId: string;
-  sandboxId: string;
+  /** Sandbox ID (web/remote chats only — null/undefined on desktop chats). */
+  sandboxId: string | null | undefined;
   /** Worktree path for local file access (desktop only) */
   worktreePath?: string;
   repository?: string;

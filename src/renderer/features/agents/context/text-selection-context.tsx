@@ -10,12 +10,8 @@ import {
   type ReactNode,
 } from "react";
 
-// Chromium 137+ Selection API extension for Shadow DOM support
-declare global {
-  interface Selection {
-    getComposedRanges?(options: { shadowRoots: ShadowRoot[] }): StaticRange[];
-  }
-}
+// Note: `Selection.getComposedRanges` is now part of the standard DOM lib
+// (Chromium 137+). No polyfill block required.
 
 // Discriminated union for selection source
 export type TextSelectionSource =

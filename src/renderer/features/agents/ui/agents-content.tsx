@@ -4,12 +4,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useQuery } from "@tanstack/react-query";
 // import { useSearchParams, useRouter } from "next/navigation" // Desktop doesn't use next/navigation
-// Desktop: mock Next.js navigation hooks
-const useSearchParams = () => ({ get: () => null });
-const useRouter = () => ({ push: () => {}, replace: () => {} });
+// Desktop: mock Next.js navigation hooks (no-ops — we use <HashRouter> and atoms instead)
+const useSearchParams = () => ({
+  get: (_key: string): string | null => null,
+});
+const useRouter = () => ({
+  push: (_url: string, _opts?: { scroll?: boolean }) => {},
+  replace: (_url: string, _opts?: { scroll?: boolean }) => {},
+});
 // Desktop: mock Clerk hooks
 const useUser = () => ({ user: null });
-const useClerk = () => ({ signOut: () => {} });
+const useClerk = () => ({ signOut: async (_opts?: { redirectUrl?: string }) => {} });
 import {
   selectedAgentChatIdAtom,
   selectedChatIsRemoteAtom,
@@ -1024,7 +1029,7 @@ export function AgentsContent() {
             isSidebarOpen={sidebarOpen}
             onBackToChats={() => setSidebarOpen((prev) => !prev)}
             isLoading={isLoadingSubChats}
-            agentName={chatData?.name}
+            agentName={chatData?.name ?? undefined}
           />
         </ResizableSidebar>
 

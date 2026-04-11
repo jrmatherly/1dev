@@ -79,6 +79,15 @@ type CodexMcpServerForSettings = {
   tools: McpToolInfo[];
   needsAuth: boolean;
   config: Record<string, unknown>;
+  // Optional fields to align with Claude's MCPServer shape so renderer code
+  // can handle both providers with a single type. Codex never populates these
+  // today but the renderer reads them defensively via optional spread.
+  serverInfo?: {
+    name: string;
+    version: string;
+    icons?: Array<{ src: string }>;
+  };
+  error?: string;
 };
 
 type CodexMcpSnapshot = {
