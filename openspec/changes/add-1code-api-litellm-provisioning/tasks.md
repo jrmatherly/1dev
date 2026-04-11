@@ -2,48 +2,48 @@
 
 ## 1. Database schema & migration
 
-- [ ] 1.1 Extend `services/1code-api/src/db/schema.ts` `users` table per Decision 2: add `id: uuid primaryKey defaultRandom` as new PK, keep `oid: text notNull` as a `uniqueIndex("users_oid_unique")`, add `litellmUserId` (nullable text), `isActive` (boolean, default true), `defaultKeyDurationDays` (integer, default 90), `deprovisionedAt` (nullable timestamp)
-- [ ] 1.2 Add `keyStatus = pgEnum("key_status", ["active", "revoked", "rotated", "expired", "expiring_soon"])` to `services/1code-api/src/db/schema.ts` per Decision 9
-- [ ] 1.3 Add `provisionedKeys` table to `services/1code-api/src/db/schema.ts` per design §"New `provisionedKeys` table" — `userId: uuid` FK to `users.id`, `status: keyStatus` column, `rotatedFromId: uuid` self-FK using `AnyPgColumn` type annotation with `onDelete: "set null"`
-- [ ] 1.4 Add `userTeamMemberships` table to `services/1code-api/src/db/schema.ts` with `userId: uuid` FK to `users.id` and `uq_user_team` unique constraint on `(userId, teamId)`
-- [ ] 1.5 Add `auditLog` table to `services/1code-api/src/db/schema.ts` (7 columns for actor + action + target + details + timestamp)
-- [ ] 1.6 Run `cd services/1code-api && bun run db:generate` to produce the migration file
-- [ ] 1.7 Review generated SQL: verify the two-step `users` PK migration is present (add `id` with `gen_random_uuid()` default → drop old `users_pkey` → add new PK on `id` → create `users_oid_unique` index). If Drizzle emits a naive single-step DROP PRIMARY KEY, split into two migration files manually. Verify all new `users` columns are nullable or have defaults (backward-compatible for rolling deploy).
-- [ ] 1.8 Commit the generated migration file(s)
+- [x] 1.1 Extend `services/1code-api/src/db/schema.ts` `users` table per Decision 2: add `id: uuid primaryKey defaultRandom` as new PK, keep `oid: text notNull` as a `uniqueIndex("users_oid_unique")`, add `litellmUserId` (nullable text), `isActive` (boolean, default true), `defaultKeyDurationDays` (integer, default 90), `deprovisionedAt` (nullable timestamp)
+- [x] 1.2 Add `keyStatus = pgEnum("key_status", ["active", "revoked", "rotated", "expired", "expiring_soon"])` to `services/1code-api/src/db/schema.ts` per Decision 9
+- [x] 1.3 Add `provisionedKeys` table to `services/1code-api/src/db/schema.ts` per design §"New `provisionedKeys` table" — `userId: uuid` FK to `users.id`, `status: keyStatus` column, `rotatedFromId: uuid` self-FK using `AnyPgColumn` type annotation with `onDelete: "set null"`
+- [x] 1.4 Add `userTeamMemberships` table to `services/1code-api/src/db/schema.ts` with `userId: uuid` FK to `users.id` and `uq_user_team` unique constraint on `(userId, teamId)`
+- [x] 1.5 Add `auditLog` table to `services/1code-api/src/db/schema.ts` (7 columns for actor + action + target + details + timestamp)
+- [x] 1.6 Run `cd services/1code-api && bun run db:generate` to produce the migration file
+- [x] 1.7 Review generated SQL: verify the two-step `users` PK migration is present (add `id` with `gen_random_uuid()` default → drop old `users_pkey` → add new PK on `id` → create `users_oid_unique` index). If Drizzle emits a naive single-step DROP PRIMARY KEY, split into two migration files manually. Verify all new `users` columns are nullable or have defaults (backward-compatible for rolling deploy).
+- [x] 1.8 Commit the generated migration file(s)
 
 ## 2. Config & feature flag
 
-- [ ] 2.1 Extend `services/1code-api/src/config.ts` Zod schema with a **conditional** schema using `.superRefine()`: parse `PROVISIONING_ENABLED` (enum `true|false|1|0`, default `false`, transformed to boolean) first. When the resulting boolean is `true`, `.superRefine()` validates that `LITELLM_BASE_URL` (url), `LITELLM_MASTER_KEY` (string min 1), `AZURE_TENANT_ID` (uuid), `AZURE_GRAPH_CLIENT_ID` (uuid), `AZURE_GRAPH_CLIENT_SECRET` (string min 1), `TEAMS_CONFIG_PATH` (string, default `/app/config/teams.yaml`), `DEPROVISIONING_MAX_PER_RUN` (integer, default 20) are all present and valid. When the flag is `false`, these fields are optional and unvalidated. This preserves local-dev ergonomics for devs who only need the baseline endpoints.
-- [ ] 2.2 Add gitignore entry `services/1code-api/config/teams.yaml` to the root `.gitignore`
-- [ ] 2.3 Create `services/1code-api/config/` directory
-- [ ] 2.4 Create `services/1code-api/config/teams.yaml.example` with placeholder GUIDs and header comment matching Apollos's `teams.yaml.example` structure
-- [ ] 2.5 Write a unit test in `services/1code-api/tests/config.test.ts` that asserts: (a) with `PROVISIONING_ENABLED=false` and no Azure/LiteLLM env vars set, the config parses successfully, (b) with `PROVISIONING_ENABLED=true` and missing `AZURE_GRAPH_CLIENT_ID`, the config parse throws with a message listing the missing fields, (c) with `PROVISIONING_ENABLED=true` and all required vars set, the config parses successfully
+- [x] 2.1 Extend `services/1code-api/src/config.ts` Zod schema with a **conditional** schema using `.superRefine()`: parse `PROVISIONING_ENABLED` (enum `true|false|1|0`, default `false`, transformed to boolean) first. When the resulting boolean is `true`, `.superRefine()` validates that `LITELLM_BASE_URL` (url), `LITELLM_MASTER_KEY` (string min 1), `AZURE_TENANT_ID` (uuid), `AZURE_GRAPH_CLIENT_ID` (uuid), `AZURE_GRAPH_CLIENT_SECRET` (string min 1), `TEAMS_CONFIG_PATH` (string, default `/app/config/teams.yaml`), `DEPROVISIONING_MAX_PER_RUN` (integer, default 20) are all present and valid. When the flag is `false`, these fields are optional and unvalidated. This preserves local-dev ergonomics for devs who only need the baseline endpoints.
+- [x] 2.2 Add gitignore entry `services/1code-api/config/teams.yaml` to the root `.gitignore`
+- [x] 2.3 Create `services/1code-api/config/` directory
+- [x] 2.4 Create `services/1code-api/config/teams.yaml.example` with placeholder GUIDs and header comment matching Apollos's `teams.yaml.example` structure
+- [x] 2.5 Write a unit test in `services/1code-api/tests/config.test.ts` that asserts: (a) with `PROVISIONING_ENABLED=false` and no Azure/LiteLLM env vars set, the config parses successfully, (b) with `PROVISIONING_ENABLED=true` and missing `AZURE_GRAPH_CLIENT_ID`, the config parse throws with a message listing the missing fields, (c) with `PROVISIONING_ENABLED=true` and all required vars set, the config parses successfully
 
 ## 3. Core libraries
 
-- [ ] 3.1 Add `@azure/msal-node`, `node-cron`, `yaml`, `@fastify/rate-limit` to `services/1code-api/package.json` dependencies; run `bun install`
-- [ ] 3.2 Create `services/1code-api/src/lib/teams-config.ts` — YAML loader, `TeamConfig`/`TeamsConfig` types, `getTeamByGroupId`, `getQualifyingTeams` (with default suppression logic), `isUserAuthorized` (with `required_groups` gate)
-- [ ] 3.3 Create `services/1code-api/src/lib/graph-client.ts` — `GraphClient` class with `MSALConfidentialClientApplication`, in-memory token cache with 60s safety margin, `getUserGroups(oid)` with `@odata.nextLink` pagination
-- [ ] 3.4 Create `services/1code-api/src/lib/litellm-client.ts` — `LiteLLMClient` class with methods: `checkHealth`, `getTeam`, `createTeam`, `createUser`, `getUser`, `addTeamMember`, `generateKey`, `deleteKey`; each with typed request/response shapes and error handling that logs response body before throwing
-- [ ] 3.5 Create `services/1code-api/src/lib/audit.ts` — export a closed `AuditAction` string-literal union type containing exactly these 11 values: `"user.provisioned"`, `"user.deprovisioned"`, `"team.synced"`, `"membership.added"`, `"key.generated"`, `"key.rotated"`, `"key.auto_rotated"`, `"key.revoked"`, `"key.deprovisioned"`, `"key.generation_orphaned"`, `"email.changed"`. Export a const `AUDIT_ACTIONS` object mapping symbolic names to the literal strings (e.g., `ACTION_USER_PROVISIONED = "user.provisioned" as const`). Implement `logAction({tx, actorEmail, actorEntraOid, action, targetType, targetId, details})` that accepts `action: AuditAction` (type-enforced) and inserts into the `auditLog` table with `details` JSON-stringified. Any call site that passes a string literal not in the union fails `bun run ts:check`.
-- [ ] 3.6 Create `services/1code-api/src/lib/scheduler.ts` — `setupScheduler` function that registers deprovisioning + rotation jobs with `node-cron`, returns a handle for graceful shutdown
-- [ ] 3.7 Create `services/1code-api/src/lib/slugify.ts` — minimal kebab-case helper for key alias generation
+- [x] 3.1 Add `@azure/msal-node`, `node-cron`, `yaml`, `@fastify/rate-limit` to `services/1code-api/package.json` dependencies; run `bun install`
+- [x] 3.2 Create `services/1code-api/src/lib/teams-config.ts` — YAML loader, `TeamConfig`/`TeamsConfig` types, `getTeamByGroupId`, `getQualifyingTeams` (with default suppression logic), `isUserAuthorized` (with `required_groups` gate)
+- [x] 3.3 Create `services/1code-api/src/lib/graph-client.ts` — `GraphClient` class with `MSALConfidentialClientApplication`, in-memory token cache with 60s safety margin, `getUserGroups(oid)` with `@odata.nextLink` pagination
+- [x] 3.4 Create `services/1code-api/src/lib/litellm-client.ts` — `LiteLLMClient` class with methods: `checkHealth`, `getTeam`, `createTeam`, `createUser`, `getUser`, `addTeamMember`, `generateKey`, `deleteKey`; each with typed request/response shapes and error handling that logs response body before throwing
+- [x] 3.5 Create `services/1code-api/src/lib/audit.ts` — export a closed `AuditAction` string-literal union type containing exactly these 11 values: `"user.provisioned"`, `"user.deprovisioned"`, `"team.synced"`, `"membership.added"`, `"key.generated"`, `"key.rotated"`, `"key.auto_rotated"`, `"key.revoked"`, `"key.deprovisioned"`, `"key.generation_orphaned"`, `"email.changed"`. Export a const `AUDIT_ACTIONS` object mapping symbolic names to the literal strings (e.g., `ACTION_USER_PROVISIONED = "user.provisioned" as const`). Implement `logAction({tx, actorEmail, actorEntraOid, action, targetType, targetId, details})` that accepts `action: AuditAction` (type-enforced) and inserts into the `auditLog` table with `details` JSON-stringified. Any call site that passes a string literal not in the union fails `bun run ts:check`.
+- [x] 3.6 Create `services/1code-api/src/lib/scheduler.ts` — `setupScheduler` function that registers deprovisioning + rotation jobs with `node-cron`, returns a handle for graceful shutdown
+- [x] 3.7 Create `services/1code-api/src/lib/slugify.ts` — minimal kebab-case helper for key alias generation
 
 ## 4. Domain services
 
-- [ ] 4.1 Create `services/1code-api/src/services/provisioning.ts` — `getProvisionStatus(session, user)` + `provisionUser(session, litellm, graph, teamsConfig, user)` following the 10-step state machine in design.md §"Transaction boundary for provisioning state changes"
-- [ ] 4.2 Create `services/1code-api/src/services/key-service.ts` — `listUserKeys`, `createKey` (with alias collision suffix), `rotateKey` (with `rotatedFromId` linkage), `revokeKey`; include `_makeKeyPreview`, `_computeStatus`, `_daysUntilExpiry` helpers
-- [ ] 4.3 Create `services/1code-api/src/services/deprovisioning.ts` — `runDeprovisioningJob` + `_deprovisionUser` per design §"Deprovisioning cron"
+- [x] 4.1 Create `services/1code-api/src/services/provisioning.ts` — `getProvisionStatus(session, user)` + `provisionUser(session, litellm, graph, teamsConfig, user)` following the 10-step state machine in design.md §"Transaction boundary for provisioning state changes"
+- [x] 4.2 Create `services/1code-api/src/services/key-service.ts` — `listUserKeys`, `createKey` (with alias collision suffix), `rotateKey` (with `rotatedFromId` linkage), `revokeKey`; include `_makeKeyPreview`, `_computeStatus`, `_daysUntilExpiry` helpers
+- [x] 4.3 Create `services/1code-api/src/services/deprovisioning.ts` — `runDeprovisioningJob` + `_deprovisionUser` per design §"Deprovisioning cron"
 - [ ] 4.4 Create `services/1code-api/src/services/rotation.ts` — `runRotationJob` + `_autoRotateKey` per design §"Rotation cron"
 
 ## 5. Zod schemas
 
-- [ ] 5.1 Create `services/1code-api/src/schemas/provision.ts` — `ProvisionStatusResponse`, `ProvisionResponse`, `UserSummary`, `TeamSummary` Zod schemas
+- [x] 5.1 Create `services/1code-api/src/schemas/provision.ts` — `ProvisionStatusResponse`, `ProvisionResponse`, `UserSummary`, `TeamSummary` Zod schemas
 - [ ] 5.2 Create `services/1code-api/src/schemas/keys.ts` — `KeyListItem`, `KeyListResponse`, `KeyCreateRequest`, `KeyCreateResponse`, `KeyRotateResponse`, `KeyRevokeResponse` Zod schemas
 
 ## 6. Route handlers
 
-- [ ] 6.1 Create `services/1code-api/src/routes/provision.ts` — `GET /api/provision/status` (60/min rate limit) + `POST /api/provision` (5/min rate limit) handlers with feature flag guard returning 503 when off, Zod validation of responses
+- [x] 6.1 Create `services/1code-api/src/routes/provision.ts` — `GET /api/provision/status` (60/min rate limit) + `POST /api/provision` (5/min rate limit) handlers with feature flag guard returning 503 when off, Zod validation of responses
 - [ ] 6.2 Create `services/1code-api/src/routes/keys.ts` — `GET /api/keys` (60/min) + `POST /api/keys/new` (10/min) + `POST /api/keys/:keyId/rotate` (5/min) + `POST /api/keys/:keyId/revoke` (5/min) handlers with feature flag guard, Zod validation, ownership enforcement (return 404 if key is not owned by the authenticated user)
 - [ ] 6.3 Register `@fastify/rate-limit` plugin in `services/1code-api/src/index.ts` before route registration with a **global `keyGenerator` that returns `request.headers["x-user-oid"]`** (NOT the default IP-based key, which would global-rate-limit the entire fleet because all requests share the Envoy Gateway pod IP). When the header is missing (e.g., health check before auth hook), fall back to the source IP to preserve existing health-check rate limits.
 - [ ] 6.4 Register `registerProvisionRoute` and `registerKeysRoute` in `services/1code-api/src/index.ts` alongside existing route registrations

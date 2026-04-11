@@ -1,0 +1,54 @@
+# 1code-api LiteLLM team configuration (example).
+#
+# Copy this file to `teams.yaml` in the same directory and fill in real
+# Entra security group GUIDs from your tenant. The live `teams.yaml` is
+# gitignored — do not commit it.
+#
+# In Kubernetes, this file is populated via a ConfigMap mounted at
+# `${TEAMS_CONFIG_PATH}` (default `/app/config/teams.yaml`). The cluster
+# repo (`talos-ai-cluster`) substitutes real values from `cluster.yaml`
+# at Flux reconcile time.
+#
+# Schema:
+#   teams:
+#     - entra_group_id:   Entra security group Object ID (GUID)
+#       team_alias:        Human-readable team name (also used in LiteLLM)
+#       models:            List of LiteLLM model names this team can use
+#       max_budget:        USD cap for the team across all members
+#       budget_duration:   LiteLLM budget window (e.g. "1mo", "7d")
+#       team_member_budget: Per-member cap within the team (0 = unlimited)
+#       litellm_role:      LiteLLM role for members ("user" | "admin")
+#       is_default:        Optional. If true, this team is suppressed when
+#                          the user qualifies for any non-default team.
+#
+#   required_groups:       Optional authorization gate. If set, users must
+#                          be a member of at least one of these groups OR
+#                          they are rejected by POST /api/provision with
+#                          HTTP 403, even if they qualify for a team above.
+#
+# See `docs/enterprise/1code-api-provisioning.md` for the full schema
+# reference and operator runbook.
+
+teams:
+  - entra_group_id: "00000000-0000-0000-0000-000000000001"
+    team_alias: "Example Engineering Team"
+    models:
+      - "gpt-4o"
+      - "claude-3-5-sonnet"
+    max_budget: 500.0
+    budget_duration: "1mo"
+    team_member_budget: 50.0
+    litellm_role: "user"
+
+  - entra_group_id: "00000000-0000-0000-0000-000000000002"
+    team_alias: "Example Default Team"
+    models:
+      - "gpt-3.5-turbo"
+    max_budget: 100.0
+    budget_duration: "1mo"
+    team_member_budget: 10.0
+    litellm_role: "user"
+    is_default: true
+
+required_groups:
+  - "00000000-0000-0000-0000-000000000099"
