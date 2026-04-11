@@ -33,6 +33,7 @@
 - All credential encryption goes through `src/main/lib/credential-store.ts` — no direct `safeStorage` calls elsewhere (enforced by hook + regression guard)
 - **Token injection for CLI subprocesses:** Use `ANTHROPIC_AUTH_TOKEN` env var (Claude CLI 2.1.96 does NOT support `ANTHROPIC_AUTH_TOKEN_FILE`). `ANTHROPIC_AUTH_TOKEN` must be in `STRIPPED_ENV_KEYS_BASE`. Future: `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` (FD-based) when CLI pin is bumped.
 - **Do NOT enable MSAL `clientCapabilities: ["CP1"]`** — LiteLLM is not CAE-enabled
+- **Do NOT propose LiteLLM Enterprise-gated features** — cluster runs LiteLLM OSS only (no Enterprise license). Features like `general_settings.enable_jwt_auth`, `allowed_routes`, per-team/per-key guardrails, `/spend/report`, custom tag budgets, and secret manager integration will raise `ValueError("... is an enterprise only feature.")` at startup. The canonical OSS pattern for JWT auth is Envoy Gateway `SecurityPolicy` + `claimToHeaders` (trust-the-edge). Authoritative list in auto-memory `project_litellm_feature_boundary.md` (loaded via `MEMORY.md` at session start); tracked for promotion to `docs/enterprise/litellm-oss-boundary.md` per P3-Cleanup roadmap item. Received as briefing from cluster agent 2026-04-11.
 
 ## Brand Taxonomy (per `openspec/specs/brand-identity/spec.md`)
 - **Tier A (upstream brand — MUST REMOVE):** `21st`, `twentyfirst`, `1code.dev`, etc.

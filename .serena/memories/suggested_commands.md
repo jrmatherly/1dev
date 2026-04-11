@@ -54,6 +54,7 @@
 - See `docs/architecture/upstream-boundary.md` for the rules
 
 ## Claude Code Skills
+- `/project-orchestrator` — **Start here for ambiguous/multi-step tasks.** Routing-layer skill with Step-0 hard-rule gate (auth-env-vars, credential-storage, TS baseline, OpenSpec Phase 0 scope, LiteLLM OSS, scratchpad, roadmap, upstream-boundary, database, vite-config) that catches dead-end routes before they start. Added 2026-04-11 (commit `105b66e`). Modeled on the cluster repo's `/taskforce` but recontextualized for this fork — understands the 17 project skills, 5 subagents, 8 MCPs, active OpenSpec changes, and canonical docs.
 - `/docs-drift-check` — Audit docs against codebase (drift points catalogued in the skill itself)
 - `/new-regression-guard` — Scaffold new regression guard
 - `/new-router` — Scaffold new tRPC router
