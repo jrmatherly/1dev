@@ -9,7 +9,7 @@
 - `bun run ts:check` — TypeScript check via tsgo (**baseline: 0 errors**, see `.claude/.tscheck-baseline`)
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — Full electron-vite build
-- `bun test` — 15 regression guards + 20 1code-api test files = **199 tests across 35 files** (189 pass + 10 skipped integration tests, ~7s)
+- `bun test` — 15 regression guards + 20 1code-api test files = **199 tests across 35 files** (189 pass + 10 skipped integration tests, ~7.6s)
 - `bun audit` — Dependency vulnerability scan
 - `cd docs && bun run build` — Docs site build (also a CI gate)
 - Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md)
@@ -27,7 +27,7 @@
 ## 1code-api Service (services/1code-api/)
 - `cd services/1code-api && bun install` — Install service deps
 - `cd services/1code-api && bun run dev` — tsx watch mode
-- `cd services/1code-api && bun test` — Run service tests
+- `cd services/1code-api && bun test` — Run service tests (20 test files)
 - `cd services/1code-api && DATABASE_URL=<url> bunx drizzle-kit generate` — Generate new migration
 - `docker build -t 1code-api:local -f services/1code-api/Dockerfile services/1code-api/` — Build container
 - `docker run -d --name 1code-api-pg -e POSTGRES_USER=onecode -e POSTGRES_PASSWORD=devpass -e POSTGRES_DB=onecode -p 5433:5432 postgres:18-alpine` — Start test PostgreSQL
@@ -41,7 +41,11 @@
 - `/opsx:propose <description>` — Create a new change proposal
 - `/opsx:apply <name>` — Implement change tasks
 - `/opsx:archive <name>` — Archive and promote specs
-- `bunx @fission-ai/openspec@1.2.0 validate --all --strict --no-interactive` — Validate all changes
+- `/opsx:verify <name>` — Verify implementation matches artifacts
+- `bunx @fission-ai/openspec@1.2.0 validate <change-name> --strict --no-interactive` — Validate a single change (positional arg). Use `--changes` flag to validate all changes, or `--specs` for baseline specs.
+- `bunx @fission-ai/openspec@1.2.0 list --json` — List all active changes with task progress
+- `openspec status --change <name> [--json]` — Per-change artifact status and apply-requires check
+- `openspec instructions <artifact-id> --change <name> --json` — Artifact build instructions (template + rules + dependency list) for the propose workflow
 - `/roadmap` — View, add, or complete items on the centralized roadmap
 
 ## Upstream Backend Discovery
@@ -71,6 +75,14 @@
 - `gh pr comment <#> --body "@dependabot recreate"` — Refresh a Dependabot PR against current main
 - `gh label create <name> --color <hex> --description "<text>"` — Create labels before Dependabot needs them
 - `gh label list --limit 100 --json name` — Verify all expected labels exist
+
+## Worktree Workflow (for scoped-refactor changes)
+- `git worktree add ../ai-coding-cli-worktrees/<feature-name> -b feat/<feature-name>` — Create isolated checkout
+- `cd ../ai-coding-cli-worktrees/<feature-name>` — All work happens inside
+- `git worktree list` — Inspect active worktrees
+- `git worktree remove <path>` — Remove after merge
+- `git worktree prune` — Clean up stale refs
+- Current worktree-enforced changes: `replace-gray-matter-with-front-matter` (per `tasks.md` §1 + §13)
 
 ## Session Lifecycle
 - `/session-sync` — End-of-task sync: CLAUDE.md + Serena memories + roadmap + code-review graph + commit

@@ -3,8 +3,8 @@
 ## Quality Gates — ALL REQUIRED
 - `bun run ts:check` — tsgo (**baseline: 0 errors** in `.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2` via full 10-bucket sweep from `.scratchpad/code-problems/002-analysis.md`). **CI now fails on ANY new TS error.**
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
-- `bun run build` — electron-vite 5 build
-- `bun test` — 15 regression guards + 20 1code-api test files = **199 tests across 35 files** (189 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~7s
+- `bun run build` — electron-vite 5 build. Currently emits 1 known Rollup warning at `node_modules/gray-matter/lib/engines.js (43:13)` — scheduled for removal under active OpenSpec change `replace-gray-matter-with-front-matter`.
+- `bun test` — 15 regression guards + 20 1code-api test files = **199 tests across 35 files** (189 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~7.6s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
 
@@ -27,6 +27,7 @@
 - @azure/msal-node ^5.1.2 (upgraded from 3.8.x), @azure/msal-node-extensions ^5.1.2
 - @types/node ^24, @swc/core ^1 (electron-vite 5 peer dep)
 - `build.externalizeDeps` config in electron.vite.config.ts (replaced `externalizeDepsPlugin`)
+- gray-matter@4.0.3 (pending removal under `replace-gray-matter-with-front-matter`; will swap to front-matter@4.0.2 behind a canonical shim at `src/main/lib/frontmatter.ts`)
 
 ## Upgrade Blockers (as of 2026-04-11)
 - **Vite pin (7.x, was 6.x):** Phase A Vite 7.3.2 landed 2026-04-10; Phase B Vite 8 blocked on `electron-vite 6.0.0` stable (currently beta-only `6.0.0-beta.0`)
@@ -66,6 +67,8 @@
 - **`drizzle-kit generate` requires DATABASE_URL even when offline:** Pass placeholder: `DATABASE_URL="postgresql://localhost/x" bunx drizzle-kit generate`.
 - **Postgres 18 volume mount change:** Postgres 18 moved the default data directory; existing volume mounts from Postgres 17 need reconciling.
 - **`.dockerignore` gotcha for bundled TypeScript services:** Don't exclude `tsconfig.json` — the bundler reads it for path aliases. Exclude `dist/`, `node_modules/`, tests, README — but keep tsconfig.
+- **OpenSpec CLI `validate` flag shape:** Use `bunx @fission-ai/openspec@1.2.0 validate <change-name> --strict --no-interactive`. The `--change <name>` form does NOT exist (use positional arg); `--changes` (plural) is a bulk "validate all changes" flag. Discovered during session-sync 2026-04-11.
+- **Rollup warnings are static-analysis based, not runtime:** Passing `{ engines: { yaml: ... } }` to gray-matter at call sites does NOT silence the `eval` warning because Rollup inspects the bundled source, not the runtime path. Empirically verified during the `replace-gray-matter-with-front-matter` research spike. Only removing the module from the bundle (via dependency swap) eliminates the warning.
 
 ## TS Baseline Tooling (load-bearing)
 - `.claude/.tscheck-baseline` = **0** (was 32 before 2026-04-11 sweep)
