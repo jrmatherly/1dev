@@ -616,13 +616,13 @@ export function NewChatForm({
       "alt",
       "shift",
     ]);
-    const modifiers = parts.filter((p) => MODIFIER_KEYS.has(p));
+    const modifiers = new Set(parts.filter((p) => MODIFIER_KEYS.has(p)));
     const mainKey = parts.find((p) => !MODIFIER_KEYS.has(p));
 
-    const needsCmd = modifiers.includes("cmd") || modifiers.includes("meta");
-    const needsShift = modifiers.includes("shift");
-    const needsCtrl = modifiers.includes("ctrl");
-    const needsAlt = modifiers.includes("alt") || modifiers.includes("opt");
+    const needsCmd = modifiers.has("cmd") || modifiers.has("meta");
+    const needsShift = modifiers.has("shift");
+    const needsCtrl = modifiers.has("ctrl");
+    const needsAlt = modifiers.has("alt") || modifiers.has("opt");
 
     // For modifier-only hotkeys (like ctrl+opt), we track when all modifiers are pressed
     const isModifierOnlyHotkey = !mainKey;

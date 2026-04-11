@@ -42,11 +42,6 @@ import {
   Columns2,
   Rows2,
 } from "lucide-react";
-import {
-  ClipboardIcon,
-  ExternalLinkIcon,
-  FolderIcon,
-} from "../../../components/ui/icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { getFileIconByExtension } from "../mentions/agents-file-mention";
 import {
@@ -59,6 +54,9 @@ import {
 } from "../../../components/ui/alert-dialog";
 import { Button } from "../../../components/ui/button";
 import {
+  ClipboardIcon,
+  ExternalLinkIcon,
+  FolderIcon,
   IconSpinner,
   IconChatBubble,
   ExpandIcon,

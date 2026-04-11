@@ -242,104 +242,64 @@ export function getFileIconByExtension(
   }
 
   const ext = filename.split(".").pop()?.toLowerCase() || "";
-
-  switch (ext) {
-    case "tsx":
-      return ReactIcon;
-    case "ts":
-      return TypeScriptIcon;
-    case "js":
-    case "mjs":
-    case "cjs":
-      return JavaScriptIcon;
-    case "jsx":
-      return ReactIcon;
-    case "py":
-    case "pyw":
-    case "pyi":
-      return PythonIcon;
-    case "go":
-      return GoIcon;
-    case "rs":
-      return RustIcon;
-    case "md":
-    case "mdx":
-      // This case is handled above in special handling, but kept as fallback
-      // Check if it's README
-      const nameWithoutExt = filenameLower.replace(/\.(md|mdx)$/, "");
-      if (nameWithoutExt === "readme") {
-        return MarkdownInfoIcon;
-      }
-      return MarkdownIcon;
-    case "css":
-      return CSSIcon;
-    case "html":
-    case "htm":
-      return HTMLIcon;
-    case "scss":
-    case "sass":
-      return SCSSIcon;
-    case "json":
-    case "jsonc":
-      return JSONIcon;
-    case "yaml":
-    case "yml":
-      return YAMLIcon;
-    case "sh":
-    case "bash":
-    case "zsh":
-      return ShellIcon;
-    case "sql":
-      return SQLIcon;
-    case "graphql":
-    case "gql":
-      return GraphQLIcon;
-    case "prisma":
-      return PrismaIcon;
-    case "dockerfile":
-      return DockerIcon;
-    case "toml":
-      return TOMLIcon;
-    case "env":
-      // This handles .env files, but we already handled them above
-      // This is a fallback for edge cases
-      return TOMLIcon;
-    case "java":
-      return JavaIcon;
-    case "c":
-    case "h":
-      return CIcon;
-    case "cpp":
-    case "cc":
-    case "cxx":
-    case "hpp":
-      return CppIcon;
-    case "cs":
-      return CSharpIcon;
-    case "php":
-      return PHPIcon;
-    case "rb":
-      return RubyIcon;
-    case "kt":
-      return KotlinIcon;
-    case "vue":
-      return VueIcon;
-    case "svelte":
-      return SvelteIcon;
-    case "astro":
-      return AstroIcon;
-    case "swift":
-      return SwiftIcon;
-    case "pdf":
-      return PDFIcon;
-    case "svg":
-      return SVGIcon;
-    case "txt":
-      return TxtIcon;
-    default:
-      return returnNullForUnknown ? null : UnknownFileIcon;
-  }
+  const icon = EXTENSION_ICON_MAP[ext];
+  if (icon) return icon;
+  return returnNullForUnknown ? null : UnknownFileIcon;
 }
+
+// Lookup table for file extensions → icon components.
+// md/mdx are intentionally NOT here — handled by the special-case block above
+// for README vs non-README differentiation.
+const EXTENSION_ICON_MAP: Record<string, typeof ReactIcon> = {
+  tsx: ReactIcon,
+  ts: TypeScriptIcon,
+  js: JavaScriptIcon,
+  mjs: JavaScriptIcon,
+  cjs: JavaScriptIcon,
+  jsx: ReactIcon,
+  py: PythonIcon,
+  pyw: PythonIcon,
+  pyi: PythonIcon,
+  go: GoIcon,
+  rs: RustIcon,
+  css: CSSIcon,
+  html: HTMLIcon,
+  htm: HTMLIcon,
+  scss: SCSSIcon,
+  sass: SCSSIcon,
+  json: JSONIcon,
+  jsonc: JSONIcon,
+  yaml: YAMLIcon,
+  yml: YAMLIcon,
+  sh: ShellIcon,
+  bash: ShellIcon,
+  zsh: ShellIcon,
+  sql: SQLIcon,
+  graphql: GraphQLIcon,
+  gql: GraphQLIcon,
+  prisma: PrismaIcon,
+  dockerfile: DockerIcon,
+  toml: TOMLIcon,
+  env: TOMLIcon,
+  java: JavaIcon,
+  c: CIcon,
+  h: CIcon,
+  cpp: CppIcon,
+  cc: CppIcon,
+  cxx: CppIcon,
+  hpp: CppIcon,
+  cs: CSharpIcon,
+  php: PHPIcon,
+  rb: RubyIcon,
+  kt: KotlinIcon,
+  vue: VueIcon,
+  svelte: SvelteIcon,
+  astro: AstroIcon,
+  swift: SwiftIcon,
+  pdf: PDFIcon,
+  svg: SVGIcon,
+  txt: TxtIcon,
+};
 
 // Tool icon component (MCP icon) - slightly larger for visibility
 function ToolIcon({ className }: { className?: string }) {
@@ -788,8 +748,8 @@ export const AgentsFileMention = memo(function AgentsFileMention({
   // then filter results on client by all words
   const apiSearchQuery = useMemo(() => {
     if (!debouncedSearchText) return "";
-    const words = debouncedSearchText.split(/\s+/).filter(Boolean);
-    return words[0] || "";
+    const firstWord = debouncedSearchText.split(/\s+/).find(Boolean);
+    return firstWord || "";
   }, [debouncedSearchText]);
 
   // Fetch files from API
