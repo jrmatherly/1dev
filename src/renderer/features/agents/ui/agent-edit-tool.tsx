@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { useCodeTheme } from "../../../lib/hooks/use-code-theme";
 import { highlightCode } from "../../../lib/themes/shiki-theme-loader";
 import {
@@ -21,8 +21,6 @@ import { areToolPropsEqual } from "./agent-tool-utils";
 import { getFileIconByExtension } from "../mentions/agents-file-mention";
 import { useFileOpen } from "../mentions";
 import {
-  agentsDiffSidebarOpenAtom,
-  agentsFocusedDiffFileAtom,
   selectedProjectAtom,
 } from "../atoms";
 import { cn } from "../../../lib/utils";
@@ -227,9 +225,6 @@ export const AgentEditTool = memo(function AgentEditTool({
   const { isPending, isInterrupted } = getToolStatus(part, chatStatus);
   const codeTheme = useCodeTheme();
 
-  // Atoms for opening diff sidebar and focusing on file
-  const setDiffSidebarOpen = useSetAtom(agentsDiffSidebarOpenAtom);
-  const setFocusedDiffFile = useSetAtom(agentsFocusedDiffFileAtom);
   const selectedProject = useAtomValue(selectedProjectAtom);
   const projectPath = selectedProject?.path;
   const onOpenFile = useFileOpen();
@@ -246,7 +241,6 @@ export const AgentEditTool = memo(function AgentEditTool({
     part.state === "input-streaming" && isActivelyStreaming;
 
   const filePath = part.input?.file_path || "";
-  const oldString = part.input?.old_string || "";
   const newString = part.input?.new_string || "";
 
   // For Write mode, content is in input.content
@@ -264,12 +258,6 @@ export const AgentEditTool = memo(function AgentEditTool({
   }, [filePath, projectPath]);
 
   // Handler to open diff sidebar and focus on this file
-  const handleOpenInDiff = useCallback(() => {
-    if (!displayPath) return;
-    setDiffSidebarOpen(true);
-    setFocusedDiffFile(displayPath);
-  }, [displayPath, setDiffSidebarOpen, setFocusedDiffFile]);
-
   // Memoized click handlers to prevent inline function re-creation
   const handleHeaderClick = useCallback(() => {
     if (!isPending && !isInputStreaming) {

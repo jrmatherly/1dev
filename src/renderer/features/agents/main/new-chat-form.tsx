@@ -258,13 +258,13 @@ export function NewChatForm({
   const [createBranchDialogOpen, setCreateBranchDialogOpen] = useState(false);
 
   // Worktree config banner state
-  const [worktreeBannerDismissed, setWorktreeBannerDismissed] = useState(() => {
+  const worktreeBannerDismissed = useMemo(() => {
     try {
       return localStorage.getItem("worktree-banner-dismissed") === "true";
     } catch {
       return false;
     }
-  });
+  }, []);
 
   // Check if project has worktree config
   const { data: worktreeConfigData } = trpc.worktreeConfig.get.useQuery(

@@ -1,6 +1,5 @@
 "use client";
 
-import { stripEmojis } from "../../../components/chat-markdown-renderer";
 import { Button } from "../../../components/ui/button";
 import {
   AgentIcon,
@@ -4570,16 +4569,6 @@ const ChatViewInner = memo(function ChatViewInner({
   // NOTE: Auto-processing of queue is now handled globally by QueueProcessor
   // component in agents-layout.tsx. This ensures queues continue processing
   // even when user navigates to different sub-chats or workspaces.
-
-  // Helper to get message text content
-  const getMessageTextContent = (msg: any): string => {
-    return (
-      msg.parts
-        ?.filter((p: any) => p.type === "text")
-        .map((p: any) => p.text)
-        .join("\n") || ""
-    );
-  };
 
   // Check if there's an unapproved plan (in plan mode with completed ExitPlanMode)
   const hasUnapprovedPlan = useMemo(() => {

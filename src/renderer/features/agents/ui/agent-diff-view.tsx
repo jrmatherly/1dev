@@ -46,7 +46,6 @@ import {
   ClipboardIcon,
   ExternalLinkIcon,
   FolderIcon,
-  UndoIcon,
 } from "../../../components/ui/icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { getFileIconByExtension } from "../mentions/agents-file-mention";
@@ -61,7 +60,6 @@ import {
 import { Button } from "../../../components/ui/button";
 import {
   IconSpinner,
-  PullRequestIcon,
   IconChatBubble,
   ExpandIcon,
   CollapseIcon,
@@ -684,12 +682,6 @@ const FileDiffCard = memo(function FileDiffCard({
     }
   };
 
-  const handleOpenInEditor = () => {
-    if (absolutePath && worktreePath) {
-      openInEditorMutation({ path: absolutePath, cwd: worktreePath });
-    }
-  };
-
   const handleOpenInPreferredEditor = () => {
     if (absolutePath) {
       openInAppMutation({ path: absolutePath, app: preferredEditor });
@@ -1188,8 +1180,6 @@ export const AgentDiffView = forwardRef<AgentDiffViewRef, AgentDiffViewProps>(
     // Height for collapsed header (file name + stats)
     const COLLAPSED_HEIGHT = 44;
     // Estimated height for expanded diff
-    const EXPANDED_HEIGHT_ESTIMATE = 300;
-
     // Fetch diff on mount (only if initialDiff not provided)
     useEffect(() => {
       // Skip fetch if initialDiff was provided with actual content or parsed files

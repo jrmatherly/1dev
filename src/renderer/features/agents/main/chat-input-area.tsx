@@ -643,34 +643,8 @@ export const ChatInputArea = memo(function ChatInputArea({
   const canSwitchProvider =
     messageTokenData.messageCount === 0 && !isStreaming && !sandboxId;
 
-  // MCP status - from getAllMcpConfig query (provides global/local grouping)
   const setSettingsOpen = useSetAtom(agentsSettingsDialogOpenAtom);
   const setSettingsTab = useSetAtom(agentsSettingsDialogActiveTabAtom);
-
-  const {
-    data: allMcpConfig,
-    isLoading: isMcpLoading,
-    refetch: refetchMcp,
-  } = trpc.claude.getAllMcpConfig.useQuery(undefined, {
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Extract global MCPs and project-specific MCPs
-  const mcpGroups = useMemo(() => {
-    if (!allMcpConfig?.groups) return { global: [], local: [] };
-
-    const globalGroup = allMcpConfig.groups.find(
-      (g) => g.groupName === "Global",
-    );
-    const localGroup = allMcpConfig.groups.find(
-      (g) => g.projectPath && projectPath && g.projectPath === projectPath,
-    );
-
-    return {
-      global: globalGroup?.mcpServers || [],
-      local: localGroup?.mcpServers || [],
-    };
-  }, [allMcpConfig?.groups, projectPath]);
 
   // Auto-switch model based on network status (only if offline features enabled)
   // Note: When offline, we show Ollama models selector instead of Claude models

@@ -4,7 +4,6 @@ import { cn } from "../../../lib/utils";
 import { trpc } from "../../../lib/trpc";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
-  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -58,7 +57,6 @@ import {
   PythonIcon,
   GoIcon,
   RustIcon,
-  CodeIcon,
   ReactIcon,
   MarkdownInfoIcon,
   MarkdownIcon,
@@ -753,13 +751,13 @@ export const AgentsFileMention = memo(function AgentsFileMention({
   const placementRef = useRef<"above" | "below" | null>(null);
   const [debouncedSearchText, setDebouncedSearchText] = useState(searchText);
 
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [, setHoverIndex] = useState<number | null>(null);
 
   // Get session info (MCP servers, tools) from atom
   const sessionInfo = useAtomValue(sessionInfoAtom);
 
   // Fetch skills from filesystem (cached for 5 minutes)
-  const { data: skills = [], isFetching: isFetchingSkills } =
+  const { data: skills = [] } =
     trpc.skills.listEnabled.useQuery(
       projectPath ? { cwd: projectPath } : undefined,
       {
@@ -769,7 +767,7 @@ export const AgentsFileMention = memo(function AgentsFileMention({
     );
 
   // Fetch custom agents from filesystem (cached for 5 minutes)
-  const { data: customAgents = [], isFetching: isFetchingAgents } =
+  const { data: customAgents = [] } =
     trpc.agents.listEnabled.useQuery(
       projectPath ? { cwd: projectPath } : undefined,
       {

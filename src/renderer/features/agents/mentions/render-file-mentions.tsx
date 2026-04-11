@@ -9,11 +9,6 @@ import {
 } from "../../../components/ui/icons";
 import { UnknownFileIcon } from "../../../icons/framework-icons";
 import { MENTION_PREFIXES } from "./agents-mentions-editor";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "../../../components/ui/hover-card";
 
 /**
  * Context for opening files in the file viewer sidebar.

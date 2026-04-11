@@ -65,17 +65,13 @@ import {
   type SubChatMeta,
 } from "../stores/sub-chat-store";
 import { useShallow } from "zustand/react/shallow";
-import { motion, AnimatePresence } from "motion/react";
 // import { ResizableSidebar } from "@/app/(alpha)/canvas/[id]/{components}/resizable-sidebar"
 import { ResizableSidebar } from "../../../components/ui/resizable-sidebar";
 // import { useClerk, useUser } from "@clerk/nextjs"
 // import { useCombinedAuth } from "@/lib/hooks/use-combined-auth"
 const useCombinedAuth = () => ({ userId: null }); // Desktop mock
-import { Button } from "../../../components/ui/button";
-import { AlignJustify } from "lucide-react";
 import { AgentsQuickSwitchDialog } from "../components/agents-quick-switch-dialog";
 import { SubChatsQuickSwitchDialog } from "../components/subchats-quick-switch-dialog";
-import { isDesktopApp } from "../../../lib/utils/platform";
 import { remoteTrpc } from "../../../lib/remote-trpc";
 import { SettingsContent } from "../../settings/settings-content";
 // Desktop mock
@@ -104,9 +100,7 @@ export function AgentsContent() {
   );
   const setCodexOnboardingCompleted = useSetAtom(codexOnboardingCompletedAtom);
   const [sidebarOpen, setSidebarOpen] = useAtom(agentsSidebarOpenAtom);
-  const [previewSidebarOpen, setPreviewSidebarOpen] = useAtom(
-    agentsPreviewSidebarOpenAtom,
-  );
+  const setPreviewSidebarOpen = useSetAtom(agentsPreviewSidebarOpenAtom);
   const [mobileViewMode, setMobileViewMode] = useAtom(agentsMobileViewModeAtom);
   const [subChatsSidebarMode, setSubChatsSidebarMode] = useAtom(
     agentsSubChatsSidebarModeAtom,
@@ -120,8 +114,9 @@ export function AgentsContent() {
 
   const hasOpenedSubChatsSidebar = useRef(false);
   const wasSubChatsSidebarOpen = useRef(false);
-  const [shouldAnimateSubChatsSidebar, setShouldAnimateSubChatsSidebar] =
-    useState(subChatsSidebarMode !== "sidebar");
+  const [, setShouldAnimateSubChatsSidebar] = useState(
+    subChatsSidebarMode !== "sidebar",
+  );
   const searchParams = useSearchParams();
   const router = useRouter();
   const isInitialized = useRef(false);
@@ -170,13 +165,12 @@ export function AgentsContent() {
   subChatQuickSwitchSelectedIndexRef.current = subChatQuickSwitchSelectedIndex;
 
   // Get sub-chats from store with shallow comparison
-  const { allSubChats, openSubChatIds, activeSubChatId, setActiveSubChat } =
+  const { allSubChats, openSubChatIds, activeSubChatId } =
     useAgentSubChatStore(
       useShallow((state) => ({
         allSubChats: state.allSubChats,
         openSubChatIds: state.openSubChatIds,
         activeSubChatId: state.activeSubChatId,
-        setActiveSubChat: state.setActiveSubChat,
       })),
     );
 
@@ -248,7 +242,7 @@ export function AgentsContent() {
   );
 
   // Track previous chat ID for navigation after archive
-  const [previousChatId, setPreviousChatId] = useAtom(previousAgentChatIdAtom);
+  const setPreviousChatId = useSetAtom(previousAgentChatIdAtom);
   const prevSelectedChatIdRef = useRef<string | null>(null);
 
   // Update previousChatId when selectedChatId changes
