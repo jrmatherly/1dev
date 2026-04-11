@@ -879,6 +879,8 @@ This was previously "identical to v5 Phase 0.5" but the v2 review found the Envo
 
 2. **Create Entra app registration(s)** per §2.2. Add the new SOPS variables (`litellm_envoy_oidc_client_id`, `litellm_envoy_oidc_client_secret`, optionally `litellm_envoy_native_client_id`) — DO NOT reuse `litellm_entra_*` names which are owned by LiteLLM's existing Entra SSO.
 
+   > **Operational companion:** [`entra-app-registration-1code-api.md`](./entra-app-registration-1code-api.md) is the click-by-click walkthrough of the v2.1 single-app-two-platforms design, validated against `deploy/kubernetes/envoy-auth-policy/app/securitypolicy.yaml` and `src/main/lib/enterprise-auth.ts`. Use it alongside §2.2 when actually executing the Entra portal work.
+
 3. **Configure Entra Token configuration → Optional claims**: add `email`, `preferred_username`, `tid`, `oid`, `azp` for both ID tokens and access tokens.
 
 4. **Add the secret to `cluster.yaml`** following the cluster's existing makejinja workflow (NOT the bespoke `sops --encrypt --age=$AGE_RECIPIENT` command from v1, which is foreign to this repo). Reference `templates/config/kubernetes/apps/ai/litellm/app/secret.sops.yaml.j2:59-65` for the existing pattern. Then `task render` to regenerate the SOPS-encrypted output. Cluster cross-ref §6 for exact steps.

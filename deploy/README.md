@@ -28,8 +28,8 @@ Replace these before deploying:
 | `${SECRET_DOMAIN}` | Your base domain | `example.com` |
 | `${APP_HOSTNAME}` | API hostname | `api.example.com` |
 | `${LITELLM_HOSTNAME}` | LiteLLM proxy hostname | `llms.example.com` |
-| `${ENTRA_TENANT_ID}` | Azure AD / Entra tenant ID | `xxxxxxxx-xxxx-...` |
-| `${ENTRA_CLIENT_ID}` | Entra app registration client ID | `xxxxxxxx-xxxx-...` |
+| `${ENTRA_TENANT_ID}` | Azure AD / Entra tenant ID | `xxxxxxxx-xxxx-...` — see [Entra App Registration guide](../docs/enterprise/entra-app-registration-1code-api.md) |
+| `${ENTRA_CLIENT_ID}` | Entra app registration client ID | `xxxxxxxx-xxxx-...` — see [Entra App Registration guide](../docs/enterprise/entra-app-registration-1code-api.md) |
 | `${ENTRA_ISSUER_URL}` | Entra OIDC issuer URL | `https://login.microsoftonline.com/{tenant}/v2.0` |
 | `${AUTH_POLICY_NAMESPACE}` | Namespace for the OIDC client secret | `ai` |
 | `${IMAGE_REGISTRY}` | Container image registry | `ghcr.io/your-org` |

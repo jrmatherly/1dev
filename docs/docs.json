@@ -71,6 +71,7 @@
                     "enterprise/upstream-features",
                     "enterprise/auth-strategy",
                     "enterprise/auth-fallback",
+                    "enterprise/entra-app-registration-1code-api",
                     "enterprise/envoy-smoke-test",
                     "enterprise/phase-0-gates",
                     "enterprise/cluster-facts"
