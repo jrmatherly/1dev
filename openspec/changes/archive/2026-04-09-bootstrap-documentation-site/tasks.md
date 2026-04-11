@@ -244,11 +244,11 @@ save to the docs/ destination.
   - Frontmatter: `title: Talos AI Cluster Facts`, `icon: server`
   - Content: consolidates the cluster details currently scattered
     across CLAUDE.md "Cluster facts (discovered 2026-04-08)" and the
-    Serena memories: Envoy Gateway v1.7.1, Entra tenant
-    `f505346f-75cf-458b-baeb-10708d41967d`, echo server at
-    `https://echo.aarons.com/`, the existing `kube-system/hubble-ui-
-    oidc` reference SecurityPolicy, the Flux/GitOps workflow rule
-    ("never use direct kubectl apply").
+    Serena memories: Envoy Gateway v1.7.1, Entra tenant (`entra_tenant_id`
+    in `cluster.yaml` — literal scrubbed from this archived record
+    2026-04-11), echo server at `https://echo.aarons.com/`, the existing
+    `kube-system/hubble-ui-oidc` reference SecurityPolicy, the Flux/GitOps
+    workflow rule ("never use direct kubectl apply").
 
 ## 6. Author 10 stub pages
 

@@ -26,6 +26,8 @@ KUBECONFIG=./kubeconfig kubectl ...
 | Parent Gateway | `envoy-external/network/https` |
 | OIDC reference | `kube-system/hubble-ui-oidc` (single-auth; dual-auth is new) |
 
+> **Secret-audit retention policy (2026-04-11):** The tenant ID above is retained deliberately. It is not a secret — it appears in every JWT `tid` claim and in the OIDC discovery URL (`https://login.microsoftonline.com/{tid}/v2.0/.well-known/openid-configuration`) that any browser can fetch unauthenticated. It is kept in this operator-facing runbook because operators configuring the cluster need to paste it into Entra portal forms and SOPS-encrypted `cluster.yaml` values. True secrets (client secrets, DB passwords, API signing keys) live in `cluster.yaml` in the `talos-ai-cluster` repo where the file itself is gitignored. Do NOT remove or placeholder this tenant ID without updating `.claude/rules/` to document the new policy.
+
 ## Flux/GitOps Rule
 
 **Never use direct `kubectl apply` for cluster resources.** All changes go through:

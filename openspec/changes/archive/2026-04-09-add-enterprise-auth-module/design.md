@@ -4,7 +4,7 @@ The chosen enterprise auth strategy (docs/enterprise/auth-strategy.md v2.1, empi
 
 This change adds the MSAL Node library and two new modules — `enterprise-auth.ts` (token acquisition) and `enterprise-store.ts` (token cache persistence) — as **isolated, unwired** code. Auth strategy §5.3.1 Step A explicitly mandates this isolation: "Add as new files, NOT yet wired to anything."
 
-The Entra app registration is a cluster-side prerequisite (change #4) — for development and testing, the existing smoke-test app registration (`f505346f` tenant) can be reused.
+The Entra app registration is a cluster-side prerequisite (change #4) — for development and testing, the existing smoke-test app registration in the cluster's Entra tenant (see `cluster.yaml` `entra_tenant_id` — value scrubbed from this archived record 2026-04-11) can be reused.
 
 ## Goals / Non-Goals
 
@@ -57,7 +57,7 @@ The MSAL config requires `clientId` and `tenantId`. These should be configurable
 ```typescript
 const config: EnterpriseAuthConfig = {
   clientId: process.env.ENTRA_CLIENT_ID ?? FLAG_DEFAULTS_DEFINED_ELSEWHERE,
-  tenantId: process.env.ENTRA_TENANT_ID ?? 'f505346f-75cf-458b-baeb-10708d41967d', // org default
+  tenantId: process.env.ENTRA_TENANT_ID, // required — no hardcoded fallback (scrubbed 2026-04-11; original had a literal GUID fallback that was removed in enterprise-auth.ts:238)
   authority: `https://login.microsoftonline.com/${tenantId}/v2.0`,
   redirectUri: 'http://localhost', // MSAL loopback redirect
 };

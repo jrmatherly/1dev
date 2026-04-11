@@ -40,16 +40,16 @@ The complete research notes with line-level citations live in `.scratchpad/1code
 
 **Context:** The 1code-api ecosystem needs two fundamentally different Entra credentials:
 
-1. The existing `onecode_api_entra_client_id: 52d25f5d-688a-46fe-8356-305cec17f375` is a **public client** used by MSAL Node in the Electron desktop app (loopback redirect `http://localhost`, no client secret, RFC 8252). Its token `aud` claim is validated by the Envoy Gateway JWT provider.
+1. The existing `onecode_api_entra_client_id` (in `cluster.yaml`; literal GUID scrubbed from this archived record 2026-04-11) is a **public client** used by MSAL Node in the Electron desktop app (loopback redirect `http://localhost`, no client secret, RFC 8252). Its token `aud` claim is validated by the Envoy Gateway JWT provider.
 2. The new server-side Graph client inside 1code-api needs a **confidential client** with a client secret for the `client_credentials` OAuth flow (app-only, no user context). This client has `GroupMember.Read.All` application permission to query `/users/{oid}/memberOf`.
 
 **Options considered:**
 
 - **Option A — Mint a new confidential Entra app reg, keep the existing public client unchanged.** Two distinct Entra app regs, each with narrow scope. Matches the Apollos pattern exactly.
-- **Option B — Reconfigure the existing `52d25f5d...` to be a dual-mode app reg** with both Web + Mobile/desktop platform configs, add a client secret. Microsoft allows this, but the "Allow public client flows" flag applies to the whole app and confidential credentials behave oddly alongside it. Fragile.
+- **Option B — Reconfigure the existing public client app reg to be a dual-mode app reg** with both Web + Mobile/desktop platform configs, add a client secret. Microsoft allows this, but the "Allow public client flows" flag applies to the whole app and confidential credentials behave oddly alongside it. Fragile.
 - **Option C — Use federated identity credentials / managed identity.** Overkill for K8s workloads; requires additional infrastructure.
 
-**Decision: Option A.** Consistent with Apollos's existing pattern (Apollos uses `2938f422-ae63-48ee-b129-1d75b420aeeb` as its confidential client for Graph). Least-privilege at the Entra app reg boundary. Each secret has a distinct rotation schedule. Adds one new pair of SOPS-encrypted `cluster.yaml` values: `onecode_api_graph_client_id` and `onecode_api_graph_client_secret`.
+**Decision: Option A.** Consistent with Apollos's existing pattern (Apollos uses its own confidential client app reg — `apollos_portal_azure_client_id` in `cluster.yaml`; literal GUID scrubbed from this archived record 2026-04-11). Least-privilege at the Entra app reg boundary. Each secret has a distinct rotation schedule. Adds one new pair of SOPS-encrypted `cluster.yaml` values: `onecode_api_graph_client_id` and `onecode_api_graph_client_secret`.
 
 **Trade-off:** Two app regs to manage instead of one. Accepted — this is how Apollos already works and ops is familiar with the pattern.
 
@@ -721,7 +721,7 @@ This change does **not** include the Apollos decommission. The operational runbo
 4. Soak: monitor Grafana, check for drift, verify cron runs successfully
 5. Apollos scale-down: HelmRelease to 0 replicas, keep DB backups for 90 days
 6. Apollos removal: delete Kustomization, drop `apollos-portal-db` CNPG cluster, remove `apollos_portal_*` from `cluster.yaml`
-7. Final Entra cleanup: delete `2938f422-ae63-48ee-b129-1d75b420aeeb` app reg
+7. Final Entra cleanup: delete the Apollos portal Entra app reg (`apollos_portal_azure_client_id` in `cluster.yaml`; literal GUID scrubbed from this archived record 2026-04-11 — the live decommission runbook at `docs/enterprise/apollos-decommission-runbook.md` retains the literal ID because the removal instruction is operationally load-bearing)
 
 ## Open questions
 

@@ -9,12 +9,13 @@ icon: flask-conical
 
 # `forwardAccessToken` + `passThroughAuthHeader` Smoke Test Runbook
 
-**Document:** `.scratchpad/forwardaccesstoken-smoke-test.md`
 **Created:** 2026-04-08
 **Purpose:** Empirically validate the linchpin assumption of `../enterprise/auth-strategy.md` v2 (§6 Phase 1 Step 4.5) BEFORE committing to Phase 1 implementation
 **Time budget:** ~60 minutes (45 minimum if everything works first try)
 **Cluster context (verified live):** Talos AI cluster, Envoy Gateway v1.7.1, echo server at `https://echo.aarons.com`, Entra tenant `f505346f-75cf-458b-baeb-10708d41967d`
 **Reference implementation:** `kube-system/hubble-ui-oidc` SecurityPolicy (proven OIDC config in this exact cluster)
+
+> **Secret-audit retention policy (2026-04-11):** This runbook embeds the literal Entra tenant ID in ~15 places — curl commands, decoded JWT payloads, SecurityPolicy YAML, and expected-response snippets. The tenant ID is **not a secret** (it appears in every JWT `tid` claim and the OIDC discovery URL any unauthenticated browser can fetch) and is retained here deliberately because a reproducible walkthrough needs literal copy-pasteable commands. See `cluster-facts.md` §"Secret-audit retention policy" for the full rationale. True secrets (client secrets, DB passwords) are never embedded here.
 
 ---
 

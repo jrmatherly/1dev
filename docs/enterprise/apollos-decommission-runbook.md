@@ -11,6 +11,8 @@ This runbook covers the cutover from Apollos portal to 1code-api's LiteLLM provi
 
 **Out of scope:** Apollos features NOT being ported (usage tracking, model sync, admin endpoints, email notifications, reconciliation cron, React frontend). These are simply deleted at cutover; there is no migration path for them.
 
+> **Secret-audit retention policy (2026-04-11):** The literal Apollos Entra client ID appears once in Phase E step 5 below as a "confirm no references exist before deletion" safety check. That literal is **operationally load-bearing** — an operator running the decommission cleanup needs to know exactly which GUID to grep for to confirm Apollos references are truly gone before they delete the app registration. A placeholder like `<apollos-client-id>` would make the instruction ambiguous and potentially dangerous (deleting the wrong app reg). The client ID is a semi-public identifier (it appears in Apollos's OIDC flow `client_id` URL parameter during every browser login), not a secret. See `cluster-facts.md` §"Secret-audit retention policy" for the full rationale.
+
 ## Phase A — Preparation (days -14 to -1)
 
 1. **Confirm 1code-api parity on staging**
