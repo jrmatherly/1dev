@@ -32,17 +32,25 @@ Use the `new-regression-guard` skill via `/new-regression-guard` to scaffold a n
 
 ## Quality gates (before every PR)
 
-Run all five before submitting a PR — **none is a superset of the others**:
+Run these **five CI-enforced gates** before submitting a PR — **none is a superset of the others**:
 
 ```bash
 bun run ts:check      # tsgo-based, stricter than tsc
 bun run build         # esbuild, validates packaging
-bun test              # regression guards (~150ms)
+bun test              # regression guards + 1code-api tests (~8s)
 bun audit             # dependency advisories
 cd docs && bun run build  # xyd-js site builds cleanly
 ```
 
-The first four are enforced in `.github/workflows/ci.yml`. `docs-build` is a separate CI job.
+All five are enforced in `.github/workflows/ci.yml` as independent parallel jobs (including `docs-build`). The `CI Status` aggregator job blocks merge if any one fails.
+
+### Local-only lint advisory
+
+Additionally, run `bun run lint` (ESLint + `eslint-plugin-sonarjs`, ~8s) locally before committing. It catches unused imports, shadowed variables, cognitive-complexity hotspots, and accidental `any` widening that the five CI gates do not cover.
+
+**`bun run lint` is NOT currently enforced by CI.** The project is working toward a lint-clean local baseline before promoting lint to a full CI gate. Until then, treat it as a mandatory local step but expect CI to be silent about it. Tracked in `docs/operations/roadmap.md` as a cleanup item.
+
+See `docs/conventions/quality-gates.md` for the canonical description of each gate and the lint advisory.
 
 ## TypeScript baseline
 

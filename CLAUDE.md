@@ -50,9 +50,9 @@ bun run db:generate      # Generate migrations from schema
 bun run db:push          # Push schema directly (dev only)
 bun run db:studio        # Open Drizzle Studio GUI
 
-# Quality gates (run all 6 before every PR — none is a superset)
-bun run ts:check         # tsgo (requires: npm install -g @typescript/native-preview)
-bun run lint             # eslint + eslint-plugin-sonarjs (project-wide code quality)
+# Quality gates — 5 CI-enforced + 1 local-only lint advisory (run all 6 before every PR)
+bun run ts:check         # CI gate 1 — tsgo (requires: npm install -g @typescript/native-preview)
+bun run lint             # LOCAL ONLY — not a CI gate yet; eslint + eslint-plugin-sonarjs (see docs/conventions/quality-gates.md for why)
 bun run build            # esbuild packaging validation
 bun test                 # bun:test regression guards (~3s)
 bun audit                # dependency advisories

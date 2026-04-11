@@ -201,6 +201,22 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Effort:** Trivial
 **Prereqs:** None
 
+### [Cleanup] Promote `bun run lint` from local-only advisory to full CI gate
+
+**Added:** 2026-04-11 (discovered during `project-orchestrator` skill review — cross-surface drift closure)
+**Scope:** `bun run lint` (ESLint 10 flat config + `eslint-plugin-sonarjs` v4) currently exists as a real `package.json` script and is enforced locally (most sessions run it before commit), but it is NOT one of the 5 CI-enforced quality gates in `.github/workflows/ci.yml`. The current 5 CI gates are ts:check, build, test, audit, docs-build — lint is absent. To promote: (1) establish a lint-clean local baseline by fixing all existing warnings (`eslint.config.mjs` currently suppresses ~50 rules project-wide, documented per-rule), (2) add a new `lint` job to `.github/workflows/ci.yml` paralleling the existing gate pattern, (3) update the `status` aggregator to require the new job, (4) update `docs/conventions/quality-gates.md` to remove the "Local-only lint advisory" section and re-title to "Six Quality Gates", (5) update `.claude/rules/testing.md` similarly, (6) update `CLAUDE.md` line 53 to say "6 CI-enforced" instead of "5 CI-enforced + 1 local-only", (7) update the `project-orchestrator` skill's Step 6 gate list.
+**Effort:** Small once the project is lint-clean; medium-large to GET there (unknown warning count until it runs clean).
+**Prereqs:** Lint-clean local baseline. Until then this item stays parked.
+**Canonical reference:** `docs/conventions/quality-gates.md` "Local-only lint advisory" section (current honest description of the drift).
+
+### [Cleanup] Promote LiteLLM OSS vs Enterprise boundary from auto-memory to canonical doc
+
+**Added:** 2026-04-11 (discovered during `project-orchestrator` skill review)
+**Scope:** The LiteLLM OSS vs Enterprise feature boundary is currently captured in two auto-memory files at `~/.claude/projects/-Users-jason-dev-ai-stack-ai-coding-cli/memory/project_litellm_feature_boundary.md` and `feedback_litellm_oss_constraint.md` (received from the cluster agent on 2026-04-11 as an authoritative briefing). These are user-specific paths and not visible to collaborators or in tracked docs. Promote the content into a new canonical doc at `docs/enterprise/litellm-oss-boundary.md` covering: (1) the Enterprise-gated feature list (security, logging, spend, admin UI), (2) the OSS-available feature list (virtual keys, global guardrails, standard S3, routing), (3) the trust-the-edge Envoy Gateway workaround (`SecurityPolicy` + `claimToHeaders`), (4) the decision heuristic for features not explicitly listed, (5) authoritative sources with a "do NOT trust third-party blogs" callout. After the doc lands, update `project-orchestrator/SKILL.md` I5 row and `.serena/memories/project_overview.md` to cite the canonical doc alongside the auto-memory. The auto-memories stay as session-persistent hard-rule enforcers; the doc is the shareable reference.
+**Effort:** Small (~30 min — content already exists in the auto-memory; just needs doc-ification + cross-linking)
+**Prereqs:** None
+**Canonical reference:** Current stable anchor lives in this roadmap file's P1 entry "Extend Envoy SecurityPolicy to cover `1code-api` HTTPRoute" which cites the `enable_jwt_auth` Enterprise gate and the `ValueError("JWT Auth is an enterprise only feature.")` source behavior.
+
 ---
 
 ## Recently Completed
