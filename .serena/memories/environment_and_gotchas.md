@@ -1,7 +1,7 @@
 # Environment Notes and Gotchas
 
 ## Quality Gates — ALL REQUIRED
-- `bun run ts:check` — tsgo (baseline: 38 errors in `.claude/.tscheck-baseline`, reduced from 54 via Cluster A `DiffStateContextValue` + Cluster C `reposData` stub typing + SonarLint remediation 2026-04-10)
+- `bun run ts:check` — tsgo (baseline: 32 errors in `.claude/.tscheck-baseline`, reduced from 54 via Cluster A + Cluster C + sidebar dead-code sweep + 4-file targeted fixes + SettingsTab/McpServerStatus literal-union narrowing 2026-04-10)
 - `bun run build` — electron-vite 5 build
 - `bun test` — 14 regression guards + 5 service test files = 75 tests, ~2.5s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)

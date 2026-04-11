@@ -1,7 +1,7 @@
 # Task Completion Checklist
 
 ## Required — All Quality Gates
-1. `bun run ts:check` — baseline 38 errors (`.claude/.tscheck-baseline`, improved from 80 → 63 → 54 → 45 → 38 via successive SonarLint remediation + Cluster A `DiffStateContextValue` type fix + Cluster C `reposData` stub typing 2026-04-10), only fail if count increases
+1. `bun run ts:check` — baseline 32 errors (`.claude/.tscheck-baseline`, improved from 80 → 63 → 54 → 45 → 38 → 34 → 32 via successive SonarLint remediation + Cluster A + Cluster C + sidebar sweep + 4-file targeted fixes + SettingsTab/McpServerStatus narrowing 2026-04-10), only fail if count increases
 2. `bun run build` — electron-vite build
 3. `bun test` — 14 regression guards + 5 service tests = 75 tests across 19 files
 4. `bun audit` — focus on NEW advisories only
