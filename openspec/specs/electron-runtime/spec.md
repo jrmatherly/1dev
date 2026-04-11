@@ -3,30 +3,50 @@
 ## Purpose
 
 Electron runtime version must be actively maintained with security patches from the Electron team.
-
 ## Requirements
+### Requirement: Runtime version is Electron 41
 
-### Requirement: Electron runtime version is actively maintained
+The application SHALL run on Electron 41.2.x (Chromium 146, Node.js 24.14, V8 14.6), upgraded from Electron 40.8.5. The Electron 40 EOL is 2026-06-30; Electron 41 extends support to 2026-08-25.
 
-The application SHALL run on a supported Electron version that receives security patches from the Electron team. The current target is Electron 40.x (Node.js 24, Chromium 144).
+#### Scenario: App builds and runs on Electron 41
 
-#### Scenario: Electron version is within support window
+- **GIVEN** the app is built and packaged
+- **WHEN** the application launches
+- **THEN** it runs on Electron 41.2.x with Chromium 146 and Node.js 24.14
 
-- **GIVEN** the application is built and packaged
-- **WHEN** a security researcher checks the bundled Chromium and Node.js versions
-- **THEN** both versions are within their respective support windows (receiving security patches)
-- **AND** the Electron version listed in `package.json` has not reached its end-of-life date per the Electron releases timeline
+### Requirement: Native modules rebuild against Electron 41 ABI
 
-#### Scenario: Native modules compile against the bundled Node.js version
+Native C++ addons (`better-sqlite3`, `node-pty`) SHALL be rebuilt against Electron 41's Node.js ABI headers during the `postinstall` phase.
 
-- **GIVEN** the application depends on native C++ addons (`better-sqlite3`, `node-pty`)
-- **WHEN** `electron-rebuild` runs during `postinstall`
-- **THEN** all native modules compile successfully against the Electron-bundled Node.js ABI
-- **AND** the resulting binaries pass the `bun test` regression suite
+#### Scenario: node-pty works after rebuild
 
-#### Scenario: Build toolchain produces valid artifacts
+- **GIVEN** the app starts
+- **WHEN** the terminal feature is accessed
+- **THEN** node-pty is loaded and functional (rebuilt against Electron 41 ABI)
 
-- **GIVEN** the application uses `electron-vite` for compilation and `electron-builder` for packaging
-- **WHEN** `bun run build` and `bun run package:mac` are executed
-- **THEN** both commands complete successfully without errors
-- **AND** the packaged application launches and passes smoke testing
+#### Scenario: better-sqlite3 works after rebuild
+
+- **GIVEN** the app starts
+- **WHEN** any database operation occurs
+- **THEN** better-sqlite3 is loaded and functional (rebuilt against Electron 41 ABI)
+
+### Requirement: safeStorage API is unchanged
+
+The `safeStorage` API used by `credential-store.ts` SHALL behave identically between Electron 40 and 41. No methods have been changed, deprecated, or removed.
+
+#### Scenario: Credential storage operates identically
+
+- **GIVEN** the app is running on Electron 41
+- **WHEN** credentials are stored or retrieved
+- **THEN** safeStorage API behaves identically to Electron 40
+
+### Requirement: Build tooling remains compatible
+
+The existing build toolchain (electron-vite 5.0.0, electron-builder 26.8.1) SHALL work with Electron 41 without version changes.
+
+#### Scenario: Build succeeds with existing toolchain
+
+- **GIVEN** electron-vite 5.0.0 and electron-builder 26.8.1
+- **WHEN** `bun run build` or `bun run package:mac` is executed
+- **THEN** the build succeeds without errors
+

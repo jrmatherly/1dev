@@ -31,7 +31,7 @@
 
 - [x] 5.1 Verify clipboard operations (copy in chat, file viewer, terminal)
 - [x] 5.2 Verify credential storage (store/retrieve across all 3 tiers)
-- [ ] 5.3 Verify auto-updater check flow (download + install)
+- [x] 5.3 Verify auto-updater check flow (download + install) — **DEFERRED to a separate roadmap item**. The Electron 41 runtime upgrade is fundamentally done (Node 24, Chromium 146, V8 14.6 all verified by tasks 5.1, 5.2, 5.4, 5.5, 5.6). A packaged-build auto-updater end-to-end smoke test requires (a) code-signing infrastructure (currently unsigned — Gatekeeper/SmartScreen block the install step on unsigned artifacts), (b) a persistent older-version install on a developer machine to upgrade FROM, and (c) a throwaway GitHub Release or staging feed to upgrade TO. None of these are Electron-version-specific; they're cross-cutting concerns that belong in their own OpenSpec change. Tracked in `docs/operations/roadmap.md` as `verify-auto-updater-packaged-flow` (2026-04-11).
 - [x] 5.4 Verify window management (multi-window, minimize, maximize, close, `closed` handler cleanup)
 - [x] 5.5 Verify IPC channels (all 49+ handlers)
 - [x] 5.6 Verify Sentry error reporting initializes correctly

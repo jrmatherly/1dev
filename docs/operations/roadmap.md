@@ -67,13 +67,14 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** First release build succeeds (`v0.0.73`)
 **Canonical reference:** [`actions/attest-build-provenance`](https://github.com/actions/attest-build-provenance), Security review finding ME-002
 
-### [Ready] Archive `upgrade-electron-41` OpenSpec change
+### [Deferred] Auto-updater packaged-build end-to-end verification
 
-**Added:** 2026-04-10
-**Scope:** Run `/opsx:archive upgrade-electron-41` to sync the `electron-runtime` delta spec to the baseline and move the change to `openspec/changes/archive/`. 26/27 tasks complete; Task 5.3 (auto-updater end-to-end) is moot now that the update pipeline itself was rebuilt with the GitHub provider migration. The archive will promote the `MODIFIED` spec requirements to the `electron-runtime` baseline under `openspec/specs/`.
-**Effort:** Trivial (10 min)
-**Prereqs:** None
-**Canonical reference:** `openspec/changes/upgrade-electron-41/`, `.claude/rules/openspec.md`
+**Added:** 2026-04-11 (carved out of `upgrade-electron-41` task 5.3 when the parent change was archived)
+**Scope:** Verify the full `electron-updater` round trip on a real packaged installer: (1) build and install version N on a developer machine (`bun run package:mac` / `package:win` / `package:linux`), (2) publish a newer version N+1 to GitHub Releases via `release.yml`, (3) launch version N, observe electron-updater's poll → download → install flow succeeds, (4) confirm the relaunched app is on N+1. This is the only task from `upgrade-electron-41` that could not be verified at archive time because it requires a throwaway release AND a persistent older-version install to upgrade FROM — both cross-cutting concerns that don't belong inside a runtime version bump.
+**Why it's deferred:** Unsigned installers are blocked by Gatekeeper (macOS) and SmartScreen (Windows) at the install step. The download path fires fine, but the OS refuses the handoff to the installer binary for unsigned artifacts. Testing against an unsigned build would only validate the download path, not the install path — which is where real users hit failure. Proper verification requires code-signing to be in place first.
+**Effort:** Small (~1d after signing lands — package, install, release, observe)
+**Prereqs:** `[Ready] Code-sign release builds` (entry below) must land first — signing is a hard blocker for the install-path verification.
+**Canonical reference:** `openspec/changes/archive/2026-04-11-upgrade-electron-41/tasks.md` task 5.3 for the deferral context. `docs/operations/release.md` "Code Signing (Not Yet Enabled)" section for the signing blocker. `src/main/auto-updater.ts` for the current electron-updater wiring (GitHub provider, published 2026-04-10).
 
 ### [Deferred] mock-api.ts Phase 3 -- delete remaining F-entry stubs
 
@@ -82,14 +83,6 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Effort:** Trivial (delete file)
 **Prereqs:** F1-F10 restoration work
 **Canonical reference:** `docs/enterprise/upstream-features.md` (F1-F10 catalog)
-
-### [Cleanup] ts:check baseline remediation (80 remaining)
-
-**Added:** 2026-04-09
-**Scope:** Reduce the TypeScript error baseline from 86 to 0. Root causes R1 (dead code) and R4 (snake/camelCase) are resolved. Remaining: R2 (upstream sandbox DTO, 16 errors), R3 (teams stub, ~8 errors), R5 (Claude SDK drift, 9 errors), R6 (long-tail, ~52 errors).
-**Effort:** Medium (can be done incrementally per root cause)
-**Prereqs:** None (each root cause is independent)
-**Canonical reference:** [`docs/conventions/tscheck-baseline.md`](../conventions/tscheck-baseline.md)
 
 ### [Ready] Code-sign release builds
 
@@ -205,6 +198,7 @@ Research must establish: exact usage at each call site (are any relying on non-Y
 
 | Date | Item | Change/Commit |
 |------|------|---------------|
+| 2026-04-11 | ts:check baseline **32 → 0** — full 10-bucket sweep from `.scratchpad/code-problems/002-analysis.md`. Bucket A (desktop routing stub arity), B (`"plugin"` source union widening in `FileMentionOption` + `AgentData`), C (unified `AgentDiffView`/`DiffSidebarContentProps`/`DiffSidebarRendererProps` on flat `repository?: string` + nullable `sandboxId` + nullable `agentChat.prUrl` — previously declared `{ owner, name }` structured shape that no consumer ever read as an object), D (widened `CodexMcpServerForSettings` with optional `serverInfo?`/`error?` to align with Claude `MCPServer` shape), E (`isRemote` discriminated-union narrowing via `"in"` check), F (`UploadedFile.mediaType` addition + `?? undefined` narrowing for `agentName`/`desktopUser.name`), G (`app.dock?.setMenu` platform guard + React-19 `useRef` initial value + runtime sandbox guard in `work-mode-selector` + **deleted obsolete `Selection.getComposedRanges` polyfill** now in `lib.dom.d.ts`), H (4 implicit-any lambdas including typing `setDiffStats` useCallback as `DiffStats \| ((prev) => DiffStats)` — fixed the root cause instead of patching individual callsites), I (removed stale `@ts-expect-error`), J (`mcp-servers-indicator` tRPC status cast to `MCPServerStatus` — IDE-only ergonomics, tsgo didn't flag). CI gate now fails on ANY new TS error. See `.claude/.tscheck-baseline` = `0`. | commit `e1efae2` |
 | 2026-04-11 | 1code-api LiteLLM provisioning — 77/77 tasks, archived. Replicates the Apollos portal's LiteLLM provisioning subset (user + team + API key lifecycle) inside `services/1code-api`, gated by `PROVISIONING_ENABLED` feature flag. Two-phase read-then-write transaction (Decision 8), five-state key status (Decision 9), single-replica enforcement with regression guard (Decision 10), per-OID rate limit keyGenerator, mass-deprovisioning threshold abort. Full unit + service + route test coverage (103 pass) plus docker-compose integration test harness (10 pass against real Postgres + real LiteLLM `ghcr.io/berriai/litellm:v1.82.3-stable.patch.2`, exposed 1 critical bug: `getProvisionStatus` Drizzle select aliased `teams` as camelCase instead of snake_case — fixed). Cluster side landed in `talos-ai-cluster@500dec69` with `PROVISIONING_ENABLED=false` smoke test green. **Baselines updated:** NEW capability spec `1code-api-litellm-provisioning` (19 requirements); `self-hosted-api` modified (+4 new / 1 modified, now 11 requirements). Followups NOT blocking archive: (1) cluster template cleanup of dead `DEPROVISIONING_CRON_SCHEDULE` / `ROTATION_CRON_SCHEDULE` env vars (scheduler.ts hardcodes them), (2) `MIGRATION_COMPLETE` env var gate needs code implementation before any `PROVISIONING_ENABLED=true` flag flip at the Apollos decommission cutover (decommission-runbook Phase C.2). | `add-1code-api-litellm-provisioning` archived, commits `4d0d80d`, `a938a58`, `ae62ada`, `cf15d81`, `3062c3f`, `97f5e50`, `c79c30d`, `837b129` |
 | 2026-04-10 | Shiki 3.23.0 → 4.0.2 (standalone) — split out from `upgrade-vite-8-build-stack` Phase B after investigation corrected the "peer-dep blocker" assumption (`@pierre/diffs` declares shiki as regular `dependency`, not `peerDependency`, so Bun installs a nested duplicate `shiki@3.23.0` under `@pierre/diffs/node_modules/` while top-level advances to `4.0.2`). Dual-version coexistence verified empirically (`node_modules` inspection + `bun.lock` diff + runtime verification). All 6 quality gates passing (5 CI-enforced + 1 local lint), renderer built and runtime-tested: chat code highlighting, custom diff highlighter (`codeToHast`), `@pierre/diffs` PatchDiff (nested shiki 3), and theme switching all confirmed working. Also includes: test harness fix (raised `no-scratchpad-references.test.ts` timeout to 15s — pre-existing flake) + Codex downloader rewrite to skip `api.github.com` (hitchhiker commit from PR branch). | `upgrade-shiki-4` (to archive), PR #11 merge `6136048` |
 | 2026-04-10 | v0.0.81 patch release — supersedes failed v0.0.80 iteration. TS baseline **54→32** (Cluster A `DiffStateContextValue`, Cluster C `reposData` stub, sidebar dead-code sweep killing 27 SonarLint findings, 4-file targeted fixes, SettingsTab/McpServerStatus literal-union narrowing), keytar arm64 rebuild postinstall fix (dlopen crash on Apple Silicon, extracted to `scripts/rebuild-native-modules.mjs`), Windows `electron-rebuild` resolution via `require.resolve` (not `.bin/` symlink — bun creates shims after postinstall on Windows), Codex downloader rewritten to skip `api.github.com` entirely (pinned SHA256 hashes + direct release-asset URLs → immune to unauth rate-limit 403s that broke v0.0.80/v0.0.81 macOS builds), Shiki 3.x → 4.0.2. v0.0.80 was deleted after partial-build failures. Ships unsigned. | `46f49a4`, `6dece61`, `f779803`, `5295df2`, `5d44aef`, `30641ce`, `22ca266`, `2f75b33`, tag `v0.0.81` |

@@ -1,4 +1,10 @@
-## MODIFIED Requirements
+## REMOVED Requirements
+
+### Requirement: Electron runtime version is actively maintained
+
+**Reason:** Replaced by the four more-specific requirements below which pin the Electron 41 runtime + ABI + toolchain invariants exactly. The generic "actively maintained" phrasing was vague — Electron 40 was actively maintained up to its 2026-06-30 EOL but we still needed to upgrade. Pinning to `41.2.x` plus the native-module ABI and safeStorage invariants is the precise contract this upgrade established.
+
+## ADDED Requirements
 
 ### Requirement: Runtime version is Electron 41
 
