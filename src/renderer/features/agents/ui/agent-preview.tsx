@@ -288,9 +288,9 @@ export function AgentPreview({
       };
 
       const cleanup = () => {
-        handle.removeEventListener("pointermove", handlePointerMove as any);
-        handle.removeEventListener("pointerup", handlePointerUp as any);
-        handle.removeEventListener("pointercancel", handlePointerCancel as any);
+        handle.removeEventListener("pointermove", handlePointerMove);
+        handle.removeEventListener("pointerup", handlePointerUp);
+        handle.removeEventListener("pointercancel", handlePointerCancel);
         document.body.style.userSelect = "";
         document.body.style.cursor = "";
         resizeCleanupRef.current = null;
@@ -298,9 +298,9 @@ export function AgentPreview({
 
       document.body.style.userSelect = "none";
       document.body.style.cursor = "ew-resize";
-      handle.addEventListener("pointermove", handlePointerMove as any);
-      handle.addEventListener("pointerup", handlePointerUp as any);
-      handle.addEventListener("pointercancel", handlePointerCancel as any);
+      handle.addEventListener("pointermove", handlePointerMove);
+      handle.addEventListener("pointerup", handlePointerUp);
+      handle.addEventListener("pointercancel", handlePointerCancel);
       resizeCleanupRef.current = cleanup;
     },
     [device, maxWidth, setDevice],

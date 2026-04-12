@@ -192,8 +192,13 @@ export function AgentsContent() {
   // replace with a local tRPC router or hide the UI behind a feature flag.
   // SonarLint S4158 ("teams can only be empty here") is intentional — the warning
   // IS the reminder to restore this before re-enabling multi-tenant UI.
+  // selectedTeam is typed loosely because teams[] is always empty (F3
+  // multi-tenant UI disabled); downstream consumers read string fields
+  // that exist in the upstream schema but aren't in the empty-array type.
   const teams: { id: string; [key: string]: unknown }[] = [];
-  const selectedTeam = teams.find((t) => t.id === selectedTeamId) as any;
+  const selectedTeam = teams.find((t) => t.id === selectedTeamId) as
+    | Record<string, string | undefined>
+    | undefined;
 
   // Auto-activate automations & inbox if user has any automations configured
   // One-shot check on app startup — no refetches, no polling
@@ -873,19 +878,29 @@ export function AgentsContent() {
   const canShowDiff = !!chatData?.sandbox_id;
 
   // Check if terminal can be shown (worktree exists - desktop only)
-  const worktreePath = (chatData as any)?.worktreePath as string | undefined;
+  const worktreePath = (
+    chatData as { worktreePath?: string } | undefined | null
+  )?.worktreePath;
   const canShowTerminal = !!worktreePath;
 
   // Terminal scope key for shared terminals
   const terminalScopeKey = useMemo(() => {
     if (!selectedChatId || !worktreePath)
       return `ws:${selectedChatId || "none"}`;
+    const branchData = chatData as
+      | { branch?: string | null }
+      | undefined
+      | null;
     return getTerminalScopeKey({
-      branch: (chatData as any)?.branch ?? null,
+      branch: branchData?.branch ?? null,
       worktreePath: worktreePath,
       id: selectedChatId,
     });
-  }, [(chatData as any)?.branch, worktreePath, selectedChatId]);
+  }, [
+    (chatData as { branch?: string | null } | undefined | null)?.branch,
+    worktreePath,
+    selectedChatId,
+  ]);
 
   // Mobile layout - completely different structure
   if (isMobile) {
