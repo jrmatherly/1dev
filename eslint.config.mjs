@@ -60,7 +60,7 @@ export default [
       // CSS class names, IPC channel names, test strings repeat constantly.
       "sonarjs/no-duplicate-string": "off",
 
-      // TODO/FIXME tags are normal during active development.
+      // Task-tracking and issue-tracking comment tags are normal during active development.
       "sonarjs/todo-tag": "off",
       "sonarjs/fixme-tag": "off",
 
