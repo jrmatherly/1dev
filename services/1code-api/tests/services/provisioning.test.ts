@@ -62,7 +62,7 @@ function makeSelectChain() {
     then<T>(onFulfilled: (rows: unknown[]) => T): Promise<T> {
       return Promise.resolve(resolveRows()).then(onFulfilled);
     },
-    catch<T>(onRejected: (err: unknown) => T): Promise<T> {
+    catch<T>(onRejected: (err: unknown) => T): Promise<unknown[] | T> {
       return Promise.resolve(resolveRows()).catch(onRejected);
     },
   };

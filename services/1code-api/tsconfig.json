@@ -13,15 +13,15 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "types": [
-      "@types/bun"
+      "bun-types"
     ]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "tests/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "tests"
+    "dist"
   ]
 }
