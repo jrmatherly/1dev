@@ -190,19 +190,21 @@
 
 ## 13. Post-merge cleanup (MUST run last — only after PR is merged)
 
-- [ ] 13.1 From inside the worktree, verify the feature branch is merged: `git fetch origin && git log origin/main --oneline | grep "replace gray-matter"`. Confirm your commit is in main.
-- [ ] 13.2 Return to the main checkout: `cd /Users/jason/dev/ai-stack/ai-coding-cli`.
-- [ ] 13.3 Remove the worktree: `git worktree remove ../ai-coding-cli-worktrees/replace-gray-matter-with-front-matter`. This deletes the checkout directory.
-- [ ] 13.4 Prune stale worktree references: `git worktree prune`.
-- [ ] 13.5 Delete the remote feature branch if not auto-deleted: `git push origin --delete feat/replace-gray-matter-with-front-matter` (skip if the repo is configured to auto-delete branches on merge).
-- [ ] 13.6 Pull the latest main: `git pull --ff-only origin main`. Verify `bun run build 2>&1 | grep -iE "engines\.js" | wc -l` returns `0` — the warning is gone from `main`.
-- [ ] 13.7 Run `/opsx:verify replace-gray-matter-with-front-matter` to confirm the implementation matches the OpenSpec artifacts.
-- [ ] 13.8 Run `/opsx:archive replace-gray-matter-with-front-matter` to archive the change and promote the `frontmatter-parsing` capability spec into `openspec/specs/frontmatter-parsing/spec.md` as a new baseline.
+- [x] 13.1 From inside the worktree, verify the feature branch is merged: `git fetch origin && git log origin/main --oneline | grep "replace gray-matter"`. Confirm your commit is in main. ✓ Verified `f6bf3fb feat(main): replace gray-matter with front-matter (#14)` in `origin/main`. Plus follow-up `9efefc9 fix(ci): install services/1code-api deps before running bun test (#15)` for the unrelated CI test job that PR #14 surfaced.
+- [x] 13.2 Return to the main checkout: `cd /Users/jason/dev/ai-stack/ai-coding-cli`. ✓
+- [x] 13.3 Remove the worktree: `git worktree remove ../ai-coding-cli-worktrees/replace-gray-matter-with-front-matter`. This deletes the checkout directory. ✓ Removed both worktrees: this one AND `fix-ci-services-install` (the CI fix worktree from PR #15).
+- [x] 13.4 Prune stale worktree references: `git worktree prune`. ✓
+- [x] 13.5 Delete the remote feature branch if not auto-deleted: `git push origin --delete feat/replace-gray-matter-with-front-matter` (skip if the repo is configured to auto-delete branches on merge). ✓ Both feature branches deleted via `gh api -X DELETE` (the gh CLI's `--delete-branch` flag couldn't be used with `gh pr merge` because that command tried to checkout main locally and conflicted with the existing main worktree).
+- [x] 13.6 Pull the latest main: `git pull --ff-only origin main`. Verify `bun run build 2>&1 | grep -iE "engines\.js" | wc -l` returns `0` — the warning is gone from `main`. ✓ Pulled to `9efefc9`. After a clean reinstall (`rm -rf node_modules && bun install --frozen-lockfile` for root + service + docs), all 6 quality gates green: ts:check 0 errors, lint clean, build 43.79s with **zero gray-matter/eval/engines.js matches**, test 197 pass / 10 skip / 0 fail / 207 tests / 37 files / 6.04s, audit unchanged (56 transitive), docs build 19.96s. Bundle introspection: `parseMatter`/`engines.js`=0, `bodyBegin`=3, `require("gray-matter")`=0, `require("front-matter")`=0. **The Rollup eval warning is empirically gone from main.**
+- [x] 13.7 Run `/opsx:verify replace-gray-matter-with-front-matter` to confirm the implementation matches the OpenSpec artifacts. ✓ Verification report: 0 critical / 0 warning / 1 cosmetic suggestion. All 6 requirements have file:line evidence in main; all 6 design decisions honored; OpenSpec `validate --strict --no-interactive` passes against post-merge state. Bundle introspection empirically proves Rollup eval warning is gone. Quality gates green from clean install.
+- [x] 13.8 Run `/opsx:archive replace-gray-matter-with-front-matter` to archive the change and promote the `frontmatter-parsing` capability spec into `openspec/specs/frontmatter-parsing/spec.md` as a new baseline. ✓ Archive in progress (this commit). New baseline spec promoted; capability count 12 → 13.
 - [ ] 13.9 Update `.scratchpad/research-notes/gray-matter-eval-warning-research.md` with a "Status: Shipped — see archived change `YYYY-MM-DD-replace-gray-matter-with-front-matter`" header line (inside the scratchpad; no reference from tracked files).
 
 ## 14. If rollback is needed mid-review (before merge)
 
 > Only execute tasks in this section if the PR receives a request for changes that cannot be addressed incrementally, or if runtime smoke testing surfaces a blocker.
+
+> **STATUS (post-archive)**: §14.1–§14.6 were intentionally NOT executed. PR #14 was merged successfully on 2026-04-12 as commit `f6bf3fb` after a clean smoke test pass. The 6 unchecked rollback tasks below are preserved as a record of "rollback path not exercised." Do NOT mark them complete during archive — they're conditional by design.
 
 - [ ] 14.1 From inside the worktree, reset the feature branch to main: `git fetch origin && git reset --hard origin/main`.
 - [ ] 14.2 Run `bun install --frozen-lockfile` to restore gray-matter.
