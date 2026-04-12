@@ -25,7 +25,9 @@ if (import.meta.env.DEV && WDYR_ENABLED) {
 
     notifier: (info) => {
       const name =
-        info.displayName || (info.Component as any)?.name || "Unknown";
+        info.displayName ||
+        (info.Component as { name?: string } | undefined)?.name ||
+        "Unknown";
       const now = Date.now();
 
       // Reset count if outside time window

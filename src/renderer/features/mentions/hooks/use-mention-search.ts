@@ -243,7 +243,7 @@ export function useMentionSearch(
             // Pass MCP context for tools provider
             ...(mcpTools && { mcpTools }),
             ...(mcpServers && { mcpServers }),
-          } as any, // Extended context
+          } as Record<string, unknown>, // Extended context
           {
             providerIds,
           },

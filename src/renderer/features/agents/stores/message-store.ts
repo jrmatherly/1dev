@@ -552,7 +552,9 @@ export function findRollbackTargetSdkUuidForUserIndex(
   }
 
   // 3) No compact after target assistant: allow rollback only if target has SDK UUID.
-  const sdkUuid = (targetAssistantMessage.metadata as any)?.sdkMessageUuid;
+  const sdkUuid = (
+    targetAssistantMessage.metadata as { sdkMessageUuid?: string } | undefined
+  )?.sdkMessageUuid;
   return typeof sdkUuid === "string" && sdkUuid.length > 0 ? sdkUuid : null;
 }
 
@@ -742,12 +744,16 @@ export const messageTokenDataAtom = atom((get) => {
     ? get(messageAtomFamily(getPerChatMessageKey(subChatId, lastId)))
     : null;
   // Note: metadata has flat structure (metadata.outputTokens), not nested (metadata.usage.outputTokens)
-  const lastMsgOutputTokens = (lastMsg?.metadata as any)?.outputTokens || 0;
-  const lastMsgParts = (lastMsg as any)?.parts as
-    | Array<{ type?: string; state?: string }>
-    | undefined;
+  const lastMsgOutputTokens =
+    (lastMsg?.metadata as { outputTokens?: number } | undefined)
+      ?.outputTokens || 0;
+  const lastMsgParts = (
+    lastMsg as
+      | { parts?: Array<{ type?: string; state?: string }> }
+      | undefined
+  )?.parts;
   const lastPart = lastMsgParts?.at(-1);
-  const lastMsgPartsKey = `${lastMsgParts?.length ?? 0}:${lastPart?.type ?? ""}:${(lastPart as any)?.state ?? ""}`;
+  const lastMsgPartsKey = `${lastMsgParts?.length ?? 0}:${lastPart?.type ?? ""}:${lastPart?.state ?? ""}`;
 
   const cached = tokenDataCacheByChat.get(subChatId);
 
@@ -768,9 +774,11 @@ export const messageTokenDataAtom = atom((get) => {
     const msg = get(
       messageAtomFamily(getPerChatMessageKey(subChatId, ids[i]!)),
     );
-    const parts = (msg as any)?.parts as
-      | Array<{ type?: string; state?: string }>
-      | undefined;
+    const parts = (
+      msg as
+        | { parts?: Array<{ type?: string; state?: string }> }
+        | undefined
+    )?.parts;
     if (
       parts?.some(
         (part) =>
@@ -792,7 +800,15 @@ export const messageTokenDataAtom = atom((get) => {
     const msg = get(
       messageAtomFamily(getPerChatMessageKey(subChatId, ids[i]!)),
     );
-    const metadata = msg?.metadata as any;
+    const metadata = msg?.metadata as
+      | {
+          inputTokens?: number;
+          outputTokens?: number;
+          cacheReadInputTokens?: number;
+          cacheCreationInputTokens?: number;
+          reasoningTokens?: number;
+        }
+      | undefined;
     // Note: metadata has flat structure from transform.ts (metadata.inputTokens, metadata.outputTokens)
     // Extended fields like cacheReadInputTokens are not currently in MessageMetadata type
     if (metadata) {

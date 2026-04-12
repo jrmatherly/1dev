@@ -277,7 +277,7 @@ export function parseAndNormalizeChat<T extends AnyObj>(
     ...typedChat,
     // Desktop uses worktrees, not sandboxes (F9 dead on desktop)
     sandbox_id: null as string | null,
-    meta: null as any,
+    meta: null as Record<string, unknown> | null,
     subChats: typedChat.subChats?.map((sc: AnyObj) => ({
       ...sc,
       messages: parseAndNormalizeSubChatMessages(sc.messages, sc.id),

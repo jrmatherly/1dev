@@ -21,7 +21,8 @@ let appArch: string | null = null;
 const isDev =
   typeof window !== "undefined" &&
   window.location.hostname === "localhost" &&
-  !(window as any).__FORCE_ANALYTICS__;
+  !(window as unknown as { __FORCE_ANALYTICS__?: boolean })
+    .__FORCE_ANALYTICS__;
 
 /**
  * Check if user has opted out of analytics

@@ -127,7 +127,7 @@ export function extractTerminalTheme(
     if (!vsCodeKeys) continue;
     const color = getColorFromTheme(themeColors, vsCodeKeys);
     if (color) {
-      (theme as any)[xtermKey] = color;
+      (theme as Record<string, string>)[xtermKey] = color;
     }
   }
 
