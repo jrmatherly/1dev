@@ -55,6 +55,7 @@
 - Rules suppressed in both `typescript:` and `javascript:` prefixes (HTML inline scripts use JS prefix)
 - `// NOSONAR` inline comment for one-off suppressions (e.g., djb2 `charCodeAt` in chat-markdown-renderer.tsx)
 - **SonarLint workspace limitation:** `sonarlint.rules` scope is `application`, so VS Code ignores workspace suppressions — developer must paste the block into User Settings JSON once. Project's `.vscode/settings.json` is tracked as documentation of intent.
+- **SonarLint IDE vs `bun run lint` architectural drift (documented 2026-04-12):** The two tools use different rule engines — `eslint-plugin-sonarjs` v4.0.2 (268 rules) vs the full SonarSource analyzer (~700+ rules). Three rules (S6582/S7776/S7758) are `decorated`/`external` facades over typescript-eslint and unicorn that don't exist in the npm plugin. Four others (S1128/S1854/S2589/S4158) are in both but disabled in `eslint.config.mjs`. See `docs/conventions/quality-gates.md` § "SonarLint IDE vs. `bun run lint`" for the full analysis.
 
 ### SonarLint remediation gotchas (learned 2026-04-11 during agents-* cleanup)
 - **S7758 (`charCodeAt→codePointAt`)** is WRONG for hash functions — do NOT apply. Semantically different on surrogate pairs; the hash change can invalidate cache keys downstream. Safe for byte-string extraction (e.g., `atob()` output).
