@@ -32,7 +32,6 @@ import {
   diffViewDisplayModeAtom,
   diffSidebarOpenAtomFamily,
   viewedFilesAtomFamily,
-  type ViewedFileState,
 } from "../agents/atoms";
 import { useChangesStore } from "../../lib/stores/changes-store";
 import { usePRStatus } from "../../hooks/usePRStatus";
@@ -351,7 +350,6 @@ export function ChangesView({
 
   // External actions
   const openInFinderMutation = trpc.external.openInFinder.useMutation();
-  const openInEditorMutation = trpc.external.openFileInEditor.useMutation();
   const openInAppMutation = trpc.external.openInApp.useMutation();
 
   // Preferred editor

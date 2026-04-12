@@ -1189,50 +1189,50 @@ export function getFrameworkIcon(
   // First priority: check GitHub topics (most reliable)
   // GitHub topics are user-defined and often include framework names
   if (topics && topics.length > 0) {
-    const topicsLower = topics.map((t) => t.toLowerCase());
+    const topicsLower = new Set(topics.map((t) => t.toLowerCase()));
 
     // Check for frameworks in topics
-    if (topicsLower.includes("mintlify") || topicsLower.includes("docs")) {
+    if (topicsLower.has("mintlify") || topicsLower.has("docs")) {
       return <MintlifyIcon />;
     }
-    if (topicsLower.includes("nextjs") || topicsLower.includes("next")) {
+    if (topicsLower.has("nextjs") || topicsLower.has("next")) {
       return <NextjsIcon />;
     }
-    if (topicsLower.includes("vite") || topicsLower.includes("vitejs")) {
+    if (topicsLower.has("vite") || topicsLower.has("vitejs")) {
       return <ViteIcon />;
     }
-    if (topicsLower.includes("nuxt") || topicsLower.includes("nuxtjs")) {
+    if (topicsLower.has("nuxt") || topicsLower.has("nuxtjs")) {
       return <NuxtIcon />;
     }
-    if (topicsLower.includes("remix") || topicsLower.includes("remix-run")) {
+    if (topicsLower.has("remix") || topicsLower.has("remix-run")) {
       return <RemixIcon />;
     }
-    if (topicsLower.includes("astro") || topicsLower.includes("astrojs")) {
+    if (topicsLower.has("astro") || topicsLower.has("astrojs")) {
       return <AstroIcon />;
     }
     if (
-      topicsLower.includes("svelte") ||
-      topicsLower.includes("sveltekit") ||
-      topicsLower.includes("sveltejs")
+      topicsLower.has("svelte") ||
+      topicsLower.has("sveltekit") ||
+      topicsLower.has("sveltejs")
     ) {
       return <SvelteIcon />;
     }
-    if (topicsLower.includes("vue") || topicsLower.includes("vuejs")) {
+    if (topicsLower.has("vue") || topicsLower.has("vuejs")) {
       return <VueIcon />;
     }
-    if (topicsLower.includes("angular") || topicsLower.includes("angularjs")) {
+    if (topicsLower.has("angular") || topicsLower.has("angularjs")) {
       return <AngularIcon />;
     }
-    if (topicsLower.includes("gatsby") || topicsLower.includes("gatsbyjs")) {
+    if (topicsLower.has("gatsby") || topicsLower.has("gatsbyjs")) {
       return <GatsbyIcon />;
     }
-    if (topicsLower.includes("react") || topicsLower.includes("reactjs")) {
+    if (topicsLower.has("react") || topicsLower.has("reactjs")) {
       return <ReactIcon />;
     }
     if (
-      topicsLower.includes("turborepo") ||
-      topicsLower.includes("turbo") ||
-      topicsLower.includes("monorepo")
+      topicsLower.has("turborepo") ||
+      topicsLower.has("turbo") ||
+      topicsLower.has("monorepo")
     ) {
       return <TurboIcon />;
     }

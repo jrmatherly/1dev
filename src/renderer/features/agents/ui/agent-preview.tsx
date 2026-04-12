@@ -160,10 +160,7 @@ export function AgentPreview({
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // Verify source is our iframe
-      if (
-        !iframeRef.current ||
-        event.source !== iframeRef.current.contentWindow
-      ) {
+      if (event.source !== iframeRef.current?.contentWindow) {
         return;
       }
 

@@ -78,7 +78,7 @@ function detectChanges(
   const changes: TodoChange[] = [];
   newTodos.forEach((newTodo, index) => {
     const oldTodo = oldTodos[index];
-    if (!oldTodo || oldTodo.status !== newTodo.status) {
+    if (oldTodo?.status !== newTodo.status) {
       changes.push({
         todo: newTodo,
         oldStatus: oldTodo?.status,

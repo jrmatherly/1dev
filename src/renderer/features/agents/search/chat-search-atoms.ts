@@ -104,8 +104,7 @@ export const highlightRangesAtomFamily = atomFamily(
       const cacheKey = key;
       const cached = highlightRangesCache.get(cacheKey);
       if (
-        cached &&
-        cached.length === ranges.length &&
+        cached?.length === ranges.length &&
         cached.every(
           (r, i) =>
             r.offset === ranges[i].offset &&

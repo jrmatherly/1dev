@@ -1,16 +1,13 @@
 "use client";
 
 import "./automations-styles.css";
-import { useAtomValue, useSetAtom, useAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { selectedTeamIdAtom } from "../../lib/atoms";
 import {
   desktopViewAtom,
   automationDetailIdAtom,
   automationTemplateParamsAtom,
-  agentsSidebarOpenAtom,
-  agentsMobileViewModeAtom,
 } from "../agents/atoms";
-import { useIsMobile } from "../../lib/hooks/use-mobile";
 import {
   IconSpinner,
   IconChevronDown,

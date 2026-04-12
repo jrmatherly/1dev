@@ -149,7 +149,7 @@ export function useSearchHighlight(
 ): HighlightRange[] {
   const context = useContext(SearchHighlightContext);
 
-  if (!context || !context.isSearchActive) {
+  if (!context?.isSearchActive) {
     return [];
   }
 

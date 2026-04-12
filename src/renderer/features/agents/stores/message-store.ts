@@ -279,8 +279,7 @@ export const userMessageIdsAtom = atom((get) => {
   // Return cached array if content is the same
   const cached = userMessageIdsCacheByChat.get(subChatId);
   if (
-    cached &&
-    newUserIds.length === cached.length &&
+    cached?.length === newUserIds.length &&
     newUserIds.every((id, i) => id === cached[i])
   ) {
     return cached;
@@ -300,8 +299,7 @@ export const userMessageIdsPerChatAtom = atomFamily((subChatId: string) =>
 
     const cached = userMessageIdsPerChatCache.get(subChatId);
     if (
-      cached &&
-      newUserIds.length === cached.length &&
+      cached?.length === newUserIds.length &&
       newUserIds.every((id, i) => id === cached[i])
     ) {
       return cached;
@@ -450,8 +448,7 @@ export const assistantIdsPerChatAtomFamily = atomFamily((key: string) => {
     const cached = assistantIdsPerChatCache.get(key);
 
     if (
-      cached &&
-      cached.length === newIds.length &&
+      cached?.length === newIds.length &&
       cached.every((id, i) => id === newIds[i])
     ) {
       return cached;
@@ -486,8 +483,7 @@ export const assistantIdsForUserMsgAtomFamily = atomFamily(
       const cacheKey = `${subChatId}:${userMsgId}`;
       const cached = assistantIdsCacheByChat.get(cacheKey);
       if (
-        cached &&
-        cached.length === newIds.length &&
+        cached?.length === newIds.length &&
         cached.every((id, i) => id === newIds[i])
       ) {
         return cached;
@@ -537,7 +533,7 @@ export function findRollbackTargetSdkUuidForUserIndex(
   let targetAssistantMessage: RollbackLookupMessage | null | undefined = null;
   for (let i = userMsgIndex - 1; i >= 0; i--) {
     const message = getMessageAt(i);
-    if (!message || message.role !== "assistant") continue;
+    if (message?.role !== "assistant") continue;
     targetAssistantIndex = i;
     targetAssistantMessage = message;
     break;
@@ -549,7 +545,7 @@ export function findRollbackTargetSdkUuidForUserIndex(
   // this assistant is already behind compact and cannot be a rollback target.
   for (let i = targetAssistantIndex; i < totalMessageCount; i++) {
     const message = getMessageAt(i);
-    if (!message || message.role !== "assistant") continue;
+    if (message?.role !== "assistant") continue;
     if (hasCompactToolUsePart(message.parts)) {
       return null;
     }
@@ -759,8 +755,7 @@ export const messageTokenDataAtom = atom((get) => {
   // 1. Message count is the same AND
   // 2. Last message's output tokens haven't changed (detects streaming completion)
   if (
-    cached &&
-    ids.length === cached.totalMessageCount &&
+    cached?.totalMessageCount === ids.length &&
     lastMsgOutputTokens === cached.lastMsgOutputTokens &&
     lastMsgPartsKey === cached.lastMsgPartsKey
   ) {

@@ -503,7 +503,7 @@ export const ArchivePopover = memo(function ArchivePopover({
 
   // Auto-close popover when archive becomes empty
   useEffect(() => {
-    if (open && normalizedChats && normalizedChats.length === 0) {
+    if (open && normalizedChats?.length === 0) {
       setOpen(false);
     }
   }, [normalizedChats, open, setOpen]);

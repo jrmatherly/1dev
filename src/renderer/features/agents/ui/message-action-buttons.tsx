@@ -108,10 +108,7 @@ export const PlayButton = memo(function PlayButton({
         URL.revokeObjectURL(audioRef.current.src);
       }
     }
-    if (
-      mediaSourceRef.current &&
-      mediaSourceRef.current.readyState === "open"
-    ) {
+    if (mediaSourceRef.current?.readyState === "open") {
       try {
         mediaSourceRef.current.endOfStream();
       } catch {

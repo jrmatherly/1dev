@@ -152,7 +152,7 @@ function serializeContent(root: HTMLElement): string {
       }
       let parent: Node | null = el.parentNode;
       while (parent && !parent.nextSibling) parent = parent.parentNode;
-      if (parent && parent.nextSibling) {
+      if (parent?.nextSibling) {
         walker.currentNode = parent.nextSibling;
         node = parent.nextSibling;
       } else {
@@ -172,7 +172,7 @@ function serializeContent(root: HTMLElement): string {
       }
       let parent: Node | null = el.parentNode;
       while (parent && !parent.nextSibling) parent = parent.parentNode;
-      if (parent && parent.nextSibling) {
+      if (parent?.nextSibling) {
         walker.currentNode = parent.nextSibling;
         node = parent.nextSibling;
       } else {
@@ -318,7 +318,7 @@ function walkTreeOnce(root: HTMLElement, range: Range | null): TreeWalkResult {
   // This happens when the editor is empty or cursor is at element boundary
   let cursorInRoot = false;
   let cursorRootOffset = 0;
-  if (range && range.endContainer === root) {
+  if (range?.endContainer === root) {
     cursorInRoot = true;
     cursorRootOffset = range.endOffset;
   }
@@ -453,7 +453,7 @@ function walkTreeOnce(root: HTMLElement, range: Range | null): TreeWalkResult {
         }
         let parent: Node | null = el.parentNode;
         while (parent && !parent.nextSibling) parent = parent.parentNode;
-        if (parent && parent.nextSibling) {
+        if (parent?.nextSibling) {
           walker.currentNode = parent.nextSibling;
           node = parent.nextSibling;
           continue;
@@ -479,7 +479,7 @@ function walkTreeOnce(root: HTMLElement, range: Range | null): TreeWalkResult {
         }
         let parent: Node | null = el.parentNode;
         while (parent && !parent.nextSibling) parent = parent.parentNode;
-        if (parent && parent.nextSibling) {
+        if (parent?.nextSibling) {
           walker.currentNode = parent.nextSibling;
           node = parent.nextSibling;
           continue;
@@ -792,7 +792,7 @@ export const AgentsMentionsEditor = memo(
             initialValue,
             resolveMention,
           );
-          setHasContent(!!initialValue);
+          setHasContent(true);
         }
         // Save initial state for undo (allows undo to empty)
         if (editorRef.current) {
@@ -1189,7 +1189,7 @@ export const AgentsMentionsEditor = memo(
 
             // Always ensure cursor is visible at end
             const sel = window.getSelection();
-            if (sel && sel.rangeCount === 0) {
+            if (sel?.rangeCount === 0) {
               sel.selectAllChildren(editor);
               sel.collapseToEnd();
             }
@@ -1342,8 +1342,7 @@ export const AgentsMentionsEditor = memo(
 
             // Case 1: Triggered by @ - remove @ and search text, then insert mention
             if (
-              range &&
-              range.startContainer.nodeType === Node.TEXT_NODE &&
+              range?.startContainer.nodeType === Node.TEXT_NODE &&
               triggerStartIndex.current !== null
             ) {
               const node = range.startContainer;
@@ -1432,8 +1431,7 @@ export const AgentsMentionsEditor = memo(
                 // Find the deepest last child to append inline (avoid new-line from div siblings)
                 let target: Node = editorEl;
                 while (
-                  target.lastChild &&
-                  target.lastChild.nodeType === Node.ELEMENT_NODE
+                  target.lastChild?.nodeType === Node.ELEMENT_NODE
                 ) {
                   const el = target.lastChild as HTMLElement;
                   if (el.hasAttribute("data-mention-id") || el.tagName === "BR")

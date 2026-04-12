@@ -24,7 +24,7 @@ export function SplitViewContainer({
 
   // Use local ratios during drag, else persisted. Auto-fix if length mismatch.
   const currentRatios = (() => {
-    if (localRatios && localRatios.length === panes.length) return localRatios;
+    if (localRatios?.length === panes.length) return localRatios;
     if (splitRatios.length === panes.length) return splitRatios;
     return getDefaultRatios(panes.length);
   })();

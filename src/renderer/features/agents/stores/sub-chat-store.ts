@@ -119,7 +119,7 @@ const findNumericWindowIdValue = (
 
     // Check if this key matches pattern: <number>:<legacyKey>
     const match = /^(\d+):(.+)$/.exec(storageKey);
-    if (match && match[2] === legacyKey) {
+    if (match?.[2] === legacyKey) {
       const value = localStorage.getItem(storageKey);
       if (value !== null) {
         console.log(
