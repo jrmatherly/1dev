@@ -510,9 +510,9 @@ export const isFirstUserMessageAtomFamily = atomFamily((userMsgId: string) =>
   }),
 );
 
-type RollbackLookupMessage = {
+export type RollbackLookupMessage = {
   role: "user" | "assistant" | "system";
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   parts?: MessagePart[];
 };
 

@@ -159,6 +159,7 @@ import {
   undoStackAtom,
   workspaceDiffCacheAtomFamily,
   type AgentMode,
+  type CachedParsedDiffFile,
   type SelectedCommit,
 } from "../atoms";
 import { BUILTIN_SLASH_COMMANDS } from "../commands";
@@ -216,6 +217,7 @@ import {
 } from "../stores/message-queue-store";
 import {
   findRollbackTargetSdkUuidForUserIndex,
+  type RollbackLookupMessage,
   isRollingBackAtom,
   syncMessagesWithStatusAtom,
 } from "../stores/message-store";
@@ -285,6 +287,32 @@ function clearRuntimeCachesForSubChat(subChatId: string) {
   clearSubChatRuntimeCaches(subChatId);
   scrollPositionCache.delete(subChatId);
 }
+
+/**
+ * Structural shape for fields present on the upstream (F-entry) agentChat
+ * DTO that are not declared on the narrower prop-level type. Used at access
+ * sites that cross the upstream boundary (project metadata, sandbox state,
+ * subChats, remoteStats). Typed as "extras" to avoid widening the prop
+ * contract — the component only commits to prUrl/prNumber for children.
+ */
+type AgentChatExtras = {
+  project?: {
+    path?: string;
+    name?: string;
+    gitRepo?: string;
+    gitOwner?: string;
+  } | null;
+  branch?: string | null;
+  isRemote?: boolean;
+  sandboxId?: string | null;
+  sandbox_id?: string | null;
+  subChats?: Array<{ id: string; messages?: unknown }>;
+  remoteStats?: {
+    fileCount?: number;
+    additions?: number;
+    deletions?: number;
+  } | null;
+};
 
 import { utf8ToBase64, base64ToUtf8 } from "../utils/base64";
 
@@ -3030,13 +3058,19 @@ const ChatViewInner = memo(function ChatViewInner({
   useEffect(() => {
     // Check if there's a pending AskUserQuestion in the last assistant message
     const pendingQuestionPart = lastAssistantMessage?.parts?.find(
-      (part: any) =>
+      (part: {
+        type?: string;
+        state?: string;
+        input?: { questions?: unknown };
+      }) =>
         part.type === "tool-AskUserQuestion" &&
         part.state !== "output-available" &&
         part.state !== "output-error" &&
         part.state !== "result" &&
         part.input?.questions,
-    ) as any | undefined;
+    ) as
+      | { type?: string; state?: string; input?: { questions?: unknown } }
+      | undefined;
 
     // Helper to clear pending question for this subChat
     const clearPendingQuestion = () => {
@@ -3433,8 +3467,13 @@ const ChatViewInner = memo(function ChatViewInner({
     // Count completed plan Edits
     let completedPlanEdits = 0;
     for (const msg of messages) {
-      if (msg.role !== "assistant" || !(msg as any).parts) continue;
-      for (const part of (msg as any).parts as any[]) {
+      const msgParts = (msg as { parts?: unknown[] }).parts;
+      if (msg.role !== "assistant" || !msgParts) continue;
+      for (const part of msgParts as Array<{
+        type?: string;
+        state?: string;
+        input?: { file_path?: string };
+      }>) {
         if (
           part.type === "tool-Edit" &&
           part.state !== "input-streaming" &&
@@ -3486,7 +3525,8 @@ const ChatViewInner = memo(function ChatViewInner({
       const sdkUuid = findRollbackTargetSdkUuidForUserIndex(
         userMsgIndex,
         messages.length,
-        (index) => messages[index] as any,
+        (index) =>
+          messages[index] as unknown as RollbackLookupMessage | undefined,
       );
 
       if (!sdkUuid) {
@@ -4183,7 +4223,7 @@ const ChatViewInner = memo(function ChatViewInner({
           type: "data-file" as const,
           data: {
             url: f.url,
-            mediaType: (f as any).mediaType,
+            mediaType: (f as { mediaType?: string }).mediaType,
             filename: f.filename,
             size: f.size,
           },
@@ -4784,7 +4824,9 @@ const ChatViewInner = memo(function ChatViewInner({
 
       try {
         // 1. Format current messages as markdown
-        const historyMarkdown = formatHistoryForContext(messages as any);
+        const historyMarkdown = formatHistoryForContext(
+          messages as unknown as Parameters<typeof formatHistoryForContext>[0],
+        );
 
         // 2. Save to disk via writePastedText endpoint
         const result = await trpcClient.files.writePastedText.mutate({
@@ -5411,7 +5453,12 @@ export function ChatView({
 
   const setParsedFileDiffs = useCallback(
     (files: ParsedDiffFile[] | null) => {
-      setDiffCache((prev) => ({ ...prev, parsedFileDiffs: files as any }));
+      setDiffCache((prev) => ({
+        ...prev,
+        // ParsedDiffFile and CachedParsedDiffFile are structurally similar
+        // but not identical — bridge via unknown to preserve the cache type.
+        parsedFileDiffs: files as unknown as CachedParsedDiffFile[] | null,
+      }));
     },
     [setDiffCache],
   );
@@ -6023,18 +6070,18 @@ export function ChatView({
   // Desktop: use worktreePath instead of sandbox
   const worktreePath = agentChat?.worktreePath as string | null;
   // Desktop: original project path for MCP config lookup
-  const originalProjectPath = (agentChat as any)?.project?.path as
+  const originalProjectPath = (agentChat as AgentChatExtras | null | undefined)?.project?.path as
     | string
     | undefined;
 
   // Terminal scope key: shared by project path (local mode) or isolated per workspace (worktree)
   const terminalScopeKey = useMemo(() => {
     return getTerminalScopeKey({
-      branch: (agentChat as any)?.branch ?? null,
+      branch: (agentChat as AgentChatExtras | null | undefined)?.branch ?? null,
       worktreePath: worktreePath,
       id: chatId,
     });
-  }, [(agentChat as any)?.branch, worktreePath, chatId]);
+  }, [(agentChat as AgentChatExtras | null | undefined)?.branch, worktreePath, chatId]);
   // Fallback for web: use sandbox_id
   const sandboxId = agentChat?.sandbox_id;
   const sandboxUrl = sandboxId ? `https://3003-${sandboxId}.e2b.app` : null;
@@ -6210,19 +6257,20 @@ export function ChatView({
         // Desktop app: use stats already provided in chat data
         // The diff sidebar won't work for remote chats (no worktree), but stats will show
         if (isDesktopApp()) {
-          const remoteStats = (agentChat as any)?.remoteStats;
+          const remoteStats = (agentChat as AgentChatExtras | null | undefined)?.remoteStats;
           console.log(
             "[fetchDiffStats] Desktop remote chat - using remoteStats:",
             remoteStats,
           );
 
           if (remoteStats) {
+            const fileCount = remoteStats.fileCount ?? 0;
             setDiffStats({
-              fileCount: remoteStats.fileCount,
-              additions: remoteStats.additions,
-              deletions: remoteStats.deletions,
+              fileCount,
+              additions: remoteStats.additions ?? 0,
+              deletions: remoteStats.deletions ?? 0,
               isLoading: false,
-              hasChanges: remoteStats.fileCount > 0,
+              hasChanges: fileCount > 0,
             });
           } else {
             setDiffStats({
@@ -6788,7 +6836,13 @@ Make sure to preserve all functionality from both branches when resolving confli
 
     // Find last plan file path from active sub-chat only
     let lastPlanPath: string | null = null;
-    const messages = (activeSubChat.messages as any[]) || [];
+    const messages = (activeSubChat.messages as Array<{
+      role?: string;
+      parts?: Array<{
+        type?: string;
+        input?: { file_path?: string };
+      }>;
+    }>) || [];
     for (const msg of messages) {
       if (msg.role !== "assistant") continue;
       const parts = msg.parts || [];
@@ -6797,7 +6851,7 @@ Make sure to preserve all functionality from both branches when resolving confli
           part.type === "tool-Write" &&
           isPlanFile(part.input?.file_path || "")
         ) {
-          lastPlanPath = part.input.file_path;
+          lastPlanPath = part.input?.file_path ?? null;
         }
       }
     }
@@ -6812,7 +6866,7 @@ Make sure to preserve all functionality from both branches when resolving confli
       const override = subChatProviderOverrides[subChatId];
       if (override) return override;
 
-      const subChat = ((agentChat as any)?.subChats || []).find(
+      const subChat = ((agentChat as AgentChatExtras | null | undefined)?.subChats || []).find(
         (sc: any) => sc?.id === subChatId,
       ) as { messages?: any } | undefined;
       const rawMessages = subChat?.messages;
@@ -6830,7 +6884,9 @@ Make sure to preserve all functionality from both branches when resolving confli
       }
 
       for (const message of messages) {
-        const model = (message as any)?.metadata?.model;
+        const model = (
+          message as { metadata?: { model?: string } } | undefined
+        )?.metadata?.model;
         if (typeof model !== "string") continue;
         const normalizedModel = model.toLowerCase();
         if (
@@ -6958,7 +7014,8 @@ Make sure to preserve all functionality from both branches when resolving confli
 
   const syncFinishedMessagesToChatCache = useCallback(
     (subChatId: string, chat: Chat<any>) => {
-      const latestMessages = (chat as any)?.messages;
+      const latestMessages = (chat as { messages?: unknown } | null | undefined)
+        ?.messages;
       if (!Array.isArray(latestMessages)) return;
       const latestMessagesJson = JSON.stringify(latestMessages);
 
@@ -7006,15 +7063,16 @@ Make sure to preserve all functionality from both branches when resolving confli
       // Create transport based on chat type (local worktree vs remote sandbox)
       // Note: Extended thinking setting is read dynamically inside the transport
       // projectPath: original project path for MCP config lookup (worktreePath is the cwd)
-      const projectPath = (agentChat as any)?.project?.path as
+      const projectPath = (agentChat as AgentChatExtras | null | undefined)?.project?.path as
         | string
         | undefined;
       const chatSandboxId =
-        (agentChat as any)?.sandboxId || (agentChat as any)?.sandbox_id;
+        (agentChat as AgentChatExtras | null | undefined)?.sandboxId ||
+        (agentChat as AgentChatExtras | null | undefined)?.sandbox_id;
       const chatSandboxUrl = chatSandboxId
         ? `https://3003-${chatSandboxId}.e2b.app`
         : null;
-      const isRemoteChat = !!(agentChat as any)?.isRemote || !!chatSandboxId;
+      const isRemoteChat = !!(agentChat as AgentChatExtras | null | undefined)?.isRemote || !!chatSandboxId;
 
       // Fast path for existing chats. Only inspect messages when a local empty-chat provider override
       // might require transport recreation.
@@ -7026,7 +7084,8 @@ Make sure to preserve all functionality from both branches when resolving confli
         if (!overrideProvider) return existing;
 
         const existingProvider: "claude-code" | "codex" =
-          (existing as any)?.transport instanceof ACPChatTransport
+          (existing as unknown as { transport?: unknown } | undefined)
+            ?.transport instanceof ACPChatTransport
             ? "codex"
             : "claude-code";
         if (existingProvider === overrideProvider) return existing;
@@ -7247,7 +7306,9 @@ Make sure to preserve all functionality from both branches when resolving confli
   const handleProviderChange = useCallback(
     (subChatId: string, nextProvider: "claude-code" | "codex") => {
       // Provider switch is only allowed for brand new sub-chats.
-      const activeChat = agentChatStore.get(subChatId) as any;
+      const activeChat = agentChatStore.get(subChatId) as
+        | { messages?: unknown[] }
+        | undefined;
       let messageCount = Array.isArray(activeChat?.messages)
         ? activeChat.messages.length
         : 0;
@@ -7292,7 +7353,7 @@ Make sure to preserve all functionality from both branches when resolving confli
     );
 
     // Check if this is a remote sandbox chat
-    const isRemoteChat = !!(agentChat as any)?.isRemote;
+    const isRemoteChat = !!(agentChat as AgentChatExtras | null | undefined)?.isRemote;
 
     let newId: string;
 
@@ -7372,14 +7433,15 @@ Make sure to preserve all functionality from both branches when resolving confli
     store.setActiveSubChat(newId);
 
     // Create empty Chat instance for the new sub-chat
-    const projectPath = (agentChat as any)?.project?.path as string | undefined;
+    const projectPath = (agentChat as AgentChatExtras | null | undefined)?.project?.path as string | undefined;
     const newSubChatSandboxId =
-      (agentChat as any)?.sandboxId || (agentChat as any)?.sandbox_id;
+      (agentChat as AgentChatExtras | null | undefined)?.sandboxId ||
+        (agentChat as AgentChatExtras | null | undefined)?.sandbox_id;
     const newSubChatSandboxUrl = newSubChatSandboxId
       ? `https://3003-${newSubChatSandboxId}.e2b.app`
       : null;
     const isNewSubChatRemote =
-      !!(agentChat as any)?.isRemote || !!newSubChatSandboxId;
+      !!(agentChat as AgentChatExtras | null | undefined)?.isRemote || !!newSubChatSandboxId;
 
     console.log("[createNewSubChat] Transport selection", {
       newId: newId.slice(-8),
@@ -8198,8 +8260,8 @@ Make sure to preserve all functionality from both branches when resolving confli
                                   workspaceName={agentChat?.name ?? null}
                                   workspaceBranch={agentChat?.branch ?? null}
                                   workspaceRepoName={
-                                    (agentChat as any)?.project?.gitRepo ||
-                                    (agentChat as any)?.project?.name ||
+                                    (agentChat as AgentChatExtras | null | undefined)?.project?.gitRepo ||
+                                    (agentChat as AgentChatExtras | null | undefined)?.project?.name ||
                                     null
                                   }
                                 />
@@ -8263,8 +8325,8 @@ Make sure to preserve all functionality from both branches when resolving confli
                                     workspaceName={agentChat?.name ?? null}
                                     workspaceBranch={agentChat?.branch ?? null}
                                     workspaceRepoName={
-                                      (agentChat as any)?.project?.gitRepo ||
-                                      (agentChat as any)?.project?.name ||
+                                      (agentChat as AgentChatExtras | null | undefined)?.project?.gitRepo ||
+                                      (agentChat as AgentChatExtras | null | undefined)?.project?.name ||
                                       null
                                     }
                                   />
@@ -8336,8 +8398,8 @@ Make sure to preserve all functionality from both branches when resolving confli
                             workspaceName={agentChat?.name ?? null}
                             workspaceBranch={agentChat?.branch ?? null}
                             workspaceRepoName={
-                              (agentChat as any)?.project?.gitRepo ||
-                              (agentChat as any)?.project?.name ||
+                              (agentChat as AgentChatExtras | null | undefined)?.project?.gitRepo ||
+                              (agentChat as AgentChatExtras | null | undefined)?.project?.name ||
                               null
                             }
                           />
