@@ -1,10 +1,17 @@
 # Environment Notes and Gotchas
 
+## Security Hardening (Phase A complete, 2026-04-12 PR #17)
+- **safeOpenExternal()** at `src/main/lib/safe-external.ts` — ALL `shell.openExternal()` calls must go through this wrapper. Validates URL scheme (`https:`, `http:`, `mailto:` only). Enforced by `tests/regression/open-external-scheme.test.ts`.
+- **signedFetch/streamFetch URL origin allowlist** in `src/main/windows/main.ts` — validates request URL origin against `getApiUrl()` before attaching auth tokens. Prevents SSRF token exfiltration.
+- **Phase 0 gates page** fixed: subtitle updated from "12 of 15" to "15 of 15" in `docs/enterprise/phase-0-gates.md`.
+- **CI audit gate** now surfaces high/critical severity advisory counts (was silently swallowing all via `|| true`).
+- **Remaining Phase A tasks** (1.14-1.17): SecurityPolicy promotion + CiliumNetworkPolicy default-deny are cross-repo cluster tasks.
+
 ## Quality Gates — ALL REQUIRED
 - `bun run ts:check` — tsgo (**baseline: 0 errors** in `.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2` via full 10-bucket sweep from `.scratchpad/code-problems/002-analysis.md`). **CI now fails on ANY new TS error.**
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — electron-vite 5 build. **Clean** as of 2026-04-12 — the gray-matter Rollup eval warning was eliminated via PR #14 swap to `front-matter@4.0.2` behind a canonical shim at `src/main/lib/frontmatter.ts`.
-- `bun test` — 16 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **207 tests across 37 files** (197 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~6-7s
+- `bun test` — 18 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **211 tests across 39 files** (201 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~6-7s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
 

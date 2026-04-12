@@ -8,7 +8,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - React 19.2.5, TypeScript 6.0.2 (upgraded from 5.9.3 on 2026-04-10), Tailwind CSS 4, Bun
 - @anthropic-ai/claude-agent-sdk 0.2.97, Codex CLI 0.118.0, Ollama
 - 7 Drizzle tables, 22 tRPC routers (incl. enterprise-auth), better-sqlite3, node-pty (lazy-loaded)
-- **17 test files in `tests/regression/`** (16 regression guards + 1 frontmatter shim unit test) + 20 service test files in `services/1code-api/tests/` = **207 tests across 37 files** (197 pass + 10 skipped integration tests needing docker-compose harness, 2026-04-12)
+- **19 test files in `tests/regression/`** (18 regression guards + 1 frontmatter shim unit test) + 20 service test files in `services/1code-api/tests/` = **211 tests across 39 files** (201 pass + 10 skipped integration tests needing docker-compose harness, 2026-04-12)
 
 ## Current State (2026-04-12, post-session-sync)
 - **Phase 0:** 15/15 hard gates complete
@@ -23,8 +23,9 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
 - **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth
 - **Release pipeline:** GitHub Actions `release.yml` builds 3-OS matrix (macos-15, ubuntu, windows) and publishes to GitHub Releases. Current: **v0.0.82** (2026-04-10) — keytar arm64 rebuild, Windows electron-rebuild fix, Codex downloader rewritten to skip api.github.com (pinned SHA256). v0.0.79 was first successful all-platform build. Unsigned first iteration.
-- **Active OpenSpec changes (1):**
+- **Active OpenSpec changes (2):**
   - `upgrade-vite-8-build-stack` (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable)
+  - `security-hardening-and-quality-remediation` (Phase A 18/18 complete — PR #17 merged 2026-04-12; Phases B-D pending with 61 remaining tasks across performance, code quality, and long-term roadmap items)
 - **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → ~~Shiki4~~ ✅ → Vite8-B (blocked on `electron-vite 6.0.0` stable)
 - **PR #16 merged (2026-04-12):** Enterprise UI debranding — removed hardcoded PostHog key fallback (analytics now env-var-driven, disabled when unset), Discord→Slack with `VITE_COMMUNITY_URL`, Feedback button gated by `VITE_FEEDBACK_URL`, dynamic editor detection via new `getInstalledEditors` tRPC procedure in `externalRouter`, Privacy toggle conditionally rendered.
 - **Recently archived (2026-04-10 → 2026-04-12):** `replace-gray-matter-with-front-matter` (67/67 — gray-matter@4.0.3 → front-matter@4.0.2 behind canonical shim at `src/main/lib/frontmatter.ts`; 8 consumer call sites swapped across 4 routers; 2 new test files; latent bug fix at `agent-utils.ts:81`; new baseline capability spec `frontmatter-parsing` 6 reqs / 15 scenarios; merged via PR #14 `f6bf3fb`; worktree-mandatory implementation went smoothly; ALSO surfaced and fixed an unrelated CI test job bug in PR #15 `9efefc9` where `services/1code-api/` sub-workspace deps weren't installed in CI), `upgrade-tailwind-4`, `upgrade-typescript-6`, `upgrade-shiki-4`, `implement-1code-api`, `add-1code-api-litellm-provisioning` (77/77 tasks), `upgrade-electron-41` (26/27 — task 5.3 auto-updater packaged-build verification deferred to roadmap, blocked on code-signing)

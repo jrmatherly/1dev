@@ -19,6 +19,7 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 ## Main Process (`src/main/`)
 - `auth-manager.ts` — Strangler Fig adapter: branches on `enterpriseAuthEnabled` flag, delegates to EnterpriseAuth (MSAL) or legacy AuthStore. `ensureReady()` for lazy async MSAL init.
 - `lib/credential-store.ts` — Unified 3-tier credential encryption
+- `lib/safe-external.ts` — **Scheme-validated `safeOpenExternal()` wrapper** (added 2026-04-12 via PR #17). All `shell.openExternal()` calls MUST go through this module — validates URL scheme to `https:`/`http:`/`mailto:` only, blocking `file:`, `javascript:`, `data:`, and custom protocols. Enforced by `tests/regression/open-external-scheme.test.ts`. Mirrors the credential-storage pattern (single canonical module, all callers must import).
 - `lib/frontmatter.ts` — **Canonical frontmatter parser shim** (added 2026-04-12). Wraps `front-matter@4.0.2` and re-exports as `{ data, content }` shape compatible with the former `gray-matter` API. The single sanctioned entry point for main-process frontmatter parsing — enforced by `tests/regression/no-gray-matter.test.ts`. Mirrors the credential-storage pattern.
 - `lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (wired into auth-manager)
 - `lib/terminal/session.ts` — **Lazy import** for node-pty (prevents crash if native module fails)
@@ -67,11 +68,11 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 Contains: tsgo native preview flag, SonarLint rule suppressions (50 rules
 disabled project-wide — grew from 16 during 2026-04-10 remediation session).
 
-## Regression Tests (16 guards + 1 unit test = 17 files in tests/regression/)
+## Regression Tests (18 guards + 1 unit test = 19 files in tests/regression/)
 auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted,
 gpg-verification-present, feature-flags-shape, brand-sweep-complete,
 no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamps,
 credential-storage-tier, enterprise-auth-module, enterprise-auth-wiring, electron-version-pin,
-mock-api-consumer-migration, 1code-api single-replica enforcement, **no-gray-matter** (added 2026-04-12), and one unit test **frontmatter-shim-shape** (added 2026-04-12 — technically a unit test not a regression guard, but lives in `tests/regression/` so glob counts pick it up).
+mock-api-consumer-migration, 1code-api single-replica enforcement, **no-gray-matter** (added 2026-04-12), **open-external-scheme** (added 2026-04-12 — enforces safeOpenExternal() usage, blocks direct shell.openExternal calls), **signed-fetch-allowlist** (added 2026-04-12 — verifies URL origin validation in signedFetch/streamFetch handlers), and one unit test **frontmatter-shim-shape** (added 2026-04-12 — technically a unit test not a regression guard, but lives in `tests/regression/` so glob counts pick it up).
 
-Combined `bun test` total: **207 tests across 37 files** (197 pass + 10 skipped integration tests, 0 fail, ~6-7s) — `services/1code-api/tests/integration/` contains 3 integration tests that skip without a docker-compose harness.
+Combined `bun test` total: **211 tests across 39 files** (201 pass + 10 skipped integration tests, 0 fail, ~6-7s) — `services/1code-api/tests/integration/` contains 3 integration tests that skip without a docker-compose harness.

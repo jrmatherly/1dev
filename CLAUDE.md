@@ -79,6 +79,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - `src/main/lib/db/schema/index.ts` — Drizzle schema (source of truth)
 - `src/main/lib/trpc/routers/index.ts` — `createAppRouter` composition
 - `src/main/lib/credential-store.ts` — unified 3-tier credential encryption
+- `src/main/lib/safe-external.ts` — scheme-validated `safeOpenExternal()` wrapper (all `shell.openExternal` calls must go through this)
 - `src/main/lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (wired into auth-manager via `enterpriseAuthEnabled` flag)
 - `src/main/lib/trpc/routers/enterprise-auth.ts` — Enterprise auth tRPC router (signIn/signOut/getStatus/refreshToken)
 - `src/renderer/features/agents/main/active-chat.tsx` — main chat component
@@ -94,8 +95,8 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 - **`.serena/memories/`** — Serena project memories. Read via `mcp__serena__read_memory` **after** activating the project with `mcp__serena__activate_project` (project: `ai-coding-cli`).
 - **`services/1code-api/`** — Self-hosted backend API (Fastify + tRPC + Drizzle/PostgreSQL). Replaces upstream `1code.dev` AND owns LiteLLM provisioning (`add-1code-api-litellm-provisioning`) — absorbs the Apollos portal's user/team/key lifecycle subset behind a `PROVISIONING_ENABLED` feature flag. Container built via `.github/workflows/container-build.yml` → `ghcr.io/jrmatherly/1code-api`. See [`services/1code-api/README.md`](services/1code-api/README.md) and [`docs/enterprise/1code-api-provisioning.md`](docs/enterprise/1code-api-provisioning.md).
 - **`deploy/`** — Kubernetes deployment manifests (Flux v2). Components: `1code-api`, `envoy-auth-policy`. All values use `${PLACEHOLDER}` substitution. See [`deploy/README.md`](deploy/README.md).
-- **`openspec/`** — OpenSpec 1.2.0 change proposals and 13 capability specs (91 requirements). Active changes: `upgrade-vite-8-build-stack` (15/50, Phase B blocked on electron-vite 6.0). See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
-- **`tests/regression/`** — 17 bun:test files (16 regression guards + 1 frontmatter shim unit test) + service tests in `services/1code-api/tests/` (207 tests across 37 files total; 197 pass + 10 skipped integration tests behind `INTEGRATION_TEST=1` + docker-compose harness at `services/1code-api/tests/integration/`). See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
+- **`openspec/`** — OpenSpec 1.2.0 change proposals and 13 capability specs (91 requirements). Active changes: `upgrade-vite-8-build-stack` (15/50, Phase B blocked on electron-vite 6.0), `security-hardening-and-quality-remediation` (Phase A complete/18 tasks, Phases B-D pending/61 tasks). See [`.claude/rules/openspec.md`](.claude/rules/openspec.md).
+- **`tests/regression/`** — 19 bun:test files (18 regression guards + 1 frontmatter shim unit test) + service tests in `services/1code-api/tests/` (211 tests across 39 files total; 201 pass + 10 skipped integration tests behind `INTEGRATION_TEST=1` + docker-compose harness at `services/1code-api/tests/integration/`). See [`docs/conventions/regression-guards.md`](docs/conventions/regression-guards.md).
 - **`.scratchpad/`** — Ephemeral local-only notes (gitignored). Never referenced from tracked files.
 
 **Deployment target cluster repo:** `/Users/jason/dev/ai-k8s/talos-ai-cluster/` (Talos K8s, Envoy Gateway, LiteLLM, OIDC stack). Coordinate cross-repo for auth/backend work. See [`docs/operations/cluster-access.md`](docs/operations/cluster-access.md).
