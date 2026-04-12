@@ -10,7 +10,7 @@
  */
 
 import { describe, test, expect } from "bun:test";
-import { readFileSync, existsSync, readdirSync, statSync } from "fs";
+import { readFileSync, existsSync, readdirSync } from "fs";
 import path from "path";
 
 const SRC_MAIN = path.join(import.meta.dir, "../../src/main");

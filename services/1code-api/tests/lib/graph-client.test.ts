@@ -51,7 +51,7 @@ describe("GraphClient — token caching", () => {
 
     globalThis.fetch = mock(
       async () => new Response(JSON.stringify({ value: [] }), { status: 200 }),
-    );
+    ) as unknown as typeof fetch;
   });
 
   afterEach(() => {
@@ -127,7 +127,7 @@ describe("GraphClient — pagination", () => {
       callCount++;
       const body = callCount === 1 ? page1 : page2;
       return new Response(JSON.stringify(body), { status: 200 });
-    });
+    }) as unknown as typeof fetch;
 
     const client = new GraphClient(FAKE_CONFIG);
     const groups = await client.getUserGroups(OID_1);
@@ -139,7 +139,7 @@ describe("GraphClient — pagination", () => {
   test("returns empty array when user has no groups", async () => {
     globalThis.fetch = mock(
       async () => new Response(JSON.stringify({ value: [] }), { status: 200 }),
-    );
+    ) as unknown as typeof fetch;
 
     const client = new GraphClient(FAKE_CONFIG);
     const groups = await client.getUserGroups(OID_1);
@@ -174,7 +174,7 @@ describe("GraphClient — 4xx error handling", () => {
           JSON.stringify({ error: { code: "Request_ResourceNotFound" } }),
           { status: 404 },
         ),
-    );
+    ) as unknown as typeof fetch;
 
     const client = new GraphClient(FAKE_CONFIG);
     await expect(client.getUserGroups(OID_MISSING)).rejects.toThrow(
@@ -185,7 +185,7 @@ describe("GraphClient — 4xx error handling", () => {
   test("throws on 403 (insufficient permissions)", async () => {
     globalThis.fetch = mock(
       async () => new Response("Forbidden", { status: 403 }),
-    );
+    ) as unknown as typeof fetch;
 
     const client = new GraphClient(FAKE_CONFIG);
     await expect(client.getUserGroups(OID_1)).rejects.toThrow(/403/);
@@ -210,7 +210,7 @@ describe("GraphClient — oid validation", () => {
     fetchSpy = mock(
       async () => new Response(JSON.stringify({ value: [] }), { status: 200 }),
     );
-    globalThis.fetch = fetchSpy;
+    globalThis.fetch = fetchSpy as unknown as typeof fetch;
   });
 
   afterEach(() => {

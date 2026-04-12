@@ -12,7 +12,7 @@
  */
 
 import { describe, expect, test, setDefaultTimeout } from "bun:test";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const REPO_ROOT = join(import.meta.dir, "..", "..");

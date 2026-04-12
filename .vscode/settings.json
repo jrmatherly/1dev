@@ -376,6 +376,27 @@
     // Collapsing to else-if would skip the preceding logic.
     "typescript:S6660": {
       "level": "off"
+    },
+    // S4123: "Unexpected await of non-Promise" — false positive on custom
+    // thenable mock chains in 1code-api tests (Drizzle query mocks with .then()).
+    // SonarLint doesn't recognize custom thenables as Promise-like.
+    "typescript:S4123": {
+      "level": "off"
+    },
+    // S6594: "Use RegExp method instead of .match()" — style preference.
+    // Both are equivalent for non-global regexes; .match() is idiomatic.
+    "typescript:S6594": {
+      "level": "off"
+    },
+    // S7773: "Prefer Number.parseInt over parseInt" — both are identical
+    // in strict-mode ESM. No functional benefit to switching.
+    "typescript:S7773": {
+      "level": "off"
+    },
+    // S6353: "Use concise character class" — explicit [^0-9] is clearer
+    // in UUID/OID validation regexes than the shorthand \D.
+    "typescript:S6353": {
+      "level": "off"
     }
   }
 }
