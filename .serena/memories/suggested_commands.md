@@ -5,13 +5,13 @@
 - `bun run build` — Compile TypeScript via electron-vite
 - `bun run preview` — Preview built app
 
-## Quality Gates (ALL 6 REQUIRED)
+## Quality Gates (5 CI-enforced + 1 local-only lint)
 - `bun run ts:check` — TypeScript check via tsgo (**baseline: 0 errors**, see `.claude/.tscheck-baseline`)
-- `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
+- `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s) — **local-only advisory, not CI-enforced**
 - `bun run build` — Full electron-vite build
-- `bun test` — 16 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **207 tests across 37 files** (197 pass + 10 skipped integration tests, ~6-7s)
+- `bun test` — 19 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **231 tests across 40 files** (221 pass + 10 skipped integration tests needing docker-compose harness, ~6s)
 - `bun audit` — Dependency vulnerability scan
-- `cd docs && bun run build` — Docs site build (also a CI gate)
+- `cd docs && bun run build` — Docs site build (also a CI gate; ~20s). If local `bun install` fails with `FileNotFound: failed opening cache/package/version dir`, run `bun pm cache rm` then retry.
 - Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md)
 
 ## Documentation Site
@@ -83,7 +83,6 @@
 - `git worktree list` — Inspect active worktrees
 - `git worktree remove <path>` — Remove after merge
 - `git worktree prune` — Clean up stale refs
-- Current worktree-enforced changes: `replace-gray-matter-with-front-matter` (per `tasks.md` §1 + §13)
 
 ## Session Lifecycle
 - `/session-sync` — End-of-task sync: CLAUDE.md + Serena memories + roadmap + code-review graph + commit
