@@ -511,6 +511,13 @@ export interface DesktopApi {
   ) => () => void;
   subscribeToGitWatcher: (worktreePath: string) => Promise<void>;
   unsubscribeFromGitWatcher: (worktreePath: string) => Promise<void>;
+  onWorktreeSetupFailed: (
+    callback: (data: {
+      kind: "create-failed" | "setup-failed";
+      message: string;
+      projectId: string;
+    }) => void,
+  ) => () => void;
   // VS Code theme scanning
   scanVSCodeThemes: () => Promise<DiscoveredTheme[]>;
   loadVSCodeTheme: (themePath: string) => Promise<VSCodeThemeData>;

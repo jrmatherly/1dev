@@ -29,7 +29,7 @@ import {
 import { preferredEditorAtom } from "../../../lib/atoms";
 import { APP_META } from "../../../../shared/external-apps";
 import { PatchDiff, FileDiff } from "@pierre/diffs/react";
-import { parseDiffFromFile } from "@pierre/diffs";
+import { parseDiffFromFile, type SupportedLanguages } from "@pierre/diffs";
 import { applyPatch, reversePatch, parsePatch } from "diff";
 import { useCodeTheme } from "../../../lib/hooks/use-code-theme";
 import { getShikiTheme } from "../../../lib/themes/diff-view-highlighter";
@@ -602,12 +602,12 @@ const FileDiffCard = memo(function FileDiffCard({
           {
             name: file.oldPath || displayPath,
             contents: oldContent,
-            lang: lang as any,
+            lang: lang as SupportedLanguages | undefined,
           },
           {
             name: file.newPath || displayPath,
             contents: fileContent,
-            lang: lang as any,
+            lang: lang as SupportedLanguages | undefined,
           },
         );
         setFileDiffMeta(result);

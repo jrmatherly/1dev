@@ -179,12 +179,19 @@ export function AutomationsDetailView() {
 
   // Combine initial executions (from getAutomation) with paginated ones
   const allExecutions = useMemo(() => {
-    const initial = (automation as any)?.executions || [];
+    const initial =
+      (automation as { executions?: { id: string }[] } | undefined)
+        ?.executions || [];
     if (additionalExecutions.length === 0) return initial;
-    const ids = new Set(initial.map((e: any) => e.id));
-    const extra = additionalExecutions.filter((e: any) => !ids.has(e.id));
+    const ids = new Set(initial.map((e) => e.id));
+    const extra = additionalExecutions.filter(
+      (e: { id: string }) => !ids.has(e.id),
+    );
     return [...initial, ...extra];
-  }, [(automation as any)?.executions, additionalExecutions]);
+  }, [
+    (automation as { executions?: { id: string }[] } | undefined)?.executions,
+    additionalExecutions,
+  ]);
 
   const totalExecutions = moreExecutionsData?.total ?? allExecutions.length;
   const hasMoreExecutions = allExecutions.length < totalExecutions;

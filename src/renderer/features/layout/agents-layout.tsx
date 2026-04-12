@@ -217,7 +217,7 @@ export function AgentsLayout() {
   // Worktree setup failures from main process
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const desktopApi = window.desktopApi as any;
+    const desktopApi = window.desktopApi;
     if (!desktopApi?.onWorktreeSetupFailed) return;
 
     const unsubscribe = desktopApi.onWorktreeSetupFailed(
@@ -242,7 +242,19 @@ export function AgentsLayout() {
                 (project) => project.id === payload.projectId,
               );
               if (projectMatch) {
-                setSelectedProject(projectMatch as any);
+                setSelectedProject({
+                  id: projectMatch.id,
+                  name: projectMatch.name,
+                  path: projectMatch.path,
+                  gitRemoteUrl: projectMatch.gitRemoteUrl,
+                  gitProvider: projectMatch.gitProvider as
+                    | "github"
+                    | "gitlab"
+                    | "bitbucket"
+                    | null,
+                  gitOwner: projectMatch.gitOwner,
+                  gitRepo: projectMatch.gitRepo,
+                });
               }
               setSettingsActiveTab("projects");
               setSettingsDialogOpen(true);

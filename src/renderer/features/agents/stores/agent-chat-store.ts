@@ -23,7 +23,9 @@ export const agentChatStore = {
   has: (id: string) => chats.has(id),
 
   delete: (id: string) => {
-    const chat = chats.get(id) as any;
+    const chat = chats.get(id) as unknown as
+      | { transport?: { cleanup?: () => void } }
+      | undefined;
     chat?.transport?.cleanup?.();
     chats.delete(id);
     streamIds.delete(id);
@@ -50,7 +52,11 @@ export const agentChatStore = {
 
   clear: () => {
     for (const chat of chats.values()) {
-      (chat as any)?.transport?.cleanup?.();
+      (
+        chat as unknown as
+          | { transport?: { cleanup?: () => void } }
+          | undefined
+      )?.transport?.cleanup?.();
     }
     chats.clear();
     streamIds.clear();

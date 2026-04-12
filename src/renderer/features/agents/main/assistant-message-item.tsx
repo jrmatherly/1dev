@@ -531,7 +531,7 @@ export const AssistantMessageItem = memo(function AssistantMessageItem({
   // Note: no useMemo — AI SDK mutates parts in-place, so the array reference
   // doesn't change and useMemo would return stale results.
   const messageParts = normalizeAcpParts(
-    (message?.parts || []).map((part: unknown) => normalizeCodexToolPart(part) as any),
+    (message?.parts || []).map((part: unknown) => normalizeCodexToolPart(part)),
   );
 
   const contentParts = useMemo(
@@ -946,7 +946,10 @@ export const AssistantMessageItem = memo(function AssistantMessageItem({
             key={idx}
             input={part.input}
             result={part.result}
-            errorText={(part as any).errorText || (part as any).error}
+            errorText={
+              (part as { errorText?: string; error?: string }).errorText ||
+              (part as { errorText?: string; error?: string }).error
+            }
             state={isPending ? "call" : "result"}
             isError={isError}
             isStreaming={isStreaming && isLastMessage}
