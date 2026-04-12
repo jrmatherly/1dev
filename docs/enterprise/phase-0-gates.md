@@ -3,7 +3,7 @@ title: Phase 0 Hard Gates
 icon: list-checks
 ---
 
-# Phase 0 Hard Gates {subtitle="12 of 15 complete as of 2026-04-09"}
+# Phase 0 Hard Gates {subtitle="15 of 15 complete as of 2026-04-12"}
 
 Phase 0 is the prerequisite work that must close before the enterprise fork can ship standalone. Each gate has exact scope defined in the [auth strategy](./auth-strategy.md) and must not be expanded within a single gate.
 
@@ -14,7 +14,7 @@ Phase 0 is the prerequisite work that must close before the enterprise fork can 
 | 1-4 | `auth:get-token` IPC handler deletion | Done | `auth-get-token-deleted.test.ts` |
 | 5-6 | Token preview log sanitization | Done | `token-leak-logs-removed.test.ts` |
 | 7 | Claude binary SHA-256 + GPG, Codex SHA-256 | Done | `gpg-verification-present.test.ts` |
-| **8** | **Upstream sandbox OAuth extraction from `claude-code.ts`** | **Pending** | *(OpenSpec: `remove-upstream-sandbox-oauth`)* |
+| **8** | **Upstream sandbox OAuth extraction from `claude-code.ts`** | **Done** | Resolved — OAuth flow removed from `claude-code.ts`, `sandbox_id` is F9 live-preview (dead UI on desktop). See CLAUDE.md Phase 0 gate #8 note. |
 | 9 | Minimum CI workflow (`.github/workflows/ci.yml`) | Done | — |
 | 10 | Dependabot config | Done | — |
 | 11 | `bun:test` framework + regression guards | Done | — |

@@ -308,9 +308,10 @@ function registerIpcHandlers(): void {
   });
 
   // Shell
-  ipcMain.handle("shell:open-external", (_event, url: string) =>
-    shell.openExternal(url),
-  );
+  ipcMain.handle("shell:open-external", async (_event, url: string) => {
+    const { safeOpenExternal } = await import("../lib/safe-external");
+    await safeOpenExternal(url);
+  });
 
   // Clipboard
   ipcMain.handle("clipboard:write", (_event, text: string) =>
@@ -455,6 +456,32 @@ function registerIpcHandlers(): void {
       }
       console.log("[SignedFetch] Sender validated OK");
 
+      // URL origin allowlist — prevent SSRF via renderer-controlled URLs
+      const apiOrigin = new URL(
+        import.meta.env.MAIN_VITE_API_URL || "https://apollosai.dev",
+      ).origin;
+      try {
+        const requestOrigin = new URL(url).origin;
+        if (requestOrigin !== apiOrigin) {
+          console.warn(
+            `[SignedFetch] Blocked: origin ${requestOrigin} not in allowlist [${apiOrigin}]`,
+          );
+          return {
+            ok: false,
+            status: 403,
+            data: null,
+            error: `Blocked: origin ${requestOrigin} not allowed`,
+          };
+        }
+      } catch {
+        return {
+          ok: false,
+          status: 400,
+          data: null,
+          error: "Invalid URL",
+        };
+      }
+
       const token = await getAuthManager().getValidToken();
       console.log(
         "[SignedFetch] Token:",
@@ -525,6 +552,26 @@ function registerIpcHandlers(): void {
       if (!validateSender(event)) {
         console.log("[StreamFetch] Unauthorized sender");
         return { ok: false, status: 403, error: "Unauthorized sender" };
+      }
+
+      // URL origin allowlist — prevent SSRF via renderer-controlled URLs
+      const streamApiOrigin = new URL(
+        import.meta.env.MAIN_VITE_API_URL || "https://apollosai.dev",
+      ).origin;
+      try {
+        const requestOrigin = new URL(url).origin;
+        if (requestOrigin !== streamApiOrigin) {
+          console.warn(
+            `[StreamFetch] Blocked: origin ${requestOrigin} not in allowlist [${streamApiOrigin}]`,
+          );
+          return {
+            ok: false,
+            status: 403,
+            error: `Blocked: origin ${requestOrigin} not allowed`,
+          };
+        }
+      } catch {
+        return { ok: false, status: 400, error: "Invalid URL" };
       }
 
       const token = await getAuthManager().getValidToken();
@@ -793,9 +840,13 @@ export function createWindow(options?: {
     }
   });
 
-  // Handle external links
+  // Handle external links (scheme-validated)
   window.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    import("../lib/safe-external").then(({ safeOpenExternal }) =>
+      safeOpenExternal(url).catch((err) =>
+        console.warn("[Window] Blocked external URL:", err.message),
+      ),
+    );
     return { action: "deny" };
   });
 
