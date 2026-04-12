@@ -32,9 +32,7 @@ describe("enterprise-auth-wiring", () => {
   test("STRIPPED_ENV_KEYS_BASE includes ANTHROPIC_AUTH_TOKEN", () => {
     const content = readFileSync(CLAUDE_ENV, "utf-8");
     // Extract the STRIPPED_ENV_KEYS_BASE array content
-    const match = content.match(
-      /STRIPPED_ENV_KEYS_BASE\s*=\s*\[([\s\S]*?)\]/,
-    );
+    const match = content.match(/STRIPPED_ENV_KEYS_BASE\s*=\s*\[([\s\S]*?)\]/);
     expect(match).not.toBeNull();
     expect(match![1]).toContain('"ANTHROPIC_AUTH_TOKEN"');
   });

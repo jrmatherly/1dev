@@ -31,10 +31,7 @@ const ROUTER_PATH = join(
   REPO_ROOT,
   "src/main/lib/trpc/routers/feature-flags.ts",
 );
-const APP_ROUTER_PATH = join(
-  REPO_ROOT,
-  "src/main/lib/trpc/routers/index.ts",
-);
+const APP_ROUTER_PATH = join(REPO_ROOT, "src/main/lib/trpc/routers/index.ts");
 const MIGRATIONS_DIR = join(REPO_ROOT, "drizzle");
 
 // The four required default flag keys. These are load-bearing for Phase 0

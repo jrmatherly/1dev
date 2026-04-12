@@ -14,16 +14,17 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const REPO_ROOT = join(import.meta.dir, "..", "..");
-const pkg = JSON.parse(
-  readFileSync(join(REPO_ROOT, "package.json"), "utf-8"),
-);
+const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf-8"));
 
 describe("upgrade-electron-40: version pin guard", () => {
   test("Electron major version is >= 40", () => {
     const electronVersion = pkg.devDependencies?.electron;
     expect(electronVersion).toBeDefined();
     // Extract major version from semver range (e.g., "~40.8.5" → 40)
-    const major = parseInt(electronVersion.replace(/[^0-9]/g, "").slice(0, 2), 10);
+    const major = parseInt(
+      electronVersion.replace(/[^0-9]/g, "").slice(0, 2),
+      10,
+    );
     expect(major).toBeGreaterThanOrEqual(40);
   });
 
@@ -47,7 +48,9 @@ describe("upgrade-electron-40: version pin guard", () => {
       "utf-8",
     );
     // Should NOT have static `import * as pty from "node-pty"` at top level
-    const hasEagerImport = /^import \* as pty from ["']node-pty["']/m.test(sessionTs);
+    const hasEagerImport = /^import \* as pty from ["']node-pty["']/m.test(
+      sessionTs,
+    );
     expect(hasEagerImport).toBe(false);
     // Should have the lazy ensurePty function
     expect(sessionTs).toContain("ensurePty");

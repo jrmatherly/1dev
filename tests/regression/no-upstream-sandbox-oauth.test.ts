@@ -30,10 +30,7 @@ const REPO_ROOT = join(import.meta.dir, "..", "..");
 const SRC_DIR = join(REPO_ROOT, "src");
 const MAIN_DIR = join(SRC_DIR, "main");
 const RENDERER_DIR = join(SRC_DIR, "renderer");
-const CLAUDE_CODE_ROUTER = join(
-  MAIN_DIR,
-  "lib/trpc/routers/claude-code.ts",
-);
+const CLAUDE_CODE_ROUTER = join(MAIN_DIR, "lib/trpc/routers/claude-code.ts");
 const ONBOARDING_PAGE = join(
   RENDERER_DIR,
   "features/onboarding/anthropic-onboarding-page.tsx",
@@ -78,8 +75,7 @@ const DELETED_TRPC_CALLS = [
 ];
 
 /** Regex for direct-fetch bypass of the deleted upstream endpoint */
-const DIRECT_FETCH_RE =
-  /fetch\s*\([^)]*\/api\/auth\/[^)]*claude-code/;
+const DIRECT_FETCH_RE = /fetch\s*\([^)]*\/api\/auth\/[^)]*claude-code/;
 
 describe("Phase 0 gate #8: upstream sandbox OAuth removed", () => {
   // ------------------------------------------------------------------
@@ -117,9 +113,7 @@ describe("Phase 0 gate #8: upstream sandbox OAuth removed", () => {
       }
     }
     if (offenders.length > 0) {
-      const report = offenders
-        .map((o) => `  - ${o.file}:${o.line}`)
-        .join("\n");
+      const report = offenders.map((o) => `  - ${o.file}:${o.line}`).join("\n");
       throw new Error(
         `Found ${offenders.length} reference(s) to upstream endpoint "claude-code/start":\n${report}`,
       );
@@ -154,7 +148,7 @@ describe("Phase 0 gate #8: upstream sandbox OAuth removed", () => {
 
   test("assertion 4: claude-code.ts does not import getApiUrl", () => {
     const source = readFileSync(CLAUDE_CODE_ROUTER, "utf8");
-    expect(source).not.toContain('getApiUrl');
+    expect(source).not.toContain("getApiUrl");
   });
 
   test("assertion 5: no renderer file references deleted tRPC mutations", () => {
@@ -220,9 +214,7 @@ describe("Phase 0 gate #8: upstream sandbox OAuth removed", () => {
       }
     }
     if (offenders.length > 0) {
-      const report = offenders
-        .map((o) => `  - ${o.file}:${o.line}`)
-        .join("\n");
+      const report = offenders.map((o) => `  - ${o.file}:${o.line}`).join("\n");
       throw new Error(
         `Found ${offenders.length} reference(s) to getDesktopToken across src/main/:\n${report}`,
       );
@@ -241,9 +233,7 @@ describe("Phase 0 gate #8: upstream sandbox OAuth removed", () => {
       }
     }
     if (offenders.length > 0) {
-      const report = offenders
-        .map((o) => `  - ${o.file}:${o.line}`)
-        .join("\n");
+      const report = offenders.map((o) => `  - ${o.file}:${o.line}`).join("\n");
       throw new Error(
         `Found ${offenders.length} direct fetch call(s) to upstream auth endpoint in src/renderer/:\n${report}`,
       );

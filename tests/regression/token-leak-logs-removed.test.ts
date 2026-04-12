@@ -53,7 +53,8 @@ function* walkTsFiles(dir: string): Generator<string> {
 const FORBIDDEN_PATTERNS: Array<{ pattern: string; reason: string }> = [
   {
     pattern: "Token preview:",
-    reason: "Token preview log at claude.ts — reveals 30 chars, enough to fingerprint",
+    reason:
+      "Token preview log at claude.ts — reveals 30 chars, enough to fingerprint",
   },
   {
     pattern: "Token total length:",
@@ -64,7 +65,7 @@ const FORBIDDEN_PATTERNS: Array<{ pattern: string; reason: string }> = [
     reason: "Ollama tokenPreview debug block at claude.ts",
   },
   {
-    pattern: "ANTHROPIC_AUTH_TOKEN ? \"set\" : \"not set\"",
+    pattern: 'ANTHROPIC_AUTH_TOKEN ? "set" : "not set"',
     reason: "Token presence log at env.ts",
   },
   {
@@ -75,7 +76,8 @@ const FORBIDDEN_PATTERNS: Array<{ pattern: string; reason: string }> = [
 
 describe("Phase 0 gate #5-6: token leak logs removed", () => {
   test("no forbidden token-log patterns appear anywhere under src/main/", () => {
-    const offenders: Array<{ file: string; pattern: string; reason: string }> = [];
+    const offenders: Array<{ file: string; pattern: string; reason: string }> =
+      [];
     for (const file of walkTsFiles(MAIN_DIR)) {
       const source = readFileSync(file, "utf8");
       for (const { pattern, reason } of FORBIDDEN_PATTERNS) {

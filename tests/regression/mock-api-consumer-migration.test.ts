@@ -44,7 +44,8 @@ describe("migrate-mock-api-consumers: Phase 2 migration guard", () => {
     for (const relPath of MIGRATED_CONSUMERS) {
       const content = readFileSync(join(REPO_ROOT, relPath), "utf-8");
       // Match: import { ... } from "../path/mock-api" or './mock-api' etc.
-      const importMatches = content.match(/from\s+["'][^"']*mock-api["']/g) || [];
+      const importMatches =
+        content.match(/from\s+["'][^"']*mock-api["']/g) || [];
       if (importMatches.length > 0) {
         throw new Error(
           `${relPath} must not import from mock-api.ts but found: ${importMatches.join(", ")}`,

@@ -104,7 +104,9 @@ describe("no-gray-matter regression guard", () => {
           inDev && "devDependencies",
         ]
           .filter(Boolean)
-          .join(", ")}. Remediation: \`bun remove gray-matter\` and use the canonical shim at src/main/lib/frontmatter.ts.`,
+          .join(
+            ", ",
+          )}. Remediation: \`bun remove gray-matter\` and use the canonical shim at src/main/lib/frontmatter.ts.`,
       );
     }
     expect(inDeps).toBeFalsy();

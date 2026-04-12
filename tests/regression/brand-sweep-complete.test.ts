@@ -44,20 +44,13 @@ const REPO_ROOT = join(import.meta.dir, "..", "..");
  * Directories to walk recursively. These contain runtime code, scripts,
  * or top-level metadata that must not leak upstream brand identifiers.
  */
-const SCAN_DIRS: string[] = [
-  "src/main",
-  "src/renderer",
-  "scripts",
-];
+const SCAN_DIRS: string[] = ["src/main", "src/renderer", "scripts"];
 
 /**
  * Individual files (not directories) to scan. These are top-level metadata
  * files where brand identifiers would be user-visible.
  */
-const SCAN_FILES: string[] = [
-  "package.json",
-  "README.md",
-];
+const SCAN_FILES: string[] = ["package.json", "README.md"];
 
 /**
  * File extensions to scan within SCAN_DIRS.
@@ -78,11 +71,7 @@ const SCAN_EXTENSIONS = new Set([
  * Case-insensitive Tier A patterns that must NOT appear in scanned files
  * (except at allowlisted file:line positions).
  */
-const FORBIDDEN_PATTERNS: RegExp[] = [
-  /21st/i,
-  /twentyfirst/i,
-  /1code\.dev/i,
-];
+const FORBIDDEN_PATTERNS: RegExp[] = [/21st/i, /twentyfirst/i, /1code\.dev/i];
 
 /**
  * Allowlist of repo-relative file paths where Tier C (attribution/historical)
@@ -191,8 +180,7 @@ describe("rebrand-residual-sweep: Tier A brand identifiers removed", () => {
     if (offenders.length > 0) {
       const report = offenders
         .map(
-          (o) =>
-            `  - ${o.file}:${o.line} matched /${o.pattern}/: ${o.snippet}`,
+          (o) => `  - ${o.file}:${o.line} matched /${o.pattern}/: ${o.snippet}`,
         )
         .join("\n");
       throw new Error(

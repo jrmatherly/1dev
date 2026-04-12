@@ -24,12 +24,7 @@ import { join } from "node:path";
 
 import { matter } from "../../src/main/lib/frontmatter";
 
-const FIXTURE_PATH = join(
-  import.meta.dir,
-  "..",
-  "fixtures",
-  "sample-agent.md",
-);
+const FIXTURE_PATH = join(import.meta.dir, "..", "fixtures", "sample-agent.md");
 
 describe("frontmatter shim shape", () => {
   test("standard YAML frontmatter parses to { data, content }", () => {
