@@ -11,7 +11,8 @@
 - `bun run ts:check` — tsgo (**baseline: 0 errors** in `.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2` via full 10-bucket sweep from `.scratchpad/code-problems/002-analysis.md`). **CI now fails on ANY new TS error.**
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — electron-vite 5 build. **Clean** as of 2026-04-12 — the gray-matter Rollup eval warning was eliminated via PR #14 swap to `front-matter@4.0.2` behind a canonical shim at `src/main/lib/frontmatter.ts`.
-- `bun test` — 18 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **211 tests across 39 files** (201 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~6-7s
+- `bun test` — 19 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **211 tests across 39 files** (201 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~6-7s
+- **Phase B performance improvements (2026-04-12 PR #18):** AuthStore in-memory token cache (eliminates sync disk I/O in legacy auth), feature flag in-memory cache (eliminates SQLite query per getFlag()), FK indexes on chats.projectId + subChats.chatId (migration 0009), SQLite pragmas (busy_timeout=5000, synchronous=NORMAL, cache_size=8MB). WebkitAppRegion .d.ts augmentation eliminated 41 @ts-expect-error suppressions. Dead loggedProcedure removed from tRPC. @prisma/client removed from vite externals. readOnlyRootFilesystem=true in k8s. SOPS .gitignore guards added.
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
 
