@@ -10,8 +10,7 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { atom } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { HiChevronRight } from "react-icons/hi2";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -233,6 +232,8 @@ const TreeNode = memo(function TreeNode({
             ref={rowRef}
             role="treeitem"
             aria-expanded={isFolder ? isExpanded : undefined}
+            aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             onMouseDown={handleMouseDown}
             onClick={handleClick}
             className={cn(

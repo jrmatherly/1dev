@@ -1,8 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
-import { useAtom } from "jotai";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { Loader2, AlertCircle, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

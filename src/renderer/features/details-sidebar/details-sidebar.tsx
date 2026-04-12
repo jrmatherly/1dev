@@ -485,7 +485,7 @@ export function DetailsSidebar({
                   />
                 );
 
-              case "diff":
+              case "diff": {
                 // Show widget if we have diff stats (local or remote)
                 // Hide only when Diff sidebar is open in side-peek mode
                 const hasDiffStats =
@@ -521,6 +521,7 @@ export function DetailsSidebar({
                     diffDisplayMode={diffDisplayMode}
                   />
                 );
+              }
 
               case "mcp":
                 return (

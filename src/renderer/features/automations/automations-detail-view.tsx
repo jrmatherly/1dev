@@ -400,7 +400,7 @@ export function AutomationsDetailView() {
   // Determine where comments can be posted based on configured triggers
   const commentTargetDescription = useMemo(() => {
     const hasLinear = localTriggers.some((t) => t.platform === "linear");
-    const githubCommentTriggers = [
+    const githubCommentTriggers = new Set([
       "pr_opened",
       "pr_closed",
       "pr_merged",
@@ -408,16 +408,16 @@ export function AutomationsDetailView() {
       "issue_opened",
       "issue_closed",
       "issue_comment_created",
-    ];
+    ]);
     const hasGithubCommentable = localTriggers.some(
       (t) =>
         t.platform === "github" &&
-        githubCommentTriggers.includes(t.trigger_type),
+        githubCommentTriggers.has(t.trigger_type),
     );
     const hasGithubNonCommentable = localTriggers.some(
       (t) =>
         t.platform === "github" &&
-        !githubCommentTriggers.includes(t.trigger_type),
+        !githubCommentTriggers.has(t.trigger_type),
     );
 
     if (hasGithubCommentable && hasLinear)

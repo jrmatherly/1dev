@@ -40,7 +40,7 @@ import {
   chatSourceModeAtom,
   defaultAgentModeAtom,
 } from "../../lib/atoms";
-import { trpc } from "../../lib/trpc";
+import { trpc, trpcClient } from "../../lib/trpc";
 import { appStore } from "../../lib/jotai-store";
 import {
   useAgentSubChatStore,
@@ -84,7 +84,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
-import { trpcClient } from "../../lib/trpc";
 import { toast } from "sonner";
 import { AgentsRenameSubChatDialog } from "../agents/components/agents-rename-subchat-dialog";
 import { SearchCombobox } from "../../components/ui/search-combobox";
@@ -1238,7 +1237,6 @@ export function AgentsSubChatsSidebar({
                       setFocusedChatIndex(-1);
                     }
                   }
-                  return;
                 }
               }}
               className="h-7 w-full rounded-lg text-sm bg-muted border border-input placeholder:text-muted-foreground/40"
@@ -1383,6 +1381,7 @@ export function AgentsSubChatsSidebar({
                             <ContextMenu key={subChat.id}>
                               <ContextMenuTrigger asChild>
                                 <div
+                                  role="button"
                                   data-subchat-index={globalIndex}
                                   onClick={(e) =>
                                     handleSubChatItemClick(
@@ -1746,6 +1745,7 @@ export function AgentsSubChatsSidebar({
                             <ContextMenu key={subChat.id}>
                               <ContextMenuTrigger asChild>
                                 <div
+                                  role="button"
                                   data-subchat-index={globalIndex}
                                   onClick={(e) =>
                                     handleSubChatItemClick(

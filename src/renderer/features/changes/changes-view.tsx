@@ -1020,6 +1020,8 @@ export function ChangesView({
             ) : (
               <div
                 ref={fileListRef}
+                role="listbox"
+                aria-label="Changed files"
                 className="flex-1 overflow-y-auto outline-hidden"
                 tabIndex={0}
                 onKeyDown={handleKeyDown}
