@@ -1,7 +1,7 @@
 import * as fs from "fs/promises";
 import * as path from "path";
 import * as os from "os";
-import matter from "gray-matter";
+import { matter } from "../../frontmatter";
 import {
   discoverInstalledPlugins,
   getPluginComponentPaths,
@@ -77,8 +77,15 @@ export function parseAgentMd(
     }
 
     // Validate model
+    // Narrow-fix: front-matter's stricter generic default exposes a latent bug
+    // where data.model was previously typed as `any` and silently bypassed
+    // validation for non-string values. The explicit `typeof === "string"` guard
+    // refuses to call .includes() on non-strings, achieving the same observable
+    // result via a sound type narrow. See OpenSpec change
+    // `replace-gray-matter-with-front-matter` §5.
     const model =
-      data.model && VALID_AGENT_MODELS.includes(data.model)
+      typeof data.model === "string" &&
+      VALID_AGENT_MODELS.includes(data.model as AgentModel)
         ? (data.model as AgentModel)
         : undefined;
 
