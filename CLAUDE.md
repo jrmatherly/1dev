@@ -63,7 +63,7 @@ bun run claude:download  # Claude CLI binary (pinned 2.1.96)
 bun run codex:download   # Codex binary (pinned 0.118.0)
 ```
 
-Release workflow (GitHub Actions 3-OS matrix build → draft GitHub Release via `release.yml`): [`docs/operations/release.md`](docs/operations/release.md). v0.0.79 was the first successful all-platform build (2026-04-10). v0.0.80 was deleted after Windows postinstall + macOS Codex 403 failures. v0.0.81 ships Cluster A+C TS fixes (54→38), keytar arm64 rebuild, Windows electron-rebuild fix, and a rewritten Codex downloader that skips `api.github.com` entirely (uses pinned SHA256 hashes against direct release-asset URLs). Ships unsigned; signing is a follow-on task.
+Release workflow (GitHub Actions 3-OS matrix build → draft GitHub Release via `release.yml`): [`docs/operations/release.md`](docs/operations/release.md). v0.0.79 was the first successful all-platform build (2026-04-10). v0.0.80 was deleted after Windows postinstall + macOS Codex 403 failures. v0.0.81 ships Cluster A+C TS fixes (54→38), keytar arm64 rebuild, Windows electron-rebuild fix, and a rewritten Codex downloader that skips `api.github.com` entirely (uses pinned SHA256 hashes against direct release-asset URLs). v0.0.82 ships enterprise UI debranding (env-var-driven analytics, Discord→Slack, dynamic editor detection, env-var feedback). Ships unsigned; signing is a follow-on task.
 
 ## Architecture summary
 
