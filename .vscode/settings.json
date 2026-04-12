@@ -16,6 +16,11 @@
   //   2. Run "Preferences: Open User Settings (JSON)"
   //   3. Copy the "sonarlint.rules" block below into your User settings
   //
+  // Without this step, SonarLint will report findings that `bun run lint`
+  // does not — see docs/conventions/quality-gates.md § "SonarLint IDE vs.
+  // `bun run lint`" for the full architectural explanation of why the two
+  // tools diverge and which one is authoritative.
+  //
   // This file is tracked in git as documentation of which rules are
   // suppressed and why. Each rule was investigated on 2026-04-10 and
   // deliberately skipped — see inline comments for rationale.
