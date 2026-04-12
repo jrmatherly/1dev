@@ -9,7 +9,7 @@
  *   openspec/changes/wire-enterprise-auth/specs/enterprise-auth-wiring/spec.md
  */
 
-import { router, publicProcedure } from "../index";
+import { router, publicProcedure, authedProcedure } from "../index";
 import { TRPCError } from "@trpc/server";
 import { getFlag } from "../../feature-flags";
 import { getAuthManager } from "../../../auth-manager";
@@ -43,7 +43,7 @@ export const enterpriseAuthRouter = router({
   /**
    * Sign out — clears MSAL cache for the active account.
    */
-  signOut: publicProcedure.mutation(async () => {
+  signOut: authedProcedure.mutation(async () => {
     assertEnterprise();
     const authManager = getAuthManager();
     if (!authManager) {
@@ -74,7 +74,7 @@ export const enterpriseAuthRouter = router({
   /**
    * Refresh the enterprise auth token silently.
    */
-  refreshToken: publicProcedure.mutation(async () => {
+  refreshToken: authedProcedure.mutation(async () => {
     assertEnterprise();
     const authManager = getAuthManager();
     if (!authManager) {

@@ -7,6 +7,7 @@ import path from "path";
 import { z } from "zod";
 import { setConnectionMethod } from "../../analytics";
 import { decryptCredential } from "../../credential-store";
+import { safeJsonParse } from "../../safe-json-parse";
 import { mcpServerUrlSchema } from "../schemas/mcp-url";
 import {
   buildClaudeEnv,
@@ -918,7 +919,8 @@ export const claudeRouter = router({
               .from(subChats)
               .where(eq(subChats.id, input.subChatId))
               .get();
-            const existingMessages = JSON.parse(existing?.messages || "[]");
+            const existingMessages =
+              safeJsonParse<any[]>(existing?.messages) ?? [];
             const existingSessionId = existing?.sessionId || null;
 
             // Get resumeSessionAt UUID only if shouldResume flag was set (by rollbackToMessage)

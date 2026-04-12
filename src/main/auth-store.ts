@@ -7,6 +7,7 @@ import {
 } from "fs";
 import { join, dirname } from "path";
 import { encryptCredential, decryptCredential } from "./lib/credential-store";
+import { safeJsonParse } from "./lib/safe-json-parse";
 
 export interface AuthUser {
   id: string;
@@ -66,7 +67,12 @@ export class AuthStore {
       }
       const content = readFileSync(this.filePath, "utf-8");
       const decrypted = decryptCredential(content);
-      const data: AuthData = JSON.parse(decrypted);
+      const data = safeJsonParse<AuthData>(decrypted);
+      if (!data) {
+        console.error("Failed to parse decrypted auth data");
+        this.cachedData = null;
+        return null;
+      }
       this.cachedData = data;
       return data;
     } catch {

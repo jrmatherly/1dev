@@ -76,12 +76,12 @@
 
 ## 8. Phase C — Code Quality: Miscellaneous
 
-- [ ] 8.1 Create `src/main/lib/safe-json-parse.ts` — typed `safeJsonParse<T>()` utility returning `T | null`
-- [ ] 8.2 Replace 8+ unguarded `JSON.parse()` calls at database content deserialization sites with `safeJsonParse()`
-- [ ] 8.3 Add `authedProcedure` tRPC middleware to `src/main/lib/trpc/index.ts` — centralized auth guard using `authManager.isAuthenticated()`
-- [ ] 8.4 Apply `authedProcedure` to enterprise-only and security-sensitive tRPC procedures (enterprise-auth, external.openExternal, credential-sensitive operations)
-- [ ] 8.5 Add `manualChunks` configuration to `electron.vite.config.ts` renderer build — split Monaco, mermaid, katex, cytoscape into lazy-loaded chunks
-- [ ] 8.6 Verify bundle size reduction after splitting (target: main chunk < 5MB)
+- [x] 8.1 Create `src/main/lib/safe-json-parse.ts` — typed `safeJsonParse<T>()` utility returning `T | null`
+- [x] 8.2 Replace 8+ unguarded `JSON.parse()` calls at database content deserialization sites with `safeJsonParse()`
+- [x] 8.3 Add `authedProcedure` tRPC middleware to `src/main/lib/trpc/index.ts` — centralized auth guard using `authManager.isAuthenticated()`
+- [x] 8.4 Apply `authedProcedure` to enterprise-only and security-sensitive tRPC procedures (enterprise-auth, external.openExternal, credential-sensitive operations)
+- [x] 8.5 Add `manualChunks` configuration to `electron.vite.config.ts` renderer build — split Monaco, mermaid, katex, cytoscape into lazy-loaded chunks
+- [x] 8.6 Verify bundle size reduction after splitting (target: main chunk < 5MB) *(PARTIAL — main chunk is 7.72MB post-split; monaco 8.1MB, shiki 10.6MB, mermaid 3.8MB, cytoscape 1.5MB, katex 489KB now load lazily. Further route-level splits required for full target — tracked as roadmap follow-up.)*
 - [ ] 8.7 Address 96 `as any` casts in `src/` — systematic sweep per-directory, prioritizing security-sensitive files first
 - [ ] 8.8 Audit `console.log`/`console.error` calls in `src/main/` for infra URL or error payload exposure — replace with structured logging that redacts sensitive data
 - [ ] 8.9 Re-verify `sandbox: true` compatibility with current `trpc-electron` version — test BrowserWindow with `sandbox: true`

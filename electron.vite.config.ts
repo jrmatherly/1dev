@@ -63,6 +63,16 @@ export default defineConfig({
           index: resolve(__dirname, "src/renderer/index.html"),
           login: resolve(__dirname, "src/renderer/login.html"),
         },
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules/monaco-editor")) return "monaco";
+            if (id.includes("node_modules/mermaid")) return "mermaid";
+            if (id.includes("node_modules/katex")) return "katex";
+            if (id.includes("node_modules/cytoscape")) return "cytoscape";
+            if (id.includes("node_modules/shiki")) return "shiki";
+            return undefined;
+          },
+        },
       },
     },
   },

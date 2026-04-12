@@ -24,6 +24,7 @@ import { computeContentHash, gitCache } from "../../git/cache";
 import { splitUnifiedDiffByFile } from "../../git/diff-parser";
 import { execWithShellEnv } from "../../git/shell-env";
 import { applyRollbackStash } from "../../git/stash";
+import { safeJsonParse } from "../../safe-json-parse";
 import { checkInternetConnection, checkOllamaStatus } from "../../ollama";
 import { terminalManager } from "../../terminal/manager";
 import { publicProcedure, router } from "../index";
@@ -775,7 +776,7 @@ export const chatsRouter = router({
       if (!sourceSubChat) throw new Error("Source sub-chat not found");
 
       // 2. Parse messages and find the cutoff point
-      const allMessages = JSON.parse(sourceSubChat.messages || "[]");
+      const allMessages = safeJsonParse<any[]>(sourceSubChat.messages) ?? [];
       let cutoffIndex = allMessages.findIndex(
         (m: any) => m.id === input.messageId,
       );
@@ -952,7 +953,7 @@ export const chatsRouter = router({
         }
 
         // 2. Parse messages and find the target message by sdkMessageUuid
-        const messages = JSON.parse(subChat.messages || "[]");
+        const messages = safeJsonParse<any[]>(subChat.messages) ?? [];
         const targetIndex = messages.findIndex(
           (m: any) => m.metadata?.sdkMessageUuid === input.sdkMessageUuid,
         );
@@ -1753,7 +1754,7 @@ export const chatsRouter = router({
         const chatId = row.chatId; // TypeScript narrowing
 
         try {
-          const messages = JSON.parse(row.messages) as Array<{
+          const messages = safeJsonParse<Array<{
             role: string;
             parts?: Array<{
               type: string;
@@ -1764,7 +1765,7 @@ export const chatsRouter = router({
                 content?: string;
               };
             }>;
-          }>;
+          }>>(row.messages) ?? [];
 
           // Track file states for this sub-chat
           const fileStates = new Map<
@@ -1889,7 +1890,7 @@ export const chatsRouter = router({
         if (!row.messages) continue;
 
         try {
-          const messages = JSON.parse(row.messages) as Array<{
+          const messages = safeJsonParse<Array<{
             role: string;
             content?: string;
             parts?: Array<{
@@ -1897,7 +1898,7 @@ export const chatsRouter = router({
               text?: string;
               output?: unknown;
             }>;
-          }>;
+          }>>(row.messages) ?? [];
 
           // Check if there's a completed ExitPlanMode in messages
           const hasCompletedExitPlanMode = (): boolean => {
@@ -2041,7 +2042,7 @@ export const chatsRouter = router({
 
       for (const subChat of chatSubChats) {
         try {
-          const messages = JSON.parse(subChat.messages || "[]");
+          const messages = safeJsonParse<any[]>(subChat.messages) ?? [];
           allMessages.push({
             subChatId: subChat.id,
             subChatName: subChat.name,
@@ -2239,13 +2240,13 @@ export const chatsRouter = router({
 
       for (const subChat of chatSubChats) {
         try {
-          const messages = JSON.parse(subChat.messages || "[]") as Array<{
+          const messages = safeJsonParse<Array<{
             role: string;
             parts?: Array<{ type: string; toolName?: string }>;
             metadata?: {
               usage?: { inputTokens?: number; outputTokens?: number };
             };
-          }>;
+          }>>(subChat.messages) ?? [];
 
           for (const msg of messages) {
             messageCount++;

@@ -4,7 +4,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { z } from "zod";
-import { publicProcedure, router } from "../index";
+import { authedProcedure, publicProcedure, router } from "../index";
 import {
   APP_META,
   externalAppSchema,
@@ -126,7 +126,7 @@ export const externalRouter = router({
       return { success: true, editor: "default" };
     }),
 
-  openExternal: publicProcedure
+  openExternal: authedProcedure
     .input(z.string())
     .mutation(async ({ input: url }) => {
       const { safeOpenExternal } = await import("../../safe-external");
