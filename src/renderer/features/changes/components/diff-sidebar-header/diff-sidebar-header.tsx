@@ -435,7 +435,6 @@ export const DiffSidebarHeader = memo(function DiffSidebarHeader({
 				<div
 					className="absolute inset-0 z-0"
 					style={{
-						// @ts-expect-error - WebKit-specific property
 						WebkitAppRegion: "drag",
 					}}
 				/>
@@ -444,7 +443,6 @@ export const DiffSidebarHeader = memo(function DiffSidebarHeader({
 			<div
 				className="relative z-10 flex items-center gap-1 min-w-0 shrink"
 				style={{
-					// @ts-expect-error - WebKit-specific property
 					WebkitAppRegion: "no-drag",
 				}}
 			>
@@ -510,7 +508,6 @@ export const DiffSidebarHeader = memo(function DiffSidebarHeader({
 			<div
 				className="relative z-10 flex items-center gap-1 shrink-0"
 				style={{
-					// @ts-expect-error - WebKit-specific property
 					WebkitAppRegion: "no-drag",
 				}}
 			>

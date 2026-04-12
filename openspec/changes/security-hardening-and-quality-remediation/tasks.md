@@ -21,39 +21,39 @@
 
 ## 2. Phase B — Quick Wins: Performance
 
-- [ ] 2.1 Add in-memory token cache to `src/main/auth-manager.ts` for legacy auth path — cache decrypted token, invalidate on write/logout
-- [ ] 2.2 Add in-memory flag cache to `src/main/lib/feature-flags.ts` — load all overrides into `Map` at startup, update cache on `setFlag()`/`clearFlag()`
-- [ ] 2.3 Add index declaration for `chats.projectId` in `src/main/lib/db/schema/index.ts`
-- [ ] 2.4 Add index declaration for `subChats.chatId` in `src/main/lib/db/schema/index.ts`
-- [ ] 2.5 Run `bun run db:generate` to produce the FK index migration
-- [ ] 2.6 Add SQLite pragmas (`busy_timeout=5000`, `synchronous=NORMAL`, `cache_size=-8000`) to database initialization in `src/main/lib/db/index.ts`
+- [x] 2.1 Add in-memory token cache to `src/main/auth-manager.ts` for legacy auth path — cache decrypted token, invalidate on write/logout
+- [x] 2.2 Add in-memory flag cache to `src/main/lib/feature-flags.ts` — load all overrides into `Map` at startup, update cache on `setFlag()`/`clearFlag()`
+- [x] 2.3 Add index declaration for `chats.projectId` in `src/main/lib/db/schema/index.ts`
+- [x] 2.4 Add index declaration for `subChats.chatId` in `src/main/lib/db/schema/index.ts`
+- [x] 2.5 Run `bun run db:generate` to produce the FK index migration
+- [x] 2.6 Add SQLite pragmas (`busy_timeout=5000`, `synchronous=NORMAL`, `cache_size=-8000`) to database initialization in `src/main/lib/db/index.ts`
 - [ ] 2.7 Run `db-schema-auditor` subagent to verify schema ↔ migration ↔ doc consistency after index + pragma changes
 
 ## 3. Phase B — Quick Wins: Types + Code Quality
 
-- [ ] 3.1 Create `src/renderer/types/css.d.ts` with `WebkitAppRegion` module augmentation for React CSSProperties
-- [ ] 3.2 Remove all 41 `@ts-expect-error` comments for WebkitAppRegion across `src/renderer/`
-- [ ] 3.3 Verify TS baseline remains at 0 after removing @ts-expect-error comments
-- [ ] 3.4 Delete local `makeKeyPreview` function in `services/1code-api/src/services/provisioning.ts`
-- [ ] 3.5 Import `_makeKeyPreview` from `./key-service` in `services/1code-api/src/services/provisioning.ts`
-- [ ] 3.6 Remove `"@prisma/client"` from `rollupOptions.external` in `electron.vite.config.ts`
-- [ ] 3.7 Remove or apply `loggerMiddleware` in `src/main/lib/trpc/index.ts` — either delete it or apply it to a procedure subset
-- [ ] 3.8 Run all 6 quality gates after Phase B changes
+- [x] 3.1 Create `src/renderer/types/css.d.ts` with `WebkitAppRegion` module augmentation for React CSSProperties
+- [x] 3.2 Remove all 41 `@ts-expect-error` comments for WebkitAppRegion across `src/renderer/`
+- [x] 3.3 Verify TS baseline remains at 0 after removing @ts-expect-error comments
+- [x] 3.4 Delete local `makeKeyPreview` function in `services/1code-api/src/services/provisioning.ts`
+- [x] 3.5 Import `_makeKeyPreview` from `./key-service` in `services/1code-api/src/services/provisioning.ts`
+- [x] 3.6 Remove `"@prisma/client"` from `rollupOptions.external` in `electron.vite.config.ts`
+- [x] 3.7 Remove or apply `loggerMiddleware` in `src/main/lib/trpc/index.ts` — either delete it or apply it to a procedure subset
+- [x] 3.8 Run all 6 quality gates after Phase B changes
 
 ## 4. Phase B — Quick Wins: Documentation
 
-- [ ] 4.1 Update `docs/conventions/quality-gates.md` — change TS baseline reference from "~87" to "0"
-- [ ] 4.2 Verify `docs/enterprise/upstream-features.md` has no remaining `21st.dev` references — update to `apollosai.dev` if found
-- [ ] 4.3 Run `cd docs && bun run build` to verify docs build passes after documentation fixes
+- [x] 4.1 Update `docs/conventions/quality-gates.md` — change TS baseline reference from "~87" to "0"
+- [x] 4.2 Verify `docs/enterprise/upstream-features.md` has no remaining `21st.dev` references — update to `apollosai.dev` if found
+- [x] 4.3 Run `cd docs && bun run build` to verify docs build passes after documentation fixes
 
 ## 5. Phase B — Quick Wins: Deployment
 
-- [ ] 5.1 Set `readOnlyRootFilesystem: true` in `deploy/kubernetes/1code-api/app/helmrelease.yaml`
-- [ ] 5.2 Add `emptyDir` volume mount for `/tmp` in the HelmRelease pod spec
-- [ ] 5.3 Pin `oven/bun:1` base image to specific digest in `services/1code-api/Dockerfile`
-- [ ] 5.4 Pin `gcr.io/distroless/nodejs22-debian12` base image to specific digest in `services/1code-api/Dockerfile`
-- [ ] 5.5 Add Dockerfile comment documenting why each digest is pinned and when to update
-- [ ] 5.6 Add `.gitignore` entries for unencrypted SOPS files: `*.dec.yaml`, `*.unencrypted.yaml`, `*.cleartext.yaml`
+- [x] 5.1 Set `readOnlyRootFilesystem: true` in `deploy/kubernetes/1code-api/app/helmrelease.yaml`
+- [x] 5.2 Add `emptyDir` volume mount for `/tmp` in the HelmRelease pod spec *(already existed)*
+- [ ] 5.3 Pin `oven/bun:1` base image to specific digest in `services/1code-api/Dockerfile` *(TODO comment added — needs docker pull for actual digest)*
+- [ ] 5.4 Pin `gcr.io/distroless/nodejs22-debian12` base image to specific digest in `services/1code-api/Dockerfile` *(TODO comment added — needs docker pull for actual digest)*
+- [x] 5.5 Add Dockerfile comment documenting why each digest is pinned and when to update
+- [x] 5.6 Add `.gitignore` entries for unencrypted SOPS files: `*.dec.yaml`, `*.unencrypted.yaml`, `*.cleartext.yaml`
 
 ## 6. Phase C — CSP + CI Security
 

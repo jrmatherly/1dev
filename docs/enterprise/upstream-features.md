@@ -12,7 +12,7 @@ icon: list-tree
 **Document:** `.scratchpad/upstream-features-inventory.md`
 **Created:** 2026-04-08
 **Status:** **v2** — All 10 F-entries have restoration decisions as of 2026-04-08 (Phase 0 hard gate #15 complete). F1, F7, F9 investigations closed by the `upstream-dependency-auditor` agent on 2026-04-08.
-**Purpose:** Catalog every feature that depends on the upstream `21st.dev` / `1code.dev` backend, what breaks when that backend is retired, and candidate restoration paths for the enterprise fork.
+**Purpose:** Catalog every feature that depends on the upstream `apollosai.dev` (formerly `21st.dev` / `1code.dev`) backend, what breaks when that backend is retired, and candidate restoration paths for the enterprise fork.
 
 ## Overarching Restoration Theme
 
@@ -48,7 +48,7 @@ The upstream backend is reached through two channels:
 1. **`remoteTrpc.*`** — typed tRPC client (`src/renderer/lib/remote-trpc.ts`) — uses `signedFetch` IPC to attach the desktop auth token. Type contract is in `src/renderer/lib/remote-app-router.ts`.
 2. **Raw `fetch(...)`** to `${apiUrl}/...` paths — typically through `getApiBaseUrl()` on either side of the IPC bridge. Used where tRPC is not on the upstream path (voice, sandbox import, changelog, OAuth bootstrap).
 
-Default base URL: `https://21st.dev` (overridable via `desktopApi.getApiBaseUrl()`, which reads from main-process env).
+Default base URL: `https://apollosai.dev` (overridable via `desktopApi.getApiBaseUrl()`, which reads from main-process env).
 
 ---
 
@@ -229,15 +229,15 @@ Previously we considered two restore approaches — (A) self-hosted R2/S3/MinIO 
 The help popover fetches the upstream changelog and shows the 3 most recent entries.
 
 **Code locations:**
-- `src/renderer/features/agents/components/agents-help-popover.tsx:80` — `signedFetch("https://21st.dev/api/changelog/desktop?per_page=3")`
+- `src/renderer/features/agents/components/agents-help-popover.tsx:80` — `signedFetch("https://apollosai.dev/api/changelog/desktop?per_page=3")`
 
-**Dependency type:** Hardcoded raw HTTP to `https://21st.dev` (does **not** use `getApiBaseUrl()` — the URL is a literal string).
+**Dependency type:** Hardcoded raw HTTP to `https://apollosai.dev` (does **not** use `getApiBaseUrl()` — the URL is a literal string).
 
 **What breaks when upstream is retired:**
 - Help popover changelog section is empty.
 
 **Decision (2026-04-08): Option B — Move to `getApiBaseUrl()` + self-hosted changelog endpoint.** Per the overarching restoration theme, we stand up a self-hosted changelog API rather than bundling at build time. Concrete changes:
-1. Replace the hardcoded `https://21st.dev/api/changelog/desktop?per_page=3` fetch in `agents-help-popover.tsx:80` with `${getApiBaseUrl()}/api/changelog/desktop?per_page=3`.
+1. Replace the hardcoded `https://apollosai.dev/api/changelog/desktop?per_page=3` fetch in `agents-help-popover.tsx:80` with `${getApiBaseUrl()}/api/changelog/desktop?per_page=3`.
 2. Self-host a minimal changelog endpoint (static JSON generated from `CHANGELOG.md` + a thin HTTP wrapper, or a small JSON file served behind Envoy Gateway at the enterprise domain). Endpoint shape and pagination must match the response format the popover expects (TBD — read the popover's parsing code during implementation to lock in the schema).
 3. The endpoint is unauthenticated (changelog is public content) but sits behind the Envoy Gateway so the gateway's rate-limiting and CSP apply.
 

@@ -134,14 +134,23 @@ export interface FlagSnapshot {
  * throwing. A corrupt override row should never take down the app — it's
  * safer to use the default than to crash on startup.
  */
+// In-memory cache for flag overrides — loaded once, invalidated on set/clear
+let flagCache: Map<string, string> | null = null;
+
+function loadFlagCache(): Map<string, string> {
+  if (flagCache) return flagCache;
+  const db = getDatabase();
+  const rows = db.select().from(featureFlagOverrides).all();
+  flagCache = new Map(rows.map((r) => [r.key, r.value]));
+  return flagCache;
+}
+
 export function getFlag<K extends FeatureFlagKey>(key: K): FeatureFlagValue<K> {
   const defaultValue = FLAG_DEFAULTS[key];
-  const db = getDatabase();
-  const rows = db
-    .select()
-    .from(featureFlagOverrides)
-    .where(eq(featureFlagOverrides.key, key))
-    .all();
+  const cache = loadFlagCache();
+  const cachedValue = cache.get(key);
+  if (cachedValue === undefined) return defaultValue;
+  const rows = [{ value: cachedValue }]; // Compat with existing parse logic
   if (rows.length === 0) return defaultValue;
 
   try {
@@ -205,6 +214,8 @@ export function setFlag<K extends FeatureFlagKey>(
       set: { value: serialized, updatedAt: new Date() },
     })
     .run();
+  // Update in-memory cache
+  if (flagCache) flagCache.set(key, serialized);
 }
 
 /**
@@ -218,6 +229,8 @@ export function clearFlag<K extends FeatureFlagKey>(key: K): void {
   db.delete(featureFlagOverrides)
     .where(eq(featureFlagOverrides.key, key))
     .run();
+  // Update in-memory cache
+  if (flagCache) flagCache.delete(key);
 }
 
 /**

@@ -32,18 +32,5 @@ export const router = t.router;
 export const publicProcedure = t.procedure;
 export const middleware = t.middleware;
 
-/**
- * Middleware to log procedure calls
- */
-export const loggerMiddleware = middleware(async ({ path, type, next }) => {
-  const start = Date.now();
-  const result = await next();
-  const duration = Date.now() - start;
-  console.log(`[tRPC] ${type} ${path} - ${duration}ms`);
-  return result;
-});
-
-/**
- * Procedure with logging
- */
-export const loggedProcedure = publicProcedure.use(loggerMiddleware);
+// loggerMiddleware and loggedProcedure removed — were defined but never used.
+// If needed in the future, re-add with t.middleware() + publicProcedure.use().
