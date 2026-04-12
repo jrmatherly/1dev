@@ -228,7 +228,7 @@ describe("GraphClient — oid validation", () => {
     ["too short", "11111111-1111-4111-8111-11111111111"],
     ["missing hyphens", "11111111111141118111111111111111"],
     ["non-hex characters", "gggggggg-gggg-4ggg-8ggg-gggggggggggg"],
-  ])("rejects invalid oid: %s", async (_label, badOid) => {
+  ])("rejects invalid oid: %s", async (_label: string, badOid: string) => {
     const client = new GraphClient(FAKE_CONFIG);
     await expect(client.getUserGroups(badOid)).rejects.toThrow(
       /invalid oid format/,

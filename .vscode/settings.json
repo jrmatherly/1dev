@@ -353,6 +353,29 @@
     // positive — do not suppress the code, only suppress the IDE noise.
     "typescript:S4158": {
       "level": "off"
+    },
+    // S7739: "Do not add `then` to an object" — Drizzle query mock chains
+    // in 1code-api tests implement .then() to make the chain thenable for
+    // `await db.select()...`. Intentional pattern for Drizzle ORM mocks.
+    "typescript:S7739": {
+      "level": "off"
+    },
+    // S4030: "Either use this collection's contents or remove" — test state
+    // variables (dbCalls, mockUserById, etc.) are populated by mock interceptors
+    // and consumed by assertions. SonarLint can't trace mock-write → assert-read.
+    "typescript:S4030": {
+      "level": "off"
+    },
+    // S7721: "Move async function to outer scope" — test helper functions
+    // inside test() blocks are idiomatic for co-located test logic in bun:test.
+    "typescript:S7721": {
+      "level": "off"
+    },
+    // S6660: "If should not be only statement in else" — false positive when
+    // the else block has statements before the inner if (e.g., counter increment).
+    // Collapsing to else-if would skip the preceding logic.
+    "typescript:S6660": {
+      "level": "off"
     }
   }
 }

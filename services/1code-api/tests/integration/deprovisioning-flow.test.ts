@@ -257,7 +257,7 @@ describe.skipIf(!INTEGRATION_ENABLED)(
         .from(auditLog)
         .where(eq(auditLog.action, "cron.deprovisioning_aborted"));
       expect(abortAudits.length).toBeGreaterThanOrEqual(1);
-      const recentAbort = abortAudits[abortAudits.length - 1];
+      const recentAbort = abortAudits.at(-1)!;
       const details = JSON.parse(recentAbort.details as string);
       expect(details.threshold).toBe(2);
       expect(details.would_deprovision).toBeGreaterThanOrEqual(3);

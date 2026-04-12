@@ -22,14 +22,14 @@ beforeAll(async () => {
     global: true,
     max: 2, // very low max so the test can trip it quickly
     timeWindow: "1 minute",
-    keyGenerator: (req) => {
+    keyGenerator: (req: import("fastify").FastifyRequest) => {
       const oid = req.headers["x-user-oid"];
       if (typeof oid === "string" && oid.length > 0) return oid;
       return req.ip;
     },
   });
 
-  server.get("/test", async (_req, reply) => {
+  server.get("/test", async (_req: import("fastify").FastifyRequest, reply: import("fastify").FastifyReply) => {
     return reply.send({ ok: true });
   });
 

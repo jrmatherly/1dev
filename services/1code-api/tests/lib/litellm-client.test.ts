@@ -4,7 +4,7 @@
  * Covers each of the 8 methods with mocked fetch, plus 404-returns-null
  * semantics for getUser and getTeam.
  */
-import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
+import { describe, test, expect, afterEach, mock } from "bun:test";
 import { LiteLLMClient } from "../../src/lib/litellm-client.js";
 
 const FAKE_CONFIG = {
@@ -36,7 +36,7 @@ function makeMockFetch(responses: Array<{ status: number; body: unknown }>): {
       headers: init?.headers as Record<string, string>,
       body,
     });
-    const resp = responses[idx] ?? responses[responses.length - 1];
+    const resp = responses[idx] ?? responses.at(-1)!;
     idx++;
     return new Response(JSON.stringify(resp.body), { status: resp.status });
   }) as unknown as typeof fetch;

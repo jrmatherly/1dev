@@ -1,7 +1,4 @@
 import { describe, test, expect, beforeEach } from "bun:test";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
 
 // We test the changelog route by creating temp markdown files
 // and exercising the handler.
