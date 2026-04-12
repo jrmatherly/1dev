@@ -27,6 +27,8 @@
 - @azure/msal-node ^5.1.2 (upgraded from 3.8.x), @azure/msal-node-extensions ^5.1.2
 - @types/node ^24, @swc/core ^1 (electron-vite 5 peer dep)
 - `build.externalizeDeps` config in electron.vite.config.ts (replaced `externalizeDepsPlugin`)
+- **PostHog analytics now env-var-driven (2026-04-12 PR #16):** Hardcoded upstream PostHog key fallback (`phc_wM7gbrJ...`) removed from `src/main/lib/analytics.ts`. Analytics disabled when `MAIN_VITE_POSTHOG_KEY` / `VITE_POSTHOG_KEY` are unset. Renderer was already correct (no fallback). All callers no-op through existing guard chain. Privacy toggle in Preferences hidden when `VITE_POSTHOG_KEY` is unset.
+- **Community/Feedback links now env-var-driven (2026-04-12 PR #16):** Discord replaced with Slack (`VITE_COMMUNITY_URL`). Feedback button gated by `VITE_FEEDBACK_URL`. Both hidden when env vars are unset. No hardcoded upstream URLs remain in the UI.
 - ~~gray-matter@4.0.3~~ — REMOVED 2026-04-12 via PR #14. Replaced by `front-matter@4.0.2` (behind canonical shim at `src/main/lib/frontmatter.ts`). Note: `services/1code-api/src/routes/changelog.ts` still uses `gray-matter` directly because the service workspace has its own `package.json` declaring it (out of scope for the Electron-side migration). If service-side parsing is unified later, the same shim pattern should be replicated under `services/1code-api/src/lib/`.
 
 ## Upgrade Blockers (as of 2026-04-11)

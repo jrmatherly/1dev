@@ -64,7 +64,7 @@ bun run dev
 
 ## Feedback & Community
 
-Join our [Discord](https://discord.gg/8ektTZGnj4) for support and discussions.
+Community and feedback channels are configured via environment variables (`VITE_COMMUNITY_URL`, `VITE_FEEDBACK_URL`). See `.env.example` for setup. For bug reports and feature requests, open a GitHub issue.
 
 ## Developer Guide
 

@@ -51,7 +51,7 @@
 - ESLint 10 breaking change: `eslint-disable` comments referencing uninstalled plugins are hard errors — removed 19 stale comments from upstream code
 
 ### SonarLint IDE Configuration
-- `.vscode/settings.json` tracked in git with 50 rule suppressions (TS/JS/CSS) — grew from 16 during 2026-04-10 remediation session
+- `.vscode/settings.json` tracked in git with 56 rule suppressions (TS/JS/CSS) — grew from 16 during 2026-04-10 remediation session, 50→53 on 2026-04-11, 53→56 on 2026-04-12
 - Rules suppressed in both `typescript:` and `javascript:` prefixes (HTML inline scripts use JS prefix)
 - `// NOSONAR` inline comment for one-off suppressions (e.g., djb2 `charCodeAt` in chat-markdown-renderer.tsx)
 - **SonarLint workspace limitation:** `sonarlint.rules` scope is `application`, so VS Code ignores workspace suppressions — developer must paste the block into User Settings JSON once. Project's `.vscode/settings.json` is tracked as documentation of intent.

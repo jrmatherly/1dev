@@ -14,7 +14,7 @@ This is the **enterprise fork** of upstream 1Code, being progressively decoupled
 
 **Spec-driven development:** This repo uses OpenSpec 1.2.0. From Claude Code, run `/opsx:propose`, `/opsx:apply`, or `/opsx:explore`. Active proposals live in `openspec/changes/`.
 
-**Questions:** Ask on our [Discord](https://discord.gg/8ektTZGnj4).
+**Questions:** See the community channel configured in `.env` (`VITE_COMMUNITY_URL`), or open a GitHub issue.
 
 ## Building from Source
 
@@ -38,7 +38,7 @@ Before submitting a PR, run **all five** automated quality gates:
 ```bash
 bun run ts:check           # Type check with tsgo (baseline tracking via .claude/.tscheck-baseline)
 bun run build              # Compile via electron-vite (validates packaging pipeline)
-bun test                   # bun:test regression guards (12 guards, 48 tests)
+bun test                   # bun:test regression guards + service tests (207 tests across 37 files)
 bun audit                  # Check for known vulnerabilities
 cd docs && bun run build   # xyd-js docs site build
 ```
