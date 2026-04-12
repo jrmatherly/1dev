@@ -64,6 +64,16 @@ jobs:
           provenance: true
           sbom: true
 
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          # Scan the SHA-tagged image pushed by build-push-action
+          image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL,HIGH"
+          ignore-unfixed: true
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
 

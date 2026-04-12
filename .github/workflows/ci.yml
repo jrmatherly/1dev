@@ -222,11 +222,40 @@ jobs:
         working-directory: docs
         run: bun run build
 
+  codeql:
+    name: "🔬 CodeQL SAST"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "🔬 Initialize CodeQL"
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # Only scan our source code, not node_modules or generated output
+          config: |
+            paths:
+              - src
+              - services/1code-api/src
+            paths-ignore:
+              - node_modules
+              - out
+              - dist
+              - "**/*.test.ts"
+
+      - name: "🔬 Run CodeQL analysis"
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
+
   status:
     name: "✅ CI Status"
     runs-on: ubuntu-latest
     permissions: {}
-    needs: [ts-check, build, test, audit, docs-build]
+    needs: [ts-check, build, test, audit, docs-build, codeql]
     if: always()
     env:
       TS_CHECK_RESULT: ${{ needs.ts-check.result }}
@@ -234,6 +263,7 @@ jobs:
       TEST_RESULT: ${{ needs.test.result }}
       AUDIT_RESULT: ${{ needs.audit.result }}
       DOCS_BUILD_RESULT: ${{ needs.docs-build.result }}
+      CODEQL_RESULT: ${{ needs.codeql.result }}
     steps:
       - name: "🔎 Check upstream job results"
         run: |
@@ -242,12 +272,14 @@ jobs:
           echo "🧪 test        → $TEST_RESULT"
           echo "🛡️ audit       → $AUDIT_RESULT"
           echo "📚 docs-build  → $DOCS_BUILD_RESULT"
+          echo "🔬 codeql      → $CODEQL_RESULT"
           echo ""
           if [ "$TS_CHECK_RESULT" != "success" ] \
             || [ "$BUILD_RESULT" != "success" ] \
             || [ "$TEST_RESULT" != "success" ] \
             || [ "$AUDIT_RESULT" != "success" ] \
-            || [ "$DOCS_BUILD_RESULT" != "success" ]; then
+            || [ "$DOCS_BUILD_RESULT" != "success" ] \
+            || [ "$CODEQL_RESULT" != "success" ]; then
             echo "❌ One or more CI jobs failed."
             exit 1
           fi

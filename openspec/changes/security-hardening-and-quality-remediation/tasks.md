@@ -57,12 +57,12 @@
 
 ## 6. Phase C — CSP + CI Security
 
-- [ ] 6.1 Audit which renderer dependencies require `unsafe-eval` (PostHog, Monaco, others?)
-- [ ] 6.2 Make CSP dynamic — remove `unsafe-eval` from `src/renderer/index.html` meta tag when `VITE_POSTHOG_KEY` is not set (consider using Electron's `session.webRequest.onHeadersReceived` vs. build-time template)
-- [ ] 6.3 Add SAST workflow to `.github/workflows/ci.yml` — evaluate CodeQL vs Semgrep for Electron/TypeScript coverage
-- [ ] 6.4 Add Trivy container scan step to `.github/workflows/container-build.yml`
-- [ ] 6.5 Test `mcpServerUrlSchema` — add unit test for the 97-line SSRF prevention function in `src/main/lib/mcp/`
-- [ ] 6.6 Add regression guard for mcpServerUrlSchema test coverage
+- [x] 6.1 Audit which renderer dependencies require `unsafe-eval` (PostHog, Monaco, others?) *(audit: zero dynamic-code-generation constructs in bundled renderer output — PostHog SDK bundled, Monaco loader not bundled, mermaid/katex/cytoscape clean)*
+- [x] 6.2 Make CSP dynamic — remove `unsafe-eval` from `src/renderer/index.html` meta tag when `VITE_POSTHOG_KEY` is not set (consider using Electron's `session.webRequest.onHeadersReceived` vs. build-time template) *(removed `'unsafe-eval'` from both `default-src` and `script-src` unconditionally since audit proved it was never needed; added `worker-src 'self' blob:` for Monaco web workers)*
+- [x] 6.3 Add SAST workflow to `.github/workflows/ci.yml` — evaluate CodeQL vs Semgrep for Electron/TypeScript coverage *(chose CodeQL: free for public repos, native GitHub Security integration, SARIF output, first-class TS/JS support)*
+- [x] 6.4 Add Trivy container scan step to `.github/workflows/container-build.yml` *(scans SHA-tagged image after push, fails on CRITICAL/HIGH before Cosign signing, `ignore-unfixed: true`)*
+- [x] 6.5 Test `mcpServerUrlSchema` — add unit test for the 97-line SSRF prevention function in `src/main/lib/mcp/` *(at `src/main/lib/trpc/schemas/mcp-url.ts` — 20 tests covering loopback, RFC1918, cloud metadata, IPv6 ranges, scheme restrictions)*
+- [x] 6.6 Add regression guard for mcpServerUrlSchema test coverage *(`tests/regression/mcp-url-ssrf-prevention.test.ts` — 20 tests, all pass, ~133ms)*
 
 ## 7. Phase C — Code Quality: claude.ts Decomposition
 
