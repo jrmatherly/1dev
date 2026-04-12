@@ -54,7 +54,16 @@
 - `.vscode/settings.json` tracked in git with 50 rule suppressions (TS/JS/CSS) — grew from 16 during 2026-04-10 remediation session
 - Rules suppressed in both `typescript:` and `javascript:` prefixes (HTML inline scripts use JS prefix)
 - `// NOSONAR` inline comment for one-off suppressions (e.g., djb2 `charCodeAt` in chat-markdown-renderer.tsx)
-- S7758 (`charCodeAt→codePointAt`) is WRONG for hash functions — do NOT apply
+- **SonarLint workspace limitation:** `sonarlint.rules` scope is `application`, so VS Code ignores workspace suppressions — developer must paste the block into User Settings JSON once. Project's `.vscode/settings.json` is tracked as documentation of intent.
+
+### SonarLint remediation gotchas (learned 2026-04-11 during agents-* cleanup)
+- **S7758 (`charCodeAt→codePointAt`)** is WRONG for hash functions — do NOT apply. Semantically different on surrogate pairs; the hash change can invalidate cache keys downstream. Safe for byte-string extraction (e.g., `atob()` output).
+- **S7776 ("should be a `Set`")** sometimes false-fires on `string.includes()` — SonarLint misidentifies string `.includes()` as array `.includes()`. Never convert a string to a Set. Check the variable's type first.
+- **S7755 (`.at(-N)`)** is safer than `arr[arr.length-N]` but changes the return type from `T` to `T | undefined`. Under strict TypeScript, this introduces new TS errors at call sites that assume non-undefined. Fix: either add a non-null assertion (`.at(-1)!`) when guarded by a length check, or add an `?? null`/`?? default` fallback.
+- **S6594 (`.match(re)` → RegExp.prototype.exec(str))** is semantically equivalent ONLY for non-global regexes. For `/g` regexes, `.match` returns all matches while the regex-exec call returns one — do NOT apply to `/g` patterns. Also: the local PreToolUse Edit security hook falsely blocks the string `.exec(` by regex-matching it as child_process API — retrying the Edit usually works.
+- **S1479 (>30 case switch)** — preferred fix is a `Record<string, Component>` lookup table rather than splitting the switch. Eliminates both S1479 and any S6836 lexical-decl-in-case in one shot. Example: `getFileIconByExtension` in `src/renderer/features/agents/mentions/agents-file-mention.tsx` (34 cases → 50-key record).
+- **S4158 ("can only be empty here")** — when the empty collection is an F-entry stub (e.g., `teams: [] = []` for F3), DO NOT suppress. The warning IS the reminder to restore the feature. Document the F-entry in the inline comment.
+- **S2589 ("always evaluates to truthy")** findings can auto-resolve when dead code above the flagged line is removed (the narrowing context changes). Don't hunt these down immediately — clean dead code first, then re-verify.
 
 ## IDE vs tsgo Divergence
 - VS Code's TypeScript language service (using bundled `typescript`) occasionally reports errors that `tsgo` does not, and vice versa. The `.claude/.tscheck-baseline` file is **tsgo-based** (authoritative for CI).

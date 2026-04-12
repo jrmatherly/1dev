@@ -28,6 +28,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
   - `upgrade-vite-8-build-stack` (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable)
 - **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → ~~Shiki4~~ ✅ → Vite8-B (blocked on `electron-vite 6.0.0` stable)
 - **Recently archived (2026-04-10 + 2026-04-11):** `upgrade-tailwind-4`, `upgrade-typescript-6`, `upgrade-shiki-4`, `implement-1code-api`, `add-1code-api-litellm-provisioning` (77/77 tasks), `upgrade-electron-41` (26/27 — task 5.3 auto-updater packaged-build verification deferred to roadmap, blocked on code-signing)
+- **Recent SonarLint cleanups in `src/renderer/features/agents/**` (2026-04-11):** ~130 findings across 30 files resolved in 4 commits — dead code removal (S125/S1128/S1854), modern API migrations (S7773/S7755/S6594/S7758/S7762/S7753/S6606/S6644/S7766/S6353), Set-based modifier lookups (S7776), merged duplicate imports (S3863), switch→lookup table refactor in `agents-file-mention.tsx` (S1479/S6836), `.find()` over `.filter()[0]` (S7750). Net −266 lines. `S4158` teams stub explicitly documented as F3 Option B placeholder. TS baseline remained at 0 throughout. Pattern: lookup-table replacement for long switches is now the preferred refactor when dispatching by string key.
 
 ## Architecture (3-tier)
 - CLAUDE.md is a ~135-line thin index (links, doesn't contain content)
