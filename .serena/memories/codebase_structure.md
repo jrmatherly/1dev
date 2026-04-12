@@ -9,7 +9,7 @@ openspec/      — OpenSpec change proposals + 13 capability specs (91 requireme
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — 17 workflow skills incl. `project-orchestrator` (routing + hard-rule gate, added 2026-04-11), roadmap-tracker, phase-0-progress, docs-drift-check, session-sync, 6 openspec-* skills, new-router, new-regression-guard, release, upstream-boundary-check, verify-strategy-compliance, verify-pin
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
-tests/regression/ — 19 bun:test files (18 regression guards + 1 frontmatter shim unit test)
+tests/regression/ — 20 bun:test files (19 regression guards + 1 frontmatter shim unit test)
 tests/fixtures/   — Test fixtures (sample-agent.md added 2026-04-12 for frontmatter shim test)
 drizzle/       — Database migration files
 services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 20 test files (Phase 1 baseline: health, changelog, plan, profile, auth, config; LiteLLM provisioning: lib/{graph-client,slugify,teams-config,litellm-client}, routes/{keys,provision,rate-limit-keygenerator}, services/{key-service,provisioning,rotation,deprovisioning}, 3 integration tests skipped without docker-compose). `add-1code-api-litellm-provisioning` archived 2026-04-11.
@@ -73,6 +73,6 @@ auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted,
 gpg-verification-present, feature-flags-shape, brand-sweep-complete,
 no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamps,
 credential-storage-tier, enterprise-auth-module, enterprise-auth-wiring, electron-version-pin,
-mock-api-consumer-migration, 1code-api single-replica enforcement, **no-gray-matter** (added 2026-04-12), **open-external-scheme** (added 2026-04-12 — enforces safeOpenExternal() usage, blocks direct shell.openExternal calls), **signed-fetch-allowlist** (added 2026-04-12 — verifies URL origin validation in signedFetch/streamFetch handlers), and one unit test **frontmatter-shim-shape** (added 2026-04-12 — technically a unit test not a regression guard, but lives in `tests/regression/` so glob counts pick it up).
+mock-api-consumer-migration, 1code-api single-replica enforcement, **no-gray-matter** (added 2026-04-12), **open-external-scheme** (added 2026-04-12 — enforces safeOpenExternal() usage, blocks direct shell.openExternal calls), **signed-fetch-allowlist** (added 2026-04-12 — verifies URL origin validation in signedFetch/streamFetch handlers), **mcp-url-ssrf-prevention** (added 2026-04-12 Phase C §6 — 20 tests covering mcpServerUrlSchema loopback/RFC1918/IMDS/IPv6 blocklists + Zod httpUrl scheme restrictions), and one unit test **frontmatter-shim-shape** (added 2026-04-12 — technically a unit test not a regression guard, but lives in `tests/regression/` so glob counts pick it up).
 
 Combined `bun test` total: **211 tests across 39 files** (201 pass + 10 skipped integration tests, 0 fail, ~6-7s) — `services/1code-api/tests/integration/` contains 3 integration tests that skip without a docker-compose harness.
