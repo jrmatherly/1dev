@@ -60,8 +60,7 @@ const AuthDialog = (_props: {
   onOpenChange?: (open: boolean) => void;
 }) => null;
 // Desktop: archive is handled inline, not via hook
-// import { DiscordIcon } from "@/components/icons"
-import { DiscordIcon } from "../../icons";
+import { SlackIcon } from "../../components/ui/icons";
 import { AgentsRenameSubChatDialog } from "../agents/components/agents-rename-subchat-dialog";
 import { OpenLocallyDialog } from "../agents/components/open-locally-dialog";
 import { useAutoImport } from "../agents/hooks/use-auto-import";
@@ -156,8 +155,8 @@ import {
 } from "../agents/lib/export-chat";
 
 // Feedback URL: uses env variable for hosted version, falls back to public Discord for open source
-const FEEDBACK_URL =
-  import.meta.env.VITE_FEEDBACK_URL || "https://discord.gg/8ektTZGnj4";
+const FEEDBACK_URL = import.meta.env.VITE_FEEDBACK_URL;
+const COMMUNITY_URL = import.meta.env.VITE_COMMUNITY_URL;
 
 // GitHub avatar with loading placeholder
 const GitHubAvatar = React.memo(function GitHubAvatar({
@@ -1651,19 +1650,18 @@ const SidebarHeader = memo(function SidebarHeader({
                         sideOffset={6}
                         alignOffset={-4}
                       >
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            window.open(
-                              "https://discord.gg/8ektTZGnj4",
-                              "_blank",
-                            );
-                            setIsDropdownOpen(false);
-                          }}
-                          className="gap-2"
-                        >
-                          <DiscordIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                          <span className="flex-1">Discord</span>
-                        </DropdownMenuItem>
+                        {COMMUNITY_URL && (
+                          <DropdownMenuItem
+                            onSelect={() => {
+                              window.open(COMMUNITY_URL, "_blank");
+                              setIsDropdownOpen(false);
+                            }}
+                            className="gap-2"
+                          >
+                            <SlackIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="flex-1">Slack</span>
+                          </DropdownMenuItem>
+                        )}
                         {!isMobileFullscreen && (
                           <DropdownMenuItem
                             onSelect={() => {
@@ -1752,19 +1750,18 @@ const SidebarHeader = memo(function SidebarHeader({
                         sideOffset={6}
                         alignOffset={-4}
                       >
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            window.open(
-                              "https://discord.gg/8ektTZGnj4",
-                              "_blank",
-                            );
-                            setIsDropdownOpen(false);
-                          }}
-                          className="gap-2"
-                        >
-                          <DiscordIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                          <span className="flex-1">Discord</span>
-                        </DropdownMenuItem>
+                        {COMMUNITY_URL && (
+                          <DropdownMenuItem
+                            onSelect={() => {
+                              window.open(COMMUNITY_URL, "_blank");
+                              setIsDropdownOpen(false);
+                            }}
+                            className="gap-2"
+                          >
+                            <SlackIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="flex-1">Slack</span>
+                          </DropdownMenuItem>
+                        )}
                         {!isMobileFullscreen && (
                           <DropdownMenuItem
                             onSelect={() => {
@@ -3845,18 +3842,20 @@ export function AgentsSidebar({
               <div className="flex-1" />
             </div>
 
-            {/* Feedback Button */}
-            <ButtonCustom
-              onClick={() => window.open(FEEDBACK_URL, "_blank")}
-              variant="outline"
-              size="sm"
-              className={cn(
-                "px-2 w-full hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] text-foreground rounded-lg gap-1.5",
-                isMobileFullscreen ? "h-10" : "h-7",
-              )}
-            >
-              <span className="text-sm font-medium">Feedback</span>
-            </ButtonCustom>
+            {/* Feedback Button — only shown when VITE_FEEDBACK_URL is set */}
+            {FEEDBACK_URL && (
+              <ButtonCustom
+                onClick={() => window.open(FEEDBACK_URL, "_blank")}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "px-2 w-full hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] text-foreground rounded-lg gap-1.5",
+                  isMobileFullscreen ? "h-10" : "h-7",
+                )}
+              >
+                <span className="text-sm font-medium">Feedback</span>
+              </ButtonCustom>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

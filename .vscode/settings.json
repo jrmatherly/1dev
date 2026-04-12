@@ -3,7 +3,6 @@
   // TypeScript (Native Preview) > Use Tsgo
   "js/ts.experimental.useTsgo": true,
   "mirrord.promptUsingBinary": false,
-
   // ──────────────────────────────────────────────────────────────────────
   // SONARLINT RULE SUPPRESSIONS
   //
@@ -29,220 +28,271 @@
     // S6478: "Move component out of parent" — 44 nested components in
     // chat-markdown-renderer.tsx. This is a deliberate architecture choice;
     // refactoring would be a major initiative with no correctness benefit.
-    "typescript:S6478": { "level": "off" },
-
+    "typescript:S6478": {
+      "level": "off"
+    },
     // S7764: "Prefer globalThis over window" — 17 occurrences. In Electron's
     // renderer process, `window` is the canonical global object. `globalThis`
     // is functionally identical but less idiomatic for browser/Electron code.
-    "typescript:S7764": { "level": "off" },
-
+    "typescript:S7764": {
+      "level": "off"
+    },
     // S7781: "Prefer replaceAll over replace" — 10 occurrences. All use
     // regex with /g flag (e.g. replace(/&/g, "&amp;")). replaceAll with a
     // /g regex is functionally identical but adds no clarity or safety.
-    "typescript:S7781": { "level": "off" },
-
+    "typescript:S7781": {
+      "level": "off"
+    },
     // S7735: "Unexpected negated condition" — guard-clause pattern
     // (if (!mounted) return null) is idiomatic React and used throughout
     // the codebase. SonarLint prefers positive conditions but that conflicts
     // with the early-return guard pattern.
-    "typescript:S7735": { "level": "off" },
-
+    "typescript:S7735": {
+      "level": "off"
+    },
     // S3358: "Extract nested ternary" — 1 occurrence in update-banner.tsx.
     // 3-way mock flag branch is readable as nested ternary. Extracting to
     // if/else would add verbosity without improving comprehension.
-    "typescript:S3358": { "level": "off" },
-
+    "typescript:S3358": {
+      "level": "off"
+    },
     // S2486: "Handle this exception" — 1 occurrence in electron-shim.js.
     // Empty catch in require() monkey-patch is intentional: if electronBinding
     // fails, execution falls through to originalRequire() as the final fallback.
-    "javascript:S2486": { "level": "off" },
-
+    "javascript:S2486": {
+      "level": "off"
+    },
     // S3776: "Cognitive Complexity too high" — 3 functions in codex-tool-normalizer.ts
     // (normalizeCodexToolInput=65, normalizeCodexToolPart=26, normalizeCodexStreamChunk=23).
     // These are flat normalizer dispatchers with independent per-tool-type branches.
     // High scores come from many cases, not convoluted logic. Splitting would scatter
     // related normalization without reducing actual complexity.
-    "typescript:S3776": { "level": "off" },
-
+    "typescript:S3776": {
+      "level": "off"
+    },
     // S4325: "Unnecessary type assertion" — 1 occurrence in codex-tool-normalizer.ts.
     // `rawInput.args as AnyRecord` is required because TS loses type-guard narrowing
     // when the guard result is stored in an intermediate variable (`hasArgsWrapper`).
     // SonarLint doesn't model TS narrowing limitations — this is a false positive.
-    "typescript:S4325": { "level": "off" },
-
+    "typescript:S4325": {
+      "level": "off"
+    },
     // S6551: "Object stringification" — 1 occurrence in remote-trpc.ts.
     // `input.toString()` only reached for URL/Request objects which have
     // meaningful toString() implementations. False positive.
-    "typescript:S6551": { "level": "off" },
-
+    "typescript:S6551": {
+      "level": "off"
+    },
     // S7787: "Empty export" — 1 occurrence in wdyr.ts.
     // `export {}` is required to force module scope so `import.meta.env`
     // works in a side-effect-only file. Standard TS idiom.
-    "typescript:S7787": { "level": "off" },
-
+    "typescript:S7787": {
+      "level": "off"
+    },
     // S6571: "Literal overridden by string in union" — 2 in diff-view-highlighter.ts.
     // `"class" | "style" | string` is a documentation pattern that hints expected
     // values to IDE autocomplete while accepting any string. Intentional.
-    "typescript:S6571": { "level": "off" },
-
+    "typescript:S6571": {
+      "level": "off"
+    },
     // S6564: "Redundant type alias" — 1 in message-parser.ts.
     // `MessagePart = AnyObj` is a semantic alias used in 10+ places. Removing it
     // would hurt readability by losing the domain-specific name.
-    "typescript:S6564": { "level": "off" },
-
+    "typescript:S6564": {
+      "level": "off"
+    },
     // S4666: "Duplicate CSS selector" — 1 in agents-styles.css.
     // Two `[data-agents-page]` blocks are in different logical sections (theme
     // overrides vs scrollbar styles) with disjoint properties. Intentional separation.
-    "css:S4666": { "level": "off" },
-
+    "css:S4666": {
+      "level": "off"
+    },
     // S7764/S3358 JavaScript variants — same rules as typescript:S7764 and
     // typescript:S3358 above, but SonarLint reports inline <script> blocks in
     // .html files under the javascript: prefix. Suppressing for the same reasons:
     // window is canonical in Electron renderer, nested ternaries are readable
     // in theme-detection code.
-    "javascript:S7764": { "level": "off" },
-    "javascript:S3358": { "level": "off" },
-
+    "javascript:S7764": {
+      "level": "off"
+    },
+    "javascript:S3358": {
+      "level": "off"
+    },
     // S7778: "Do not call Array#push() multiple times" — 6 in use-update-checker.ts.
     // Each push() registers a separate event listener with its own closure and
     // log message. Combining them would destroy logical grouping.
-    "typescript:S7778": { "level": "off" },
-
+    "typescript:S7778": {
+      "level": "off"
+    },
     // S4138: "Use for-of instead of indexed for loop" — 1 in use-voice-recording.ts.
     // Indexed access on Uint8Array is idiomatic for audio/signal processing.
-    "typescript:S4138": { "level": "off" },
-
+    "typescript:S4138": {
+      "level": "off"
+    },
     // S7763: "Use export...from to re-export" — false positive when the imported
     // type is also used locally (e.g. as a generic parameter). The separate
     // import+export pattern is required to keep the name in scope.
-    "typescript:S7763": { "level": "off" },
-
+    "typescript:S7763": {
+      "level": "off"
+    },
     // S6759: "Mark props as read-only" — 27 components. Bulk-wrapping every
     // props interface with Readonly<> is a large refactor with no runtime benefit.
-    "typescript:S6759": { "level": "off" },
-
+    "typescript:S6759": {
+      "level": "off"
+    },
     // S6479: "Do not use Array index in keys" — 8 occurrences in settings tabs.
     // These render static/stable lists (keyboard shortcuts, worktrees) where
     // index keys are safe and items have no stable unique ID.
-    "typescript:S6479": { "level": "off" },
-
+    "typescript:S6479": {
+      "level": "off"
+    },
     // S6848: "Avoid non-native interactive elements" — Electron desktop app
     // uses custom interactive components; web a11y rules don't apply directly.
-    "typescript:S6848": { "level": "off" },
-
+    "typescript:S6848": {
+      "level": "off"
+    },
     // S6853: "Form label must be associated with control" — settings dialogs
     // use custom label patterns with Radix UI primitives that handle association.
-    "typescript:S6853": { "level": "off" },
-
+    "typescript:S6853": {
+      "level": "off"
+    },
     // S2004: "Nesting depth >4" — React component closures in settings tabs
     // naturally nest event handlers inside conditionals inside components.
-    "typescript:S2004": { "level": "off" },
-
+    "typescript:S2004": {
+      "level": "off"
+    },
     // S2486: "Handle this exception" (typescript variant) — same rationale as
     // javascript:S2486. Intentional empty catches for fallback patterns.
-    "typescript:S2486": { "level": "off" },
-
+    "typescript:S2486": {
+      "level": "off"
+    },
     // S4323: "Replace union type with type alias" — inline unions in preload
     // types are fine; extracting aliases adds indirection without clarity.
-    "typescript:S4323": { "level": "off" },
-
+    "typescript:S4323": {
+      "level": "off"
+    },
     // S6767: "Prop defined but never used" — autoStartAuth in ClaudeLoginModal
     // is passed by callers but not yet consumed. Intentional placeholder.
-    "typescript:S6767": { "level": "off" },
-
+    "typescript:S6767": {
+      "level": "off"
+    },
     // S3735: "Remove void operator" — `void handleAsync()` is an intentional
     // fire-and-forget pattern in React event handlers.
-    "typescript:S3735": { "level": "off" },
-
+    "typescript:S3735": {
+      "level": "off"
+    },
     // S6772: "Ambiguous spacing after element" — JSX whitespace between
     // inline elements is a style preference, not a bug.
-    "typescript:S6772": { "level": "off" },
-
+    "typescript:S6772": {
+      "level": "off"
+    },
     // S1082: "Click handler needs keyboard listener" — Electron desktop app;
     // keyboard accessibility is handled at the application shell level.
-    "typescript:S1082": { "level": "off" },
-
+    "typescript:S1082": {
+      "level": "off"
+    },
     // S1874: "Deprecated API" — React 19 deprecates non-generic event types
     // (FormEvent, ChangeEvent). Fixing requires auditing all form handlers.
-    "typescript:S1874": { "level": "off" },
-
+    "typescript:S1874": {
+      "level": "off"
+    },
     // S7772: "Prefer node: prefix" — 51 occurrences across main process.
     // Codebase-wide migration deferred to separate task; node: prefix is
     // purely cosmetic in Electron 41 (Node 22+).
-    "typescript:S7772": { "level": "off" },
-
+    "typescript:S7772": {
+      "level": "off"
+    },
     // S2933: "Mark as readonly" — 27 class members across main process.
     // Low-risk style preference; bulk readonly annotation deferred.
-    "typescript:S2933": { "level": "off" },
-
+    "typescript:S2933": {
+      "level": "off"
+    },
     // S7780: "Use String.raw for backslash strings" — Windows path patterns
     // and regex escapes. Current style is idiomatic for this codebase.
-    "typescript:S7780": { "level": "off" },
-
+    "typescript:S7780": {
+      "level": "off"
+    },
     // S6324: "Remove control character" — terminal ANSI escape processing
     // in codex router. Control characters are intentional.
-    "typescript:S6324": { "level": "off" },
-
+    "typescript:S6324": {
+      "level": "off"
+    },
     // S7059: "Async in constructor" — auth-manager bootstrap pattern uses
     // async initialization in constructor deliberately.
-    "typescript:S7059": { "level": "off" },
-
+    "typescript:S7059": {
+      "level": "off"
+    },
     // S4624: "Nested template literals" — already suppressed in ESLint config.
-    "typescript:S4624": { "level": "off" },
-
+    "typescript:S4624": {
+      "level": "off"
+    },
     // S7744: "Empty object useless" — spread/merge patterns with empty
     // default objects for optional config.
-    "typescript:S7744": { "level": "off" },
-
+    "typescript:S7744": {
+      "level": "off"
+    },
     // S3516: "Function always returns same value" — false positive on
     // functions that mutate-and-return the same object (fluent API pattern).
-    "typescript:S3516": { "level": "off" },
-
+    "typescript:S3516": {
+      "level": "off"
+    },
     // S7749: "Invalid group length in numeric value" — misidentifies
     // `3600_000` numeric separator as invalid grouping.
-    "typescript:S7749": { "level": "off" },
-
+    "typescript:S7749": {
+      "level": "off"
+    },
     // S2871: "Sort without comparator" — lexicographic sort is intentional
     // for cache key generation and string-based ordering.
-    "typescript:S2871": { "level": "off" },
-
+    "typescript:S2871": {
+      "level": "off"
+    },
     // S6535: "Unnecessary escape character" — \[ in regex is harmless and
     // more explicit about literal bracket intent.
-    "typescript:S6535": { "level": "off" },
-
+    "typescript:S6535": {
+      "level": "off"
+    },
     // S7761: "Prefer .dataset over getAttribute" — getAttribute pattern
     // is used consistently for data-* attributes in this codebase.
-    "typescript:S7761": { "level": "off" },
-
+    "typescript:S7761": {
+      "level": "off"
+    },
     // S6440: "React Hook called conditionally" — dialog components with
     // early returns before hooks. Standard pattern for conditional rendering.
-    "typescript:S6440": { "level": "off" },
-
+    "typescript:S6440": {
+      "level": "off"
+    },
     // S1871: "Duplicate branch blocks" — intentional same-handling for
     // different conditions. Already suppressed in ESLint config.
-    "typescript:S1871": { "level": "off" },
-
+    "typescript:S1871": {
+      "level": "off"
+    },
     // S1135: "TODO comment" — normal during active development.
-    "typescript:S1135": { "level": "off" },
-
+    "typescript:S1135": {
+      "level": "off"
+    },
     // S7748: "Zero fraction" — explicit 0.0 is intentional for clarity
     // in numeric constants (opacity, animation values).
-    "typescript:S7748": { "level": "off" },
-
+    "typescript:S7748": {
+      "level": "off"
+    },
     // S2301: "Boolean parameter" — React component pattern where a single
     // component handles both streaming and non-streaming states.
-    "typescript:S2301": { "level": "off" },
-
+    "typescript:S2301": {
+      "level": "off"
+    },
     // S3923: "All identical conditional branches" — same as S1871.
-    "typescript:S3923": { "level": "off" },
-
+    "typescript:S3923": {
+      "level": "off"
+    },
     // S6754: "useState not destructured" — sometimes intentional when
     // only the setter is needed.
-    "typescript:S6754": { "level": "off" },
-
+    "typescript:S6754": {
+      "level": "off"
+    },
     // S7781 JS variant — same as typescript:S7781 (replaceAll vs replace).
-    "javascript:S7781": { "level": "off" },
-
+    "javascript:S7781": {
+      "level": "off"
+    },
     // S6747: "Invalid property X on tag Y" / "Unknown property Z found" —
     // SonarLint's rule database misflags three valid usages:
     //   1. `transform-origin` on <g> in canvas-icons.tsx:2404 and icons.tsx:2608
@@ -253,8 +303,9 @@
     //      library (Paco Coursey's command-menu primitive) for internal
     //      styling selectors, not a standard HTML attribute.
     // 3 occurrences total. Verified 2026-04-11 via `components-001-analysis.md`.
-    "typescript:S6747": { "level": "off" },
-
+    "typescript:S6747": {
+      "level": "off"
+    },
     // S6847: "Non-interactive elements should not be assigned mouse or
     // keyboard event listeners" — triggers on click-to-dismiss tooltip divs
     // in resizable-bottom-panel.tsx:325 and resizable-sidebar.tsx:510. These
@@ -264,8 +315,9 @@
     // transform-based floating positioning and change focus/keyboard
     // semantics (the tooltip is click-to-dismiss, not focus-activate).
     // 2 occurrences. See also S6819 below (same sites, same rationale).
-    "typescript:S6847": { "level": "off" },
-
+    "typescript:S6847": {
+      "level": "off"
+    },
     // S6819: "Use <dialog> instead of the 'dialog' role to ensure
     // accessibility across all devices" — triggers on the same
     // dismiss-tooltip divs as S6847 in resizable-bottom-panel.tsx:325 and
@@ -275,8 +327,9 @@
     // the transform-based positioning. Separately noted: role="dialog" is
     // arguably the wrong role for a tooltip; a future a11y audit should
     // reclassify to role="tooltip" or remove the role entirely. 2 occurrences.
-    "typescript:S6819": { "level": "off" },
-
+    "typescript:S6819": {
+      "level": "off"
+    },
     // S7776: "Use Set.has() instead of Array.includes()" — false-fires on
     // string.includes() calls (SonarLint misidentifies string .includes()
     // as array .includes()). Also an "external" rule wrapping eslint-plugin-
@@ -284,18 +337,22 @@
     // cannot be governed by eslint.config.mjs. 5 occurrences (4 false
     // positives on strings in agents-mentions-editor.tsx, 1 genuine in
     // framework-icons.tsx already fixed via Set conversion).
-    "typescript:S7776": { "level": "off" },
-
+    "typescript:S7776": {
+      "level": "off"
+    },
     // S7758: "Prefer codePointAt() over charCodeAt()" — wrong for djb2
     // hash functions where UTF-16 code-unit semantics are intentional.
     // Also an "external" rule wrapping unicorn/prefer-code-point — not in
     // eslint-plugin-sonarjs v4.0.2. 1 occurrence in agent-diff-view.tsx:93.
-    "typescript:S7758": { "level": "off" },
-
+    "typescript:S7758": {
+      "level": "off"
+    },
     // S4158: "Collection is always empty" — intentional for the `teams`
     // stub in agents-content.tsx:196. The warning IS the reminder to
     // restore multi-tenant UI (F3 upstream feature). Load-bearing false
     // positive — do not suppress the code, only suppress the IDE noise.
-    "typescript:S4158": { "level": "off" }
+    "typescript:S4158": {
+      "level": "off"
+    }
   }
 }

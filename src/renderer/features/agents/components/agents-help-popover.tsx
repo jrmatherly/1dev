@@ -10,7 +10,7 @@ import {
 } from "../../../components/ui/dropdown-menu";
 import { ArrowUpRight } from "lucide-react";
 import { KeyboardIcon } from "../../../components/ui/icons";
-import { DiscordIcon } from "../../../icons";
+import { SlackIcon } from "../../../components/ui/icons";
 import { useSetAtom } from "jotai";
 import {
   agentsSettingsDialogOpenAtom,
@@ -101,8 +101,12 @@ export function AgentsHelpPopover({
     };
   }, []);
 
+  const communityUrl = import.meta.env.VITE_COMMUNITY_URL;
+
   const handleCommunityClick = () => {
-    window.desktopApi.openExternal("https://discord.gg/8ektTZGnj4");
+    if (communityUrl) {
+      window.desktopApi.openExternal(communityUrl);
+    }
   };
 
   const handleChangelogClick = () => {
@@ -125,10 +129,12 @@ export function AgentsHelpPopover({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start" className="w-56">
-        <DropdownMenuItem onClick={handleCommunityClick} className="gap-2">
-          <DiscordIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <span className="flex-1">Discord</span>
-        </DropdownMenuItem>
+        {communityUrl && (
+          <DropdownMenuItem onClick={handleCommunityClick} className="gap-2">
+            <SlackIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <span className="flex-1">Slack</span>
+          </DropdownMenuItem>
+        )}
 
         {!isMobile && (
           <DropdownMenuItem
