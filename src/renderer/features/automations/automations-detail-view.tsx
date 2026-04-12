@@ -52,7 +52,6 @@ import {
   GITHUB_TRIGGER_OPTIONS,
   LINEAR_TRIGGER_OPTIONS,
   CLAUDE_MODELS,
-  getTriggerLabel,
   PlatformIcon,
   type Platform,
   type TriggerType,
@@ -105,9 +104,6 @@ export function AutomationsDetailView() {
   const setDesktopView = useSetAtom(desktopViewAtom);
   const setAutomationDetailId = useSetAtom(automationDetailIdAtom);
   const setTemplateParams = useSetAtom(automationTemplateParamsAtom);
-  const [sidebarOpen, setSidebarOpen] = useAtom(agentsSidebarOpenAtom);
-  const setMobileViewMode = useSetAtom(agentsMobileViewModeAtom);
-  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
   const isCreateMode = automationId === "new";

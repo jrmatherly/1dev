@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtom } from "jotai";
-import { IconSpinner, PlanIcon } from "@/components/ui/icons";
+import { IconSpinner } from "@/components/ui/icons";
 import { ChatMarkdownRenderer } from "@/components/chat-markdown-renderer";
 import { trpc } from "@/lib/trpc";
 import { planContentCacheAtomFamily } from "../atoms";
@@ -124,12 +124,6 @@ export const PlanSection = memo(function PlanSection({
   const showError = error && !displayContent;
 
   // Extract plan title from markdown (first H1)
-  const planTitle = useMemo(() => {
-    if (!displayContent) return "Plan";
-    const match = displayContent.match(/^#\s+(.+)$/m);
-    return match ? match[1] : "Plan";
-  }, [displayContent]);
-
   // No plan path - don't render anything (parent should hide the widget)
   if (!planPath) {
     return null;

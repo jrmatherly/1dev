@@ -31,7 +31,8 @@ import {
   fileViewerOpenAtomFamily,
   diffViewDisplayModeAtom,
   diffSidebarOpenAtomFamily,
-  diffActiveTabAtom,
+  viewedFilesAtomFamily,
+  type ViewedFileState,
 } from "../agents/atoms";
 import { useChangesStore } from "../../lib/stores/changes-store";
 import { usePRStatus } from "../../hooks/usePRStatus";
@@ -39,6 +40,7 @@ import { useFileChangeListener } from "../../lib/hooks/use-file-change-listener"
 import type {
   ChangeCategory,
   ChangedFile,
+  ChangedFile as HistoryChangedFile,
 } from "../../../shared/changes-types";
 import { cn } from "../../lib/utils";
 import {
@@ -48,9 +50,7 @@ import {
 import { CommitInput } from "./components/commit-input";
 import { HistoryView, type CommitInfo } from "./components/history-view";
 import { getStatusIndicator } from "./utils/status";
-import { GitPullRequest, Eye } from "lucide-react";
-import type { ChangedFile as HistoryChangedFile } from "../../../shared/changes-types";
-import { viewedFilesAtomFamily, type ViewedFileState } from "../agents/atoms";
+import { Eye } from "lucide-react";
 import { Kbd } from "../../components/ui/kbd";
 import {
   Tooltip,
@@ -330,7 +330,7 @@ export function ChangesView({
     },
   );
 
-  const { pr, refetch: refetchPRStatus } = usePRStatus({
+  const { refetch: refetchPRStatus } = usePRStatus({
     worktreePath,
     refetchInterval: 10000,
   });
@@ -939,11 +939,6 @@ export function ChangesView({
   const handleRevealInFinder = (filePath: string) => {
     const absolutePath = `${worktreePath}/${filePath}`;
     openInFinderMutation.mutate(absolutePath);
-  };
-
-  const handleOpenInEditor = (filePath: string) => {
-    const absolutePath = `${worktreePath}/${filePath}`;
-    openInEditorMutation.mutate({ path: absolutePath, cwd: worktreePath });
   };
 
   const handleOpenInPreferredEditor = (filePath: string) => {

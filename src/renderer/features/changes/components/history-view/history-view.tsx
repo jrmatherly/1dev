@@ -4,7 +4,6 @@ import { formatRelativeDate } from "../../utils/date";
 import { FileText, ArrowUp } from "lucide-react";
 import { cn } from "../../../../lib/utils";
 import { getStatusIndicator } from "../../utils/status";
-import { Button } from "../../../../components/ui/button";
 import type { ChangedFile } from "../../../../../shared/changes-types";
 import {
   ContextMenu,
@@ -63,12 +62,8 @@ export const HistoryView = memo(function HistoryView({
     );
 
   // Fetch files for selected commit
-  const {
-    data: commitFiles,
-    isLoading: isLoadingFiles,
-    error: filesError,
-    refetch: refetchFiles,
-  } = trpc.changes.getCommitFiles.useQuery(
+  const { data: commitFiles, refetch: refetchFiles } =
+    trpc.changes.getCommitFiles.useQuery(
     { worktreePath, commitHash: selectedCommitHash! },
     {
       enabled: !!worktreePath && !!selectedCommitHash,
@@ -123,15 +118,6 @@ export const HistoryView = memo(function HistoryView({
       onCommitSelect?.(commit);
     },
     [onCommitSelect],
-  );
-
-  const handleFileClick = useCallback(
-    (file: ChangedFile) => {
-      if (selectedCommitHash) {
-        onFileSelect?.(file, selectedCommitHash);
-      }
-    },
-    [selectedCommitHash, onFileSelect],
   );
 
   if (isLoading) {

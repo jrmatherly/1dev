@@ -206,13 +206,6 @@ export const InfoSection = memo(function InfoSection({
     }
   };
 
-  const handleOpenSandbox = () => {
-    if (remoteInfo?.sandboxId) {
-      const sandboxUrl = `https://3003-${remoteInfo.sandboxId}.e2b.app`;
-      window.desktopApi.openExternal(sandboxUrl);
-    }
-  };
-
   // Show loading state while branch data is loading (only for local chats)
   if (!isRemoteChat && isBranchLoading) {
     return (

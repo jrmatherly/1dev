@@ -99,7 +99,6 @@ export function AgentsLayout() {
   useUpdateChecker();
 
   const [sidebarOpen, setSidebarOpen] = useAtom(agentsSidebarOpenAtom);
-  const [sidebarWidth, setSidebarWidth] = useAtom(agentsSidebarWidthAtom);
   const setSettingsActiveTab = useSetAtom(agentsSettingsDialogActiveTabAtom);
   const setSettingsDialogOpen = useSetAtom(agentsSettingsDialogOpenAtom);
   const desktopView = useAtomValue(desktopViewAtom);

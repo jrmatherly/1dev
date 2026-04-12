@@ -13,7 +13,7 @@ import {
 } from "../../../../components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
 import { HiArrowPath, HiChevronDown } from "react-icons/hi2";
-import { LuGitBranch, LuGitPullRequest } from "react-icons/lu";
+import { LuGitBranch } from "react-icons/lu";
 import { trpc } from "../../../../lib/trpc";
 import { cn } from "../../../../lib/utils";
 import { usePRStatus } from "../../../../hooks/usePRStatus";
