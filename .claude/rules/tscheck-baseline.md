@@ -42,7 +42,7 @@ Without it, `bun run ts:check` will fail with `command not found`.
 
 ## TS 6.0 — `types[]` is load-bearing
 
-TypeScript 6.0 defaults `compilerOptions.types` to `[]` (was auto-discover all `@types/*`). When adding a new `@types/*` devDependency, you MUST also add it to `tsconfig.json > compilerOptions.types` or its ambient declarations won't resolve. Current list: `["node", "better-sqlite3", "diff", "react", "react-dom"]`.
+TypeScript 6.0 defaults `compilerOptions.types` to `[]` (was auto-discover all `@types/*`). When adding a new `@types/*` devDependency, you MUST also add it to `tsconfig.json > compilerOptions.types` or its ambient declarations won't resolve. Current list: `["node", "better-sqlite3", "bun-types", "diff", "react", "react-dom"]`.
 
 ## Why we use tsgo
 
