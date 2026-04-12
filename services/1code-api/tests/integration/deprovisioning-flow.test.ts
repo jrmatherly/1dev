@@ -13,7 +13,14 @@
  *
  * Uses real Postgres + real LiteLLM from the docker-compose harness.
  */
-import { describe, test, expect, beforeAll, afterAll, afterEach } from "bun:test";
+import {
+  describe,
+  test,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+} from "bun:test";
 import { eq } from "drizzle-orm";
 import {
   FakeGraphClient,
@@ -43,7 +50,11 @@ afterAll(async () => {
   await teardownDb();
 });
 
-const createdUsers: Array<{ oid: string; litellmUserId: string; teamIds: string[] }> = [];
+const createdUsers: Array<{
+  oid: string;
+  litellmUserId: string;
+  teamIds: string[];
+}> = [];
 
 afterEach(async () => {
   if (!INTEGRATION_ENABLED) return;
@@ -77,7 +88,12 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       const graph = new FakeGraphClient({
         [user.oid]: [requiredGroupId, teamGroupId],
       });
-      const result = await provisionUser(user, litellm, graph as never, teamsConfig);
+      const result = await provisionUser(
+        user,
+        litellm,
+        graph as never,
+        teamsConfig,
+      );
       createdUsers.push({
         oid: user.oid,
         litellmUserId: result.litellm_user_id,
@@ -85,7 +101,10 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       });
 
       const db = getDb();
-      const [beforeUser] = await db.select().from(users).where(eq(users.oid, user.oid));
+      const [beforeUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.oid, user.oid));
       expect(beforeUser.isActive).toBe(true);
 
       // Run deprovisioning while the user still has the required group
@@ -98,14 +117,21 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       });
 
       // User should still be active
-      const [afterUser] = await db.select().from(users).where(eq(users.oid, user.oid));
+      const [afterUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.oid, user.oid));
       expect(afterUser.isActive).toBe(true);
       expect(afterUser.deprovisionedAt).toBeNull();
 
       // No deprovision audit entries
-      const audits = await db.select().from(auditLog).where(eq(auditLog.actorEntraOid, user.oid));
-      const deprovisionAudits = audits.filter((a) =>
-        a.action === "user.deprovisioned" || a.action === "key.deprovisioned",
+      const audits = await db
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.actorEntraOid, user.oid));
+      const deprovisionAudits = audits.filter(
+        (a) =>
+          a.action === "user.deprovisioned" || a.action === "key.deprovisioned",
       );
       expect(deprovisionAudits).toHaveLength(0);
     });
@@ -118,7 +144,12 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       const graph = new FakeGraphClient({
         [user.oid]: [requiredGroupId, teamGroupId],
       });
-      const result = await provisionUser(user, litellm, graph as never, teamsConfig);
+      const result = await provisionUser(
+        user,
+        litellm,
+        graph as never,
+        teamsConfig,
+      );
       createdUsers.push({
         oid: user.oid,
         litellmUserId: result.litellm_user_id,
@@ -142,7 +173,10 @@ describe.skipIf(!INTEGRATION_ENABLED)(
 
       // Assert: user is inactive
       const db = getDb();
-      const [afterUser] = await db.select().from(users).where(eq(users.oid, user.oid));
+      const [afterUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.oid, user.oid));
       expect(afterUser.isActive).toBe(false);
       expect(afterUser.deprovisionedAt).not.toBeNull();
 
@@ -156,7 +190,10 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       expect(dbKeys[0].revokedAt).not.toBeNull();
 
       // Assert: audit entries for both user + key deprovisioning
-      const audits = await db.select().from(auditLog).where(eq(auditLog.actorEntraOid, user.oid));
+      const audits = await db
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.actorEntraOid, user.oid));
       const actions = audits.map((a) => a.action);
       expect(actions).toContain("user.deprovisioned");
       expect(actions).toContain("key.deprovisioned");
@@ -166,7 +203,11 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       const { teamsConfig, teamGroupId, requiredGroupId } = buildTeamsConfig();
 
       // Provision a handful of users
-      const provisionedTestUsers: Array<{ oid: string; email: string; name: string }> = [];
+      const provisionedTestUsers: Array<{
+        oid: string;
+        email: string;
+        name: string;
+      }> = [];
       const allGroupIds: Record<string, string[]> = {};
 
       for (let i = 0; i < 3; i++) {
@@ -203,7 +244,10 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       // Assert: NO user is deprovisioned (all still isActive=true)
       const db = getDb();
       for (const u of provisionedTestUsers) {
-        const [dbUser] = await db.select().from(users).where(eq(users.oid, u.oid));
+        const [dbUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.oid, u.oid));
         expect(dbUser.isActive).toBe(true);
       }
 

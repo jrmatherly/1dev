@@ -1,4 +1,8 @@
-import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from "fastify";
+import type {
+  FastifyRequest,
+  FastifyReply,
+  HookHandlerDoneFunction,
+} from "fastify";
 import { config } from "./config.js";
 
 export interface UserContext {

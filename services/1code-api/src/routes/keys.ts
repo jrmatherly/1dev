@@ -75,7 +75,9 @@ export function registerKeysRoute(server: FastifyInstance): void {
 
       const { litellm } = server;
       if (!litellm) {
-        return reply.code(503).send({ error: "Provisioning services not initialized" });
+        return reply
+          .code(503)
+          .send({ error: "Provisioning services not initialized" });
       }
 
       const user = req.user!;
@@ -97,18 +99,18 @@ export function registerKeysRoute(server: FastifyInstance): void {
       }
 
       try {
-        const result = await createKey(
-          dbUser.id,
-          dbUser.email,
-          dbUser.oid,
-          dbUser.litellmUserId ?? dbUser.email,
-          body.team_id,
-          body.team_id, // teamAlias — will be resolved by createKey from DB
-          [],
-          "user",
-          dbUser.defaultKeyDurationDays,
+        const result = await createKey({
+          userId: dbUser.id,
+          userEmail: dbUser.email,
+          userOid: dbUser.oid,
+          litellmUserId: dbUser.litellmUserId ?? dbUser.email,
+          teamId: body.team_id,
+          teamAlias: body.team_id, // resolved by createKey from DB
+          models: [],
+          litellmRole: "user",
+          defaultKeyDurationDays: dbUser.defaultKeyDurationDays,
           litellm,
-        );
+        });
         return reply.send(result);
       } catch (err) {
         const e = err as Error & { statusCode?: number };
@@ -136,7 +138,9 @@ export function registerKeysRoute(server: FastifyInstance): void {
 
       const { litellm } = server;
       if (!litellm) {
-        return reply.code(503).send({ error: "Provisioning services not initialized" });
+        return reply
+          .code(503)
+          .send({ error: "Provisioning services not initialized" });
       }
 
       const user = req.user!;
@@ -190,7 +194,9 @@ export function registerKeysRoute(server: FastifyInstance): void {
 
       const { litellm } = server;
       if (!litellm) {
-        return reply.code(503).send({ error: "Provisioning services not initialized" });
+        return reply
+          .code(503)
+          .send({ error: "Provisioning services not initialized" });
       }
 
       const user = req.user!;

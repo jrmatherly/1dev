@@ -1,5 +1,4 @@
 import type { FastifyInstance } from "fastify";
-import { eq } from "drizzle-orm";
 import { getDb } from "../db/connection.js";
 import { users } from "../db/schema.js";
 

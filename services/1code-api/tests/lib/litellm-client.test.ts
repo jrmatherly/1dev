@@ -4,14 +4,7 @@
  * Covers each of the 8 methods with mocked fetch, plus 404-returns-null
  * semantics for getUser and getTeam.
  */
-import {
-  describe,
-  test,
-  expect,
-  beforeEach,
-  afterEach,
-  mock,
-} from "bun:test";
+import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
 import { LiteLLMClient } from "../../src/lib/litellm-client.js";
 
 const FAKE_CONFIG = {
@@ -28,9 +21,10 @@ interface CapturedRequest {
   body?: unknown;
 }
 
-function makeMockFetch(
-  responses: Array<{ status: number; body: unknown }>,
-): { fn: typeof fetch; calls: CapturedRequest[] } {
+function makeMockFetch(responses: Array<{ status: number; body: unknown }>): {
+  fn: typeof fetch;
+  calls: CapturedRequest[];
+} {
   const calls: CapturedRequest[] = [];
   let idx = 0;
   const fn = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -57,7 +51,9 @@ afterEach(() => {
 
 describe("LiteLLMClient — checkHealth", () => {
   test("returns status from /health", async () => {
-    const { fn, calls } = makeMockFetch([{ status: 200, body: { status: "ok" } }]);
+    const { fn, calls } = makeMockFetch([
+      { status: 200, body: { status: "ok" } },
+    ]);
     globalThis.fetch = fn;
     const client = new LiteLLMClient(FAKE_CONFIG);
     const result = await client.checkHealth();
@@ -81,7 +77,9 @@ describe("LiteLLMClient — getTeam", () => {
   });
 
   test("returns null on 404", async () => {
-    const { fn } = makeMockFetch([{ status: 404, body: { error: "not found" } }]);
+    const { fn } = makeMockFetch([
+      { status: 404, body: { error: "not found" } },
+    ]);
     globalThis.fetch = fn;
     const client = new LiteLLMClient(FAKE_CONFIG);
     const team = await client.getTeam("nonexistent");
@@ -226,7 +224,9 @@ describe("LiteLLMClient — deleteKey", () => {
 
 describe("LiteLLMClient — trailing slash handling", () => {
   test("strips trailing slash from baseUrl", async () => {
-    const { fn, calls } = makeMockFetch([{ status: 200, body: { status: "ok" } }]);
+    const { fn, calls } = makeMockFetch([
+      { status: 200, body: { status: "ok" } },
+    ]);
     globalThis.fetch = fn;
     const client = new LiteLLMClient({
       ...FAKE_CONFIG,

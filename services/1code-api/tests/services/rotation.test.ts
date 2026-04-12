@@ -7,7 +7,8 @@
  */
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 
-if (!process.env.DATABASE_URL) process.env.DATABASE_URL = "postgres://localhost:5432/test";
+if (!process.env.DATABASE_URL)
+  process.env.DATABASE_URL = "postgres://localhost:5432/test";
 
 import * as schema from "../../src/db/schema.js";
 
@@ -33,12 +34,20 @@ interface MockUser {
   defaultKeyDurationDays: number;
 }
 
-let mockExpiredKeys: Array<{ keyId: string; userId: string; defaultKeyDurationDays: number }> = [];
+let mockExpiredKeys: Array<{
+  keyId: string;
+  userId: string;
+  defaultKeyDurationDays: number;
+}> = [];
 let mockKeyById: Map<string, MockKey> = new Map();
 let mockUserById: Map<string, MockUser> = new Map();
 let mockAliasesByUser: Map<string, Array<{ alias: string }>> = new Map();
 
-const updates: Array<{ table: string; set: Record<string, unknown>; whereKeyId?: string }> = [];
+const updates: Array<{
+  table: string;
+  set: Record<string, unknown>;
+  whereKeyId?: string;
+}> = [];
 const inserts: Array<{ table: string; values: Record<string, unknown> }> = [];
 const auditInserts: Array<Record<string, unknown>> = [];
 
@@ -119,7 +128,11 @@ function makeSelectChain() {
 }
 
 // Separate state for sequencing the key re-fetches
-let expiredKeyQueue: Array<{ keyId: string; userId: string; defaultKeyDurationDays: number }> = [];
+let expiredKeyQueue: Array<{
+  keyId: string;
+  userId: string;
+  defaultKeyDurationDays: number;
+}> = [];
 
 const mockDb = {
   select: () => makeSelectChain(),
@@ -276,8 +289,7 @@ describe("runRotationJob — happy path", () => {
 
     // Old key marked rotated
     const rotatedUpdate = updates.find(
-      (u) =>
-        u.table === "provisioned_keys" && u.set.status === "rotated",
+      (u) => u.table === "provisioned_keys" && u.set.status === "rotated",
     );
     expect(rotatedUpdate).toBeDefined();
 
@@ -333,7 +345,10 @@ describe("runRotationJob — LiteLLM delete failure", () => {
       getUser: mock(async () => null),
       createUser: mock(async () => ({})),
       addTeamMember: mock(async () => ({})),
-      generateKey: mock(async () => ({ key: "sk-new-raw-2", token_id: "tok-2" })),
+      generateKey: mock(async () => ({
+        key: "sk-new-raw-2",
+        token_id: "tok-2",
+      })),
       // Delete fails
       deleteKey: mock(async () => {
         throw new Error("LiteLLM temporarily unavailable");

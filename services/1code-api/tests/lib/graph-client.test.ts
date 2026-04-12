@@ -49,8 +49,8 @@ describe("GraphClient — token caching", () => {
       expiresOn: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
     } as never);
 
-    globalThis.fetch = mock(async () =>
-      new Response(JSON.stringify({ value: [] }), { status: 200 }),
+    globalThis.fetch = mock(
+      async () => new Response(JSON.stringify({ value: [] }), { status: 200 }),
     );
   });
 
@@ -138,8 +138,7 @@ describe("GraphClient — pagination", () => {
 
   test("returns empty array when user has no groups", async () => {
     globalThis.fetch = mock(
-      async () =>
-        new Response(JSON.stringify({ value: [] }), { status: 200 }),
+      async () => new Response(JSON.stringify({ value: [] }), { status: 200 }),
     );
 
     const client = new GraphClient(FAKE_CONFIG);
@@ -208,8 +207,8 @@ describe("GraphClient — oid validation", () => {
       expiresOn: new Date(Date.now() + 60 * 60 * 1000),
     } as never);
 
-    fetchSpy = mock(async () =>
-      new Response(JSON.stringify({ value: [] }), { status: 200 }),
+    fetchSpy = mock(
+      async () => new Response(JSON.stringify({ value: [] }), { status: 200 }),
     );
     globalThis.fetch = fetchSpy;
   });

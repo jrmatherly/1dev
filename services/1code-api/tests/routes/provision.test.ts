@@ -12,7 +12,8 @@
  */
 import { describe, test, expect, mock } from "bun:test";
 
-if (!process.env.DATABASE_URL) process.env.DATABASE_URL = "postgres://localhost:5432/test";
+if (!process.env.DATABASE_URL)
+  process.env.DATABASE_URL = "postgres://localhost:5432/test";
 
 // ---- Mock config so we can flip PROVISIONING_ENABLED per test -------------
 const mockConfig = {
@@ -38,7 +39,8 @@ mock.module("../../src/config.js", () => ({
   config: mockConfig,
 }));
 
-const { registerProvisionRoute } = await import("../../src/routes/provision.js");
+const { registerProvisionRoute } =
+  await import("../../src/routes/provision.js");
 import Fastify from "fastify";
 
 // ---- Helper: build a fresh server per test -------------------------------

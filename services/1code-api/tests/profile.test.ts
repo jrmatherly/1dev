@@ -48,9 +48,15 @@ mock.module("drizzle-orm", () => ({
 const { registerProfileRoute } = await import("../src/routes/profile.js");
 
 function createServerMock() {
-  const routes: Record<string, (req: unknown, reply: unknown) => Promise<unknown>> = {};
+  const routes: Record<
+    string,
+    (req: unknown, reply: unknown) => Promise<unknown>
+  > = {};
   return {
-    patch: (path: string, handler: (req: unknown, reply: unknown) => Promise<unknown>) => {
+    patch: (
+      path: string,
+      handler: (req: unknown, reply: unknown) => Promise<unknown>,
+    ) => {
       routes[path] = handler;
     },
     routes,

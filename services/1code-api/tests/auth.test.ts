@@ -1,5 +1,9 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
-import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from "fastify";
+import type {
+  FastifyRequest,
+  FastifyReply,
+  HookHandlerDoneFunction,
+} from "fastify";
 
 // We test the auth logic by importing extractUser and authHook
 // and simulating Fastify request/reply objects.
@@ -17,8 +21,14 @@ import type { FastifyRequest, FastifyReply, HookHandlerDoneFunction } from "fast
 // load and process.exit(1)s on missing values. The real `parseConfig`
 // function is re-exported so tests/config.test.ts still sees the real
 // implementation.
-if (!process.env.DATABASE_URL) process.env.DATABASE_URL = "postgres://localhost:5432/test";
-let mockConfig = { DEV_BYPASS_AUTH: false, PORT: 8000, DATABASE_URL: "postgresql://localhost/test", LOG_LEVEL: "info" as const };
+if (!process.env.DATABASE_URL)
+  process.env.DATABASE_URL = "postgres://localhost:5432/test";
+let mockConfig = {
+  DEV_BYPASS_AUTH: false,
+  PORT: 8000,
+  DATABASE_URL: "postgresql://localhost/test",
+  LOG_LEVEL: "info" as const,
+};
 const realConfigModule = await import("../src/config.js");
 mock.module("../src/config.js", () => ({
   ...realConfigModule,
@@ -27,11 +37,18 @@ mock.module("../src/config.js", () => ({
 
 const { extractUser, authHook } = await import("../src/auth.js");
 
-function makeReq(headers: Record<string, string> = {}, url = "/api/test"): FastifyRequest {
+function makeReq(
+  headers: Record<string, string> = {},
+  url = "/api/test",
+): FastifyRequest {
   return { headers, url } as unknown as FastifyRequest;
 }
 
-function makeReply(): { code: ReturnType<typeof mock>; send: ReturnType<typeof mock>; reply: FastifyReply } {
+function makeReply(): {
+  code: ReturnType<typeof mock>;
+  send: ReturnType<typeof mock>;
+  reply: FastifyReply;
+} {
   const reply = {
     code: mock(() => reply),
     send: mock(() => reply),

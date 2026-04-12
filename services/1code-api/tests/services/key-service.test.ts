@@ -30,7 +30,9 @@ describe("_computeStatus — Decision 9 five-state semantics", () => {
   });
 
   test("days_until_expiry = 14 → expiring_soon (inclusive boundary)", () => {
-    expect(_computeStatus("active", daysFromNow(14), NOW)).toBe("expiring_soon");
+    expect(_computeStatus("active", daysFromNow(14), NOW)).toBe(
+      "expiring_soon",
+    );
   });
 
   test("days_until_expiry = 1 → expiring_soon", () => {

@@ -36,15 +36,14 @@ export function setupScheduler(deps: SchedulerDeps): SchedulerHandle {
       log.info("scheduler: starting deprovisioning run");
       try {
         // Lazy import to avoid circular dependency during bootstrap
-        const { runDeprovisioningJob } = await import(
-          "../services/deprovisioning.js"
-        );
+        const { runDeprovisioningJob } =
+          await import("../services/deprovisioning.js");
         await runDeprovisioningJob(deps);
       } catch (err) {
         log.error({ err }, "scheduler: deprovisioning run failed");
       }
     },
-    { timezone: "UTC", runOnInit: false },
+    { timezone: "UTC" },
   );
 
   const rotationTask: ScheduledTask = schedule(
@@ -58,7 +57,7 @@ export function setupScheduler(deps: SchedulerDeps): SchedulerHandle {
         log.error({ err }, "scheduler: rotation run failed");
       }
     },
-    { timezone: "UTC", runOnInit: false },
+    { timezone: "UTC" },
   );
 
   log.info(

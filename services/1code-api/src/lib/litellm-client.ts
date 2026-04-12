@@ -120,7 +120,10 @@ export class LiteLLMClient {
    */
   async getTeam(teamId: string): Promise<TeamInfo | null> {
     try {
-      return await this.request<TeamInfo>("GET", `/team/info?team_id=${encodeURIComponent(teamId)}`);
+      return await this.request<TeamInfo>(
+        "GET",
+        `/team/info?team_id=${encodeURIComponent(teamId)}`,
+      );
     } catch (err) {
       if ((err as { status?: number }).status === 404) return null;
       throw err;

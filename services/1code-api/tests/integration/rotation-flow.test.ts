@@ -13,7 +13,14 @@
  *
  * Uses real Postgres + real LiteLLM from the docker-compose harness.
  */
-import { describe, test, expect, beforeAll, afterAll, afterEach } from "bun:test";
+import {
+  describe,
+  test,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+} from "bun:test";
 import { eq } from "drizzle-orm";
 import {
   FakeGraphClient,
@@ -43,7 +50,11 @@ afterAll(async () => {
   await teardownDb();
 });
 
-const createdUsers: Array<{ oid: string; litellmUserId: string; teamIds: string[] }> = [];
+const createdUsers: Array<{
+  oid: string;
+  litellmUserId: string;
+  teamIds: string[];
+}> = [];
 
 afterEach(async () => {
   if (!INTEGRATION_ENABLED) return;
@@ -76,7 +87,12 @@ describe.skipIf(!INTEGRATION_ENABLED)(
         [user.oid]: [requiredGroupId, teamGroupId],
       });
 
-      const result = await provisionUser(user, litellm, graph as never, teamsConfig);
+      const result = await provisionUser(
+        user,
+        litellm,
+        graph as never,
+        teamsConfig,
+      );
       createdUsers.push({
         oid: user.oid,
         litellmUserId: result.litellm_user_id,
@@ -84,7 +100,10 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       });
 
       const db = getDb();
-      const [dbUser] = await db.select().from(users).where(eq(users.oid, user.oid));
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.oid, user.oid));
 
       // Manually expire the original key by pushing portal_expires_at into the past
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -128,7 +147,10 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       expect(newActive!.teamAlias).toBe(originalKey.teamAlias);
 
       // Audit: key.auto_rotated
-      const audits = await db.select().from(auditLog).where(eq(auditLog.actorEntraOid, user.oid));
+      const audits = await db
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.actorEntraOid, user.oid));
       const actions = audits.map((a) => a.action);
       expect(actions).toContain("key.auto_rotated");
     });
@@ -141,7 +163,12 @@ describe.skipIf(!INTEGRATION_ENABLED)(
         [user.oid]: [requiredGroupId, teamGroupId],
       });
 
-      const result = await provisionUser(user, litellm, graph as never, teamsConfig);
+      const result = await provisionUser(
+        user,
+        litellm,
+        graph as never,
+        teamsConfig,
+      );
       createdUsers.push({
         oid: user.oid,
         litellmUserId: result.litellm_user_id,
@@ -149,7 +176,10 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       });
 
       const db = getDb();
-      const [dbUser] = await db.select().from(users).where(eq(users.oid, user.oid));
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.oid, user.oid));
 
       // Keys are fresh (expires in ~90 days) — rotation should be a no-op
       await runRotationJob({
@@ -176,7 +206,12 @@ describe.skipIf(!INTEGRATION_ENABLED)(
         [user.oid]: [requiredGroupId, teamGroupId],
       });
 
-      const result = await provisionUser(user, litellm, graph as never, teamsConfig);
+      const result = await provisionUser(
+        user,
+        litellm,
+        graph as never,
+        teamsConfig,
+      );
       createdUsers.push({
         oid: user.oid,
         litellmUserId: result.litellm_user_id,
@@ -184,10 +219,16 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       });
 
       const db = getDb();
-      const [dbUser] = await db.select().from(users).where(eq(users.oid, user.oid));
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.oid, user.oid));
 
       // Manually deactivate the user AND expire the key
-      await db.update(users).set({ isActive: false }).where(eq(users.id, dbUser.id));
+      await db
+        .update(users)
+        .set({ isActive: false })
+        .where(eq(users.id, dbUser.id));
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
       await db
         .update(provisionedKeys)

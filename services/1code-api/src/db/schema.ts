@@ -92,8 +92,9 @@ export const provisionedKeys = pgTable("provisioned_keys", {
   teamId: text("team_id").notNull(),
   teamAlias: text("team_alias").notNull(),
   status: keyStatus("status").notNull().default("active"),
-  portalExpiresAt: timestamp("portal_expires_at", { withTimezone: true })
-    .notNull(),
+  portalExpiresAt: timestamp("portal_expires_at", {
+    withTimezone: true,
+  }).notNull(),
   rotatedFromId: uuid("rotated_from_id").references(
     (): AnyPgColumn => provisionedKeys.id,
     { onDelete: "set null" },

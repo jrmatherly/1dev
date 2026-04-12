@@ -53,8 +53,15 @@ export interface LogActionParams {
  * provisioning transaction boundary.
  */
 export async function logAction(params: LogActionParams): Promise<void> {
-  const { tx, actorEmail, actorEntraOid, action, targetType, targetId, details } =
-    params;
+  const {
+    tx,
+    actorEmail,
+    actorEntraOid,
+    action,
+    targetType,
+    targetId,
+    details,
+  } = params;
 
   await tx.insert(auditLog).values({
     actorEmail,

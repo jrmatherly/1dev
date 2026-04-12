@@ -40,11 +40,7 @@ const configSchema = z
     AZURE_GRAPH_CLIENT_ID: z.string().uuid().optional(),
     AZURE_GRAPH_CLIENT_SECRET: z.string().min(1).optional(),
     TEAMS_CONFIG_PATH: z.string().default("/app/config/teams.yaml"),
-    DEPROVISIONING_MAX_PER_RUN: z.coerce
-      .number()
-      .int()
-      .positive()
-      .default(20),
+    DEPROVISIONING_MAX_PER_RUN: z.coerce.number().int().positive().default(20),
   })
   .superRefine((data, ctx) => {
     if (!data.PROVISIONING_ENABLED) return;
@@ -81,9 +77,7 @@ export function parseConfig(
     const errors = parsed.error.issues.map(
       (issue) => `  ${issue.path.join(".")}: ${issue.message}`,
     );
-    throw new Error(
-      `Invalid environment configuration:\n${errors.join("\n")}`,
-    );
+    throw new Error(`Invalid environment configuration:\n${errors.join("\n")}`);
   }
   return parsed.data;
 }

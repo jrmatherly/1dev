@@ -107,7 +107,9 @@ teams:
   });
 
   test("throws on nonexistent file", () => {
-    expect(() => loadTeamsConfig("/nonexistent/path/teams.yaml")).toThrow(/cannot read/);
+    expect(() => loadTeamsConfig("/nonexistent/path/teams.yaml")).toThrow(
+      /cannot read/,
+    );
   });
 });
 
@@ -176,7 +178,9 @@ describe("getQualifyingTeams — default suppression", () => {
     };
     const result = getQualifyingTeams(cfg2, [GROUP_A, GROUP_B, GROUP_DEFAULT]);
     expect(result).toHaveLength(2);
-    expect(result.map((t) => t.entraGroupId).sort()).toEqual([GROUP_A, GROUP_B].sort());
+    expect(result.map((t) => t.entraGroupId).sort()).toEqual(
+      [GROUP_A, GROUP_B].sort(),
+    );
   });
 });
 

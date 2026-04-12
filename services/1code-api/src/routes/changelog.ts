@@ -16,8 +16,8 @@ interface ChangelogEntry {
  * In local dev (bun run dev) the cwd is services/1code-api/ so the path is ./changelog.
  * Override with CHANGELOG_DIR env var if needed.
  */
-const CHANGELOG_DIR = process.env.CHANGELOG_DIR
-  ?? resolve(process.cwd(), "changelog");
+const CHANGELOG_DIR =
+  process.env.CHANGELOG_DIR ?? resolve(process.cwd(), "changelog");
 
 const MAX_PER_PAGE = 50;
 const DEFAULT_PER_PAGE = 10;
@@ -48,7 +48,9 @@ async function loadEntries(): Promise<ChangelogEntry[]> {
   }
 
   // Sort by date descending
-  entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  entries.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
 
   return entries;
 }
@@ -57,7 +59,11 @@ export function registerChangelogRoute(server: FastifyInstance): void {
   server.get("/api/changelog/desktop", async (req, reply) => {
     const query = req.query as { per_page?: string };
     const perPage = Math.min(
-      Math.max(1, Number.parseInt(query.per_page ?? String(DEFAULT_PER_PAGE), 10) || DEFAULT_PER_PAGE),
+      Math.max(
+        1,
+        Number.parseInt(query.per_page ?? String(DEFAULT_PER_PAGE), 10) ||
+          DEFAULT_PER_PAGE,
+      ),
       MAX_PER_PAGE,
     );
 

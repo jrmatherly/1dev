@@ -1,7 +1,11 @@
 import Fastify from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import { config } from "./config.js";
-import { connectDatabase, closeDatabase, runMigrations } from "./db/connection.js";
+import {
+  connectDatabase,
+  closeDatabase,
+  runMigrations,
+} from "./db/connection.js";
 import { registerHealthRoute } from "./routes/health.js";
 import { registerChangelogRoute } from "./routes/changelog.js";
 import { registerPlanRoute } from "./routes/plan.js";
@@ -118,4 +122,4 @@ async function shutdown(signal: string): Promise<void> {
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
 
-start();
+await start();

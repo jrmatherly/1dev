@@ -1,5 +1,9 @@
 import { eq, and, isNull } from "drizzle-orm";
-import { users, provisionedKeys, type PersistedKeyStatus } from "../db/schema.js";
+import {
+  users,
+  provisionedKeys,
+  type PersistedKeyStatus,
+} from "../db/schema.js";
 import { getDb } from "../db/connection.js";
 import { AUDIT_ACTIONS, logAction } from "../lib/audit.js";
 import type { LiteLLMClient } from "../lib/litellm-client.js";
@@ -100,7 +104,9 @@ async function _deprovisionUser(
  * 3. For each user: check Graph group membership, deprovision if unauthorized.
  * 4. Log summary.
  */
-export async function runDeprovisioningJob(deps: DeprovisioningDeps): Promise<void> {
+export async function runDeprovisioningJob(
+  deps: DeprovisioningDeps,
+): Promise<void> {
   const { log, litellm, graph, teamsConfig, maxDeprovisionPerRun } = deps;
   const db = getDb();
 
@@ -109,7 +115,10 @@ export async function runDeprovisioningJob(deps: DeprovisioningDeps): Promise<vo
     .from(users)
     .where(and(eq(users.isActive, true), isNull(users.deprovisionedAt)));
 
-  log.info({ count: activeUsers.length }, "deprovisioning: checking active users");
+  log.info(
+    { count: activeUsers.length },
+    "deprovisioning: checking active users",
+  );
 
   // Determine which users need deprovisioning (pre-scan before any writes)
   const toDeprovision: string[] = [];
@@ -144,7 +153,10 @@ export async function runDeprovisioningJob(deps: DeprovisioningDeps): Promise<vo
       action: AUDIT_ACTIONS.ACTION_CRON_DEPROVISIONING_ABORTED,
       targetType: "cron",
       targetId: "deprovisioning",
-      details: { threshold: maxDeprovisionPerRun, would_deprovision: toDeprovision.length },
+      details: {
+        threshold: maxDeprovisionPerRun,
+        would_deprovision: toDeprovision.length,
+      },
     });
 
     return;

@@ -3,9 +3,15 @@ import { describe, test, expect, beforeEach } from "bun:test";
 const { registerPlanRoute } = await import("../src/routes/plan.js");
 
 function createServerMock() {
-  const routes: Record<string, (req: unknown, reply: unknown) => Promise<unknown>> = {};
+  const routes: Record<
+    string,
+    (req: unknown, reply: unknown) => Promise<unknown>
+  > = {};
   return {
-    get: (path: string, handler: (req: unknown, reply: unknown) => Promise<unknown>) => {
+    get: (
+      path: string,
+      handler: (req: unknown, reply: unknown) => Promise<unknown>,
+    ) => {
       routes[path] = handler;
     },
     routes,

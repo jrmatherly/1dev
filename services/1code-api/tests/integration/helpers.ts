@@ -13,12 +13,24 @@
 import { randomUUID } from "node:crypto";
 import { LiteLLMClient } from "../../src/lib/litellm-client.js";
 import type { TeamsConfig, TeamConfig } from "../../src/lib/teams-config.js";
-import { connectDatabase, closeDatabase, runMigrations, getDb } from "../../src/db/connection.js";
-import { users, provisionedKeys, userTeamMemberships, auditLog } from "../../src/db/schema.js";
+import {
+  connectDatabase,
+  closeDatabase,
+  runMigrations,
+  getDb,
+} from "../../src/db/connection.js";
+import {
+  users,
+  provisionedKeys,
+  userTeamMemberships,
+  auditLog,
+} from "../../src/db/schema.js";
 import { eq } from "drizzle-orm";
 
-export const LITELLM_URL = process.env.LITELLM_BASE_URL ?? "http://localhost:54000";
-export const LITELLM_KEY = process.env.LITELLM_MASTER_KEY ?? "sk-test-master-integration";
+export const LITELLM_URL =
+  process.env.LITELLM_BASE_URL ?? "http://localhost:54000";
+export const LITELLM_KEY =
+  process.env.LITELLM_MASTER_KEY ?? "sk-test-master-integration";
 
 /**
  * Fake GraphClient — implements the shape `provisionUser` / `runDeprovisioningJob`
@@ -40,7 +52,9 @@ export class FakeGraphClient {
   async getUserGroups(oid: string): Promise<string[]> {
     const resp = this.responses.get(oid);
     if (resp === undefined) {
-      throw new Error(`FakeGraphClient: no stub for oid=${oid} (set one with setUserGroups)`);
+      throw new Error(
+        `FakeGraphClient: no stub for oid=${oid} (set one with setUserGroups)`,
+      );
     }
     if (resp instanceof Error) throw resp;
     return resp;
@@ -138,8 +152,12 @@ export async function cleanupTestUser(
       }
 
       // Delete DB rows (FKs cascade)
-      await db.delete(provisionedKeys).where(eq(provisionedKeys.userId, user.id));
-      await db.delete(userTeamMemberships).where(eq(userTeamMemberships.userId, user.id));
+      await db
+        .delete(provisionedKeys)
+        .where(eq(provisionedKeys.userId, user.id));
+      await db
+        .delete(userTeamMemberships)
+        .where(eq(userTeamMemberships.userId, user.id));
       await db.delete(auditLog).where(eq(auditLog.actorEntraOid, oid));
       await db.delete(users).where(eq(users.id, user.id));
     }

@@ -9,7 +9,8 @@
  */
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 
-if (!process.env.DATABASE_URL) process.env.DATABASE_URL = "postgres://localhost:5432/test";
+if (!process.env.DATABASE_URL)
+  process.env.DATABASE_URL = "postgres://localhost:5432/test";
 
 // ---- Mock config ----------------------------------------------------------
 const mockConfig = {

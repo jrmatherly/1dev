@@ -9,9 +9,15 @@ import { tmpdir } from "node:os";
 const { registerChangelogRoute } = await import("../src/routes/changelog.js");
 
 function createServerMock() {
-  const routes: Record<string, (req: unknown, reply: unknown) => Promise<unknown>> = {};
+  const routes: Record<
+    string,
+    (req: unknown, reply: unknown) => Promise<unknown>
+  > = {};
   return {
-    get: (path: string, handler: (req: unknown, reply: unknown) => Promise<unknown>) => {
+    get: (
+      path: string,
+      handler: (req: unknown, reply: unknown) => Promise<unknown>,
+    ) => {
       routes[path] = handler;
     },
     routes,
@@ -47,7 +53,10 @@ describe("changelog endpoint", () => {
 
   test("respects per_page parameter", async () => {
     const reply = createReplyMock();
-    await server.routes["/api/changelog/desktop"]({ query: { per_page: "1" } }, reply);
+    await server.routes["/api/changelog/desktop"](
+      { query: { per_page: "1" } },
+      reply,
+    );
     const entries = reply.body as unknown[];
     expect(entries.length).toBeLessThanOrEqual(1);
   });

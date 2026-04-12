@@ -1,9 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { config } from "../config.js";
-import {
-  getProvisionStatus,
-  provisionUser,
-} from "../services/provisioning.js";
+import { getProvisionStatus, provisionUser } from "../services/provisioning.js";
 import type { LiteLLMClient } from "../lib/litellm-client.js";
 import type { GraphClient } from "../lib/graph-client.js";
 import type { TeamsConfig } from "../lib/teams-config.js";
@@ -68,7 +65,9 @@ export function registerProvisionRoute(server: FastifyInstance): void {
 
       const { litellm, graph, teamsConfig } = server;
       if (!litellm || !graph || !teamsConfig) {
-        return reply.code(503).send({ error: "Provisioning services not initialized" });
+        return reply
+          .code(503)
+          .send({ error: "Provisioning services not initialized" });
       }
 
       const user = req.user!;

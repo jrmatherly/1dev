@@ -1,5 +1,9 @@
 import { eq, and, lte } from "drizzle-orm";
-import { users, provisionedKeys, type PersistedKeyStatus } from "../db/schema.js";
+import {
+  users,
+  provisionedKeys,
+  type PersistedKeyStatus,
+} from "../db/schema.js";
 import { getDb } from "../db/connection.js";
 import { AUDIT_ACTIONS, logAction } from "../lib/audit.js";
 import { slugify } from "../lib/slugify.js";
@@ -49,7 +53,7 @@ async function _autoRotateKey(
     .where(eq(users.id, key.userId))
     .limit(1);
 
-  if (!user || !user.isActive) return;
+  if (!user?.isActive) return;
 
   // Best-effort delete old LiteLLM key
   if (key.litellmKeyId) {
@@ -148,7 +152,10 @@ export async function runRotationJob(deps: RotationDeps): Promise<void> {
       ),
     );
 
-  log.info({ count: expiredKeys.length }, "rotation: found expired keys to rotate");
+  log.info(
+    { count: expiredKeys.length },
+    "rotation: found expired keys to rotate",
+  );
 
   let rotated = 0;
   let failed = 0;

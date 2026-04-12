@@ -38,7 +38,9 @@ export const ProvisionStatusResponse = z.object({
   teams: z.array(TeamSummary),
   active_key_count: z.number().int().nonnegative(),
 });
-export type ProvisionStatusResponseType = z.infer<typeof ProvisionStatusResponse>;
+export type ProvisionStatusResponseType = z.infer<
+  typeof ProvisionStatusResponse
+>;
 
 export const ProvisionResponse = z.object({
   user_id: z.string().uuid(),

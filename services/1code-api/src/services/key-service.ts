@@ -1,5 +1,9 @@
 import { eq, and } from "drizzle-orm";
-import { provisionedKeys, type PersistedKeyStatus, type KeyStatus } from "../db/schema.js";
+import {
+  provisionedKeys,
+  type PersistedKeyStatus,
+  type KeyStatus,
+} from "../db/schema.js";
 import { getDb } from "../db/connection.js";
 import { AUDIT_ACTIONS, logAction } from "../lib/audit.js";
 import { slugify } from "../lib/slugify.js";
@@ -13,7 +17,10 @@ const EXPIRING_SOON_DAYS = 14;
 /**
  * Compute the number of whole days until `expiresAt` (can be negative).
  */
-export function _daysUntilExpiry(expiresAt: Date, now: Date = new Date()): number {
+export function _daysUntilExpiry(
+  expiresAt: Date,
+  now: Date = new Date(),
+): number {
   return Math.floor((expiresAt.getTime() - now.getTime()) / MS_PER_DAY);
 }
 
@@ -149,18 +156,25 @@ export interface CreateKeyResult {
   portal_expires_at: Date;
 }
 
-export async function createKey(
-  userId: string,
-  userEmail: string,
-  userOid: string,
-  litellmUserId: string,
-  teamId: string,
-  teamAlias: string,
-  models: string[],
-  litellmRole: string,
-  defaultKeyDurationDays: number,
-  litellm: LiteLLMClient,
-): Promise<CreateKeyResult> {
+export interface CreateKeyParams {
+  userId: string;
+  userEmail: string;
+  userOid: string;
+  litellmUserId: string;
+  teamId: string;
+  teamAlias: string;
+  models: string[];
+  litellmRole: string;
+  defaultKeyDurationDays: number;
+  litellm: LiteLLMClient;
+}
+
+export async function createKey(params: CreateKeyParams): Promise<CreateKeyResult> {
+  const {
+    userId, userEmail, userOid, litellmUserId,
+    teamId, teamAlias, models,
+    defaultKeyDurationDays, litellm,
+  } = params;
   const db = getDb();
 
   // Verify user is a member of the team
@@ -176,7 +190,9 @@ export async function createKey(
     .limit(1);
 
   if (!membership) {
-    const err = new Error("Not a member of this team") as Error & { statusCode: number };
+    const err = new Error("Not a member of this team") as Error & {
+      statusCode: number;
+    };
     err.statusCode = 403;
     throw err;
   }
@@ -252,10 +268,7 @@ export async function rotateKey(
     .select()
     .from(provisionedKeys)
     .where(
-      and(
-        eq(provisionedKeys.id, keyId),
-        eq(provisionedKeys.userId, userId),
-      ),
+      and(eq(provisionedKeys.id, keyId), eq(provisionedKeys.userId, userId)),
     )
     .limit(1);
 
@@ -271,7 +284,10 @@ export async function rotateKey(
   // Best-effort delete of the old LiteLLM key
   if (oldKey.litellmKeyId) {
     await litellm.deleteKey(oldKey.litellmKeyId).catch((err: unknown) => {
-      console.error({ err, key_id: oldKey.id }, "key-service: failed to delete old LiteLLM key during rotation");
+      console.error(
+        { err, key_id: oldKey.id },
+        "key-service: failed to delete old LiteLLM key during rotation",
+      );
     });
   }
 
@@ -340,10 +356,7 @@ export async function revokeKey(
     .select()
     .from(provisionedKeys)
     .where(
-      and(
-        eq(provisionedKeys.id, keyId),
-        eq(provisionedKeys.userId, userId),
-      ),
+      and(eq(provisionedKeys.id, keyId), eq(provisionedKeys.userId, userId)),
     )
     .limit(1);
 
@@ -355,7 +368,10 @@ export async function revokeKey(
 
   if (key.litellmKeyId) {
     await litellm.deleteKey(key.litellmKeyId).catch((err: unknown) => {
-      console.error({ err, key_id: key.id }, "key-service: failed to delete LiteLLM key during revocation");
+      console.error(
+        { err, key_id: key.id },
+        "key-service: failed to delete LiteLLM key during revocation",
+      );
     });
   }
 

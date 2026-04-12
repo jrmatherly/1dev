@@ -12,10 +12,7 @@ import { slugify } from "../lib/slugify.js";
 import type { LiteLLMClient } from "../lib/litellm-client.js";
 import type { GraphClient } from "../lib/graph-client.js";
 import type { TeamsConfig, TeamConfig } from "../lib/teams-config.js";
-import {
-  isUserAuthorized,
-  getQualifyingTeams,
-} from "../lib/teams-config.js";
+import { isUserAuthorized, getQualifyingTeams } from "../lib/teams-config.js";
 
 export interface RequestUser {
   oid: string;
@@ -81,7 +78,10 @@ export async function getProvisionStatus(
   if (!user) return null;
 
   const memberships = await db
-    .select({ team_id: userTeamMemberships.teamId, team_alias: userTeamMemberships.teamAlias })
+    .select({
+      team_id: userTeamMemberships.teamId,
+      team_alias: userTeamMemberships.teamAlias,
+    })
     .from(userTeamMemberships)
     .where(eq(userTeamMemberships.userId, user.id));
 
@@ -124,7 +124,9 @@ export async function provisionUser(
     .limit(1);
 
   if (existingUser && !existingUser.isActive) {
-    const err = new Error("User was deprovisioned; contact admin to re-enable access") as Error & { statusCode: number };
+    const err = new Error(
+      "User was deprovisioned; contact admin to re-enable access",
+    ) as Error & { statusCode: number };
     err.statusCode = 409;
     throw err;
   }
@@ -132,12 +134,17 @@ export async function provisionUser(
   const groupIds = await graph.getUserGroups(requestUser.oid);
 
   if (!isUserAuthorized(teamsConfig, groupIds)) {
-    const err = new Error("User is not authorized for access (not a member of any required group)") as Error & { statusCode: number };
+    const err = new Error(
+      "User is not authorized for access (not a member of any required group)",
+    ) as Error & { statusCode: number };
     err.statusCode = 403;
     throw err;
   }
 
-  const qualifyingTeams: TeamConfig[] = getQualifyingTeams(teamsConfig, groupIds);
+  const qualifyingTeams: TeamConfig[] = getQualifyingTeams(
+    teamsConfig,
+    groupIds,
+  );
 
   let existingMemberships = new Set<string>();
   let existingActiveKeysByTeam = new Map<string, string>();
@@ -151,7 +158,11 @@ export async function provisionUser(
     existingMemberships = new Set(memberships.map((m) => m.teamId));
 
     const activeKeys = await db
-      .select({ id: provisionedKeys.id, teamId: provisionedKeys.teamId, alias: provisionedKeys.litellmKeyAlias })
+      .select({
+        id: provisionedKeys.id,
+        teamId: provisionedKeys.teamId,
+        alias: provisionedKeys.litellmKeyAlias,
+      })
       .from(provisionedKeys)
       .where(
         and(
@@ -193,7 +204,7 @@ export async function provisionUser(
         user_alias: user.displayName,
       });
       await logAction({
-        tx: tx as Parameters<typeof logAction>[0]["tx"],
+        tx: tx as unknown as Parameters<typeof logAction>[0]["tx"],
         actorEmail: user.email,
         actorEntraOid: user.oid,
         action: AUDIT_ACTIONS.ACTION_USER_PROVISIONED,
@@ -222,10 +233,11 @@ export async function provisionUser(
           models: team.models,
           max_budget: team.maxBudget,
           budget_duration: team.budgetDuration,
-          max_budget_in_team: team.teamMemberBudget > 0 ? team.teamMemberBudget : null,
+          max_budget_in_team:
+            team.teamMemberBudget > 0 ? team.teamMemberBudget : null,
         });
         await logAction({
-          tx: tx as Parameters<typeof logAction>[0]["tx"],
+          tx: tx as unknown as Parameters<typeof logAction>[0]["tx"],
           actorEmail: user.email,
           actorEntraOid: user.oid,
           action: AUDIT_ACTIONS.ACTION_TEAM_SYNCED,
@@ -233,13 +245,21 @@ export async function provisionUser(
           targetId: team.entraGroupId,
         });
       }
-      teamsProvisioned.push({ team_id: team.entraGroupId, team_alias: team.teamAlias });
+      teamsProvisioned.push({
+        team_id: team.entraGroupId,
+        team_alias: team.teamAlias,
+      });
 
       // Membership (idempotent via pre-flight set)
       if (!existingMemberships.has(team.entraGroupId)) {
         await litellm.addTeamMember({
           team_id: team.entraGroupId,
-          member: [{ user_id: user.litellmUserId ?? user.email, role: team.litellmRole }],
+          member: [
+            {
+              user_id: user.litellmUserId ?? user.email,
+              role: team.litellmRole,
+            },
+          ],
         });
         await tx.insert(userTeamMemberships).values({
           userId: user.id,
@@ -249,7 +269,7 @@ export async function provisionUser(
           litellmRole: team.litellmRole,
         });
         await logAction({
-          tx: tx as Parameters<typeof logAction>[0]["tx"],
+          tx: tx as unknown as Parameters<typeof logAction>[0]["tx"],
           actorEmail: user.email,
           actorEntraOid: user.oid,
           action: AUDIT_ACTIONS.ACTION_MEMBERSHIP_ADDED,
@@ -280,7 +300,8 @@ export async function provisionUser(
             key_alias: keyAlias,
             duration: `${user.defaultKeyDurationDays}d`,
           });
-        } catch (err) {
+        } catch (err: unknown) {
+          // Rethrow — caller logs the error via Fastify's request logger
           throw err;
         }
 
@@ -310,7 +331,7 @@ export async function provisionUser(
             );
           });
           await logAction({
-            tx: tx as Parameters<typeof logAction>[0]["tx"],
+            tx: tx as unknown as Parameters<typeof logAction>[0]["tx"],
             actorEmail: user.email,
             actorEntraOid: user.oid,
             action: AUDIT_ACTIONS.ACTION_KEY_GENERATION_ORPHANED,
@@ -330,7 +351,7 @@ export async function provisionUser(
         });
 
         await logAction({
-          tx: tx as Parameters<typeof logAction>[0]["tx"],
+          tx: tx as unknown as Parameters<typeof logAction>[0]["tx"],
           actorEmail: user.email,
           actorEntraOid: user.oid,
           action: AUDIT_ACTIONS.ACTION_KEY_GENERATED,

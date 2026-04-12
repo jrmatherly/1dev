@@ -10,7 +10,8 @@
  */
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 
-if (!process.env.DATABASE_URL) process.env.DATABASE_URL = "postgres://localhost:5432/test";
+if (!process.env.DATABASE_URL)
+  process.env.DATABASE_URL = "postgres://localhost:5432/test";
 
 import * as schema from "../../src/db/schema.js";
 
@@ -26,7 +27,15 @@ interface MockUser {
 
 let mockActiveUsers: MockUser[] = [];
 let mockUserById: Map<string, MockUser> = new Map();
-let mockKeysByUser: Map<string, Array<{ id: string; teamId: string; litellmKeyId: string | null; status: string }>> = new Map();
+let mockKeysByUser: Map<
+  string,
+  Array<{
+    id: string;
+    teamId: string;
+    litellmKeyId: string | null;
+    status: string;
+  }>
+> = new Map();
 
 const updates: Array<{ table: string; set: Record<string, unknown> }> = [];
 const auditInserts: Array<Record<string, unknown>> = [];
@@ -102,7 +111,12 @@ const mockDb = {
     set: (values: Record<string, unknown>) => ({
       where: () => {
         updates.push({
-          table: table === schema.users ? "users" : table === schema.provisionedKeys ? "provisioned_keys" : "other",
+          table:
+            table === schema.users
+              ? "users"
+              : table === schema.provisionedKeys
+                ? "provisioned_keys"
+                : "other",
           set: values,
         });
         return Promise.resolve();
@@ -127,7 +141,8 @@ mock.module("../../src/db/connection.js", () => ({
   isDatabaseHealthy: async () => true,
 }));
 
-const { runDeprovisioningJob } = await import("../../src/services/deprovisioning.js");
+const { runDeprovisioningJob } =
+  await import("../../src/services/deprovisioning.js");
 
 // ---- Helpers --------------------------------------------------------------
 
@@ -201,7 +216,9 @@ describe("runDeprovisioningJob — user authorization check", () => {
 
     const log = makeLog();
     const litellm = makeLiteLLM();
-    const graph = { getUserGroups: mock(async () => ["gate-group", "group-a"]) };
+    const graph = {
+      getUserGroups: mock(async () => ["gate-group", "group-a"]),
+    };
 
     await runDeprovisioningJob({
       log: log as never,
@@ -227,7 +244,12 @@ describe("runDeprovisioningJob — user authorization check", () => {
     mockActiveUsers = [user];
     mockUserById.set(user.id, user);
     mockKeysByUser.set(user.id, [
-      { id: "key-1", teamId: "group-a", litellmKeyId: "sk-key-1", status: "active" },
+      {
+        id: "key-1",
+        teamId: "group-a",
+        litellmKeyId: "sk-key-1",
+        status: "active",
+      },
     ]);
     // One user will be re-fetched during _deprovisionUser
     perUserSequence = [user];
@@ -345,7 +367,9 @@ describe("runDeprovisioningJob — mass-threshold abort guard", () => {
 
     // No user or key updates
     expect(updates.filter((u) => u.table === "users")).toHaveLength(0);
-    expect(updates.filter((u) => u.table === "provisioned_keys")).toHaveLength(0);
+    expect(updates.filter((u) => u.table === "provisioned_keys")).toHaveLength(
+      0,
+    );
 
     // Exactly one audit row for the abort
     const abortAudits = auditInserts.filter(
