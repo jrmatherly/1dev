@@ -25,7 +25,7 @@ async function getApiBase(): Promise<string> {
  * Automatically adds auth token and bypasses CORS
  * Replaces placeholder URL with actual API base from env
  */
-const signedFetch: typeof fetch = async (input, init) => {
+const signedFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
   if (typeof window === "undefined" || !window.desktopApi?.signedFetch) {
     throw new Error("Desktop API not available");
   }
