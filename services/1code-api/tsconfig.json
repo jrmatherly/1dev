@@ -12,8 +12,16 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["bun-types"]
+    "types": [
+      "bun-types"
+    ]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests"
+  ]
 }

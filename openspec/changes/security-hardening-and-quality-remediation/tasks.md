@@ -27,7 +27,7 @@
 - [x] 2.4 Add index declaration for `subChats.chatId` in `src/main/lib/db/schema/index.ts`
 - [x] 2.5 Run `bun run db:generate` to produce the FK index migration
 - [x] 2.6 Add SQLite pragmas (`busy_timeout=5000`, `synchronous=NORMAL`, `cache_size=-8000`) to database initialization in `src/main/lib/db/index.ts`
-- [ ] 2.7 Run `db-schema-auditor` subagent to verify schema ↔ migration ↔ doc consistency after index + pragma changes
+- [x] 2.7 Run `db-schema-auditor` subagent to verify schema ↔ migration ↔ doc consistency after index + pragma changes *(CLEAN — 7 tables, 10 migrations, all counts match)*
 
 ## 3. Phase B — Quick Wins: Types + Code Quality
 
@@ -50,8 +50,8 @@
 
 - [x] 5.1 Set `readOnlyRootFilesystem: true` in `deploy/kubernetes/1code-api/app/helmrelease.yaml`
 - [x] 5.2 Add `emptyDir` volume mount for `/tmp` in the HelmRelease pod spec *(already existed)*
-- [ ] 5.3 Pin `oven/bun:1` base image to specific digest in `services/1code-api/Dockerfile` *(TODO comment added — needs docker pull for actual digest)*
-- [ ] 5.4 Pin `gcr.io/distroless/nodejs24-debian12` base image to specific digest in `services/1code-api/Dockerfile` *(upgrade from nodejs22 → nodejs24 to match Electron 41's Node.js 24.14 runtime; needs docker pull for actual digest)*
+- [x] 5.3 Pin `oven/bun:1` base image to specific digest in `services/1code-api/Dockerfile` *(sha256:8956c7667fa1...)*
+- [x] 5.4 Pin `gcr.io/distroless/nodejs24-debian12` base image to specific digest in `services/1code-api/Dockerfile` *(upgraded from nodejs22 → nodejs24; sha256:61f4f4341db8...)*
 - [x] 5.5 Add Dockerfile comment documenting why each digest is pinned and when to update
 - [x] 5.6 Add `.gitignore` entries for unencrypted SOPS files: `*.dec.yaml`, `*.unencrypted.yaml`, `*.cleartext.yaml`
 
