@@ -1,5 +1,6 @@
 import { clipboard, shell } from "electron";
 import { execFileSync, spawn } from "node:child_process";
+import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { z } from "zod";
@@ -28,6 +29,14 @@ function spawnAsync(command: string, args: string[]): Promise<void> {
     // Resolve immediately — we just need to launch the app
     resolve();
   });
+}
+
+function isAppInstalled(macAppName: string): boolean {
+  const paths = [
+    `/Applications/${macAppName}.app`,
+    `${os.homedir()}/Applications/${macAppName}.app`,
+  ];
+  return paths.some((p) => fs.existsSync(p));
 }
 
 function openPathInApp(app: ExternalApp, targetPath: string): Promise<void> {
@@ -123,4 +132,23 @@ export const externalRouter = router({
       await shell.openExternal(url);
       return { success: true };
     }),
+
+  getInstalledEditors: publicProcedure.query(() => {
+    const installed: ExternalApp[] = [];
+    for (const [id, meta] of Object.entries(APP_META)) {
+      if (id === "finder") {
+        installed.push(id as ExternalApp);
+        continue;
+      }
+      // macOS: Terminal.app is always available
+      if (id === "terminal") {
+        installed.push(id as ExternalApp);
+        continue;
+      }
+      if (isAppInstalled(meta.macAppName)) {
+        installed.push(id as ExternalApp);
+      }
+    }
+    return installed;
+  }),
 });

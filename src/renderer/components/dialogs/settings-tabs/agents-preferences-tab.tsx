@@ -161,6 +161,24 @@ export function AgentsPreferencesTab() {
   const [preferredEditor, setPreferredEditor] = useAtom(preferredEditorAtom);
   const isNarrowScreen = useIsNarrowScreen();
 
+  // Dynamic editor detection — filter lists to show only installed apps
+  const { data: installedEditors } =
+    trpc.external.getInstalledEditors.useQuery(undefined, {
+      staleTime: 5 * 60 * 1000, // 5 minutes — app installs don't change often
+    });
+  const filteredEditors = installedEditors
+    ? EDITORS.filter((e) => installedEditors.includes(e.id))
+    : EDITORS;
+  const filteredTerminals = installedEditors
+    ? TERMINALS.filter((e) => installedEditors.includes(e.id))
+    : TERMINALS;
+  const filteredVscode = installedEditors
+    ? VSCODE.filter((e) => installedEditors.includes(e.id))
+    : VSCODE;
+  const filteredJetbrains = installedEditors
+    ? JETBRAINS.filter((e) => installedEditors.includes(e.id))
+    : JETBRAINS;
+
   // Co-authored-by setting from Claude settings.json
   const { data: includeCoAuthoredBy, refetch: refetchCoAuthoredBy } =
     trpc.claudeSettings.getIncludeCoAuthoredBy.useQuery();
@@ -389,7 +407,7 @@ export function AgentsPreferencesTab() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {EDITORS.map((editor) => (
+              {filteredEditors.map((editor) => (
                 <DropdownMenuItem
                   key={editor.id}
                   onClick={() => setPreferredEditor(editor.id)}
@@ -407,7 +425,7 @@ export function AgentsPreferencesTab() {
                   <span>{editor.label}</span>
                 </DropdownMenuItem>
               ))}
-              {TERMINALS.map((app) => (
+              {filteredTerminals.map((app) => (
                 <DropdownMenuItem
                   key={app.id}
                   onClick={() => setPreferredEditor(app.id)}
@@ -425,6 +443,7 @@ export function AgentsPreferencesTab() {
                   <span>{app.label}</span>
                 </DropdownMenuItem>
               ))}
+              {filteredVscode.length > 0 && (
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2">
                   <img
@@ -439,7 +458,7 @@ export function AgentsPreferencesTab() {
                   sideOffset={6}
                   alignOffset={-4}
                 >
-                  {VSCODE.map((app) => (
+                  {filteredVscode.map((app) => (
                     <DropdownMenuItem
                       key={app.id}
                       onClick={() => setPreferredEditor(app.id)}
@@ -459,6 +478,8 @@ export function AgentsPreferencesTab() {
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              )}
+              {filteredJetbrains.length > 0 && (
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2">
                   <img
@@ -473,7 +494,7 @@ export function AgentsPreferencesTab() {
                   sideOffset={6}
                   alignOffset={-4}
                 >
-                  {JETBRAINS.map((app) => (
+                  {filteredJetbrains.map((app) => (
                     <DropdownMenuItem
                       key={app.id}
                       onClick={() => setPreferredEditor(app.id)}
@@ -493,30 +514,33 @@ export function AgentsPreferencesTab() {
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      {/* Privacy */}
-      <div className="bg-background rounded-lg border border-border overflow-hidden">
-        <div className="flex items-center justify-between gap-6 p-4">
-          <div className="flex flex-col space-y-1">
-            <span className="text-sm font-medium text-foreground">
-              Share Usage Analytics
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Help us improve Agents by sharing anonymous usage data. We only
-              track feature usage and app performance–never your code, prompts,
-              or messages. No AI training on your data.
-            </span>
+      {/* Privacy — only shown when analytics are configured via env vars */}
+      {import.meta.env.VITE_POSTHOG_KEY && (
+        <div className="bg-background rounded-lg border border-border overflow-hidden">
+          <div className="flex items-center justify-between gap-6 p-4">
+            <div className="flex flex-col space-y-1">
+              <span className="text-sm font-medium text-foreground">
+                Share Usage Analytics
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Help us improve Agents by sharing anonymous usage data. We only
+                track feature usage and app performance–never your code, prompts,
+                or messages. No AI training on your data.
+              </span>
+            </div>
+            <Switch
+              checked={!analyticsOptOut}
+              onCheckedChange={(enabled) => handleAnalyticsToggle(!enabled)}
+            />
           </div>
-          <Switch
-            checked={!analyticsOptOut}
-            onCheckedChange={(enabled) => handleAnalyticsToggle(!enabled)}
-          />
         </div>
-      </div>
+      )}
     </div>
   );
 }
