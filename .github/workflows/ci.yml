@@ -134,6 +134,26 @@ jobs:
       - name: "⬇️ Install dependencies"
         run: bun install --frozen-lockfile
 
+      # The services/1code-api/ subdirectory has its own package.json declaring
+      # fastify, yaml, gray-matter, drizzle, etc. — but it is NOT a bun
+      # workspace (the root package.json has no `workspaces` field), so the
+      # root install above does NOT install service deps. When `bun test`
+      # walks the repo it discovers `services/1code-api/tests/**` files, and
+      # they fail with `Cannot find package 'fastify'` / `'yaml'` because the
+      # service workspace's node_modules doesn't exist. Same gotcha applies
+      # to `services/1code-api/src/routes/changelog.ts` (imports gray-matter).
+      #
+      # Mirrors the docs-build job pattern (which already does the same for
+      # the docs/ sub-workspace via working-directory + bun install).
+      #
+      # Discovered while merging PR #14 (replace-gray-matter-with-front-matter):
+      # the test job had been silently broken on main since the LiteLLM
+      # provisioning archive landed on 2026-04-11, but no PR exposed it
+      # until #14.
+      - name: "⬇️ Install services/1code-api dependencies"
+        working-directory: services/1code-api
+        run: bun install --frozen-lockfile
+
       - name: "🧪 Run regression tests"
         run: bun test
 
