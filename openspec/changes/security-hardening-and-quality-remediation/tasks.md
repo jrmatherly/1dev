@@ -86,7 +86,7 @@
 - [x] 8.8 Audit `console.log`/`console.error` calls in `src/main/` for infra URL or error payload exposure — replace with structured logging that redacts sensitive data
 - [x] 8.9 Re-verify `sandbox: true` compatibility with current `trpc-electron` version — test BrowserWindow with `sandbox: true` *(VERIFIED 2026-04-12 via `bun run dev` runtime test — window opens, tRPC IPC round-trips work, streaming sessions complete cleanly (SD M:END reason=ok n=46), contextBridge exposures intact, signed-fetch sender validation succeeds. 401 Claude SDK auth error was orthogonal (expired Anthropic token, resolved on token refresh). S1128 unused `shell` import also removed.)*
 - [x] 8.10 Fill architecture doc stubs under `docs/architecture/` — migrate content from CLAUDE.md and Serena memories to canonical pages
-- [ ] 8.11 Run all 6 quality gates after Phase C changes
+- [x] 8.11 Run all 6 quality gates after Phase C changes *(2026-04-12: ts:check 0, lint clean, build 37.84s, test 221/10s/0f, audit no new advisories, docs build 19.42s)*
 
 ## 9. Phase C — Documentation
 
