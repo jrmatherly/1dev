@@ -275,6 +275,27 @@
     // the transform-based positioning. Separately noted: role="dialog" is
     // arguably the wrong role for a tooltip; a future a11y audit should
     // reclassify to role="tooltip" or remove the role entirely. 2 occurrences.
-    "typescript:S6819": { "level": "off" }
+    "typescript:S6819": { "level": "off" },
+
+    // S7776: "Use Set.has() instead of Array.includes()" — false-fires on
+    // string.includes() calls (SonarLint misidentifies string .includes()
+    // as array .includes()). Also an "external" rule wrapping eslint-plugin-
+    // unicorn's prefer-set-has — not in eslint-plugin-sonarjs v4.0.2, so
+    // cannot be governed by eslint.config.mjs. 5 occurrences (4 false
+    // positives on strings in agents-mentions-editor.tsx, 1 genuine in
+    // framework-icons.tsx already fixed via Set conversion).
+    "typescript:S7776": { "level": "off" },
+
+    // S7758: "Prefer codePointAt() over charCodeAt()" — wrong for djb2
+    // hash functions where UTF-16 code-unit semantics are intentional.
+    // Also an "external" rule wrapping unicorn/prefer-code-point — not in
+    // eslint-plugin-sonarjs v4.0.2. 1 occurrence in agent-diff-view.tsx:93.
+    "typescript:S7758": { "level": "off" },
+
+    // S4158: "Collection is always empty" — intentional for the `teams`
+    // stub in agents-content.tsx:196. The warning IS the reminder to
+    // restore multi-tenant UI (F3 upstream feature). Load-bearing false
+    // positive — do not suppress the code, only suppress the IDE noise.
+    "typescript:S4158": { "level": "off" }
   }
 }
