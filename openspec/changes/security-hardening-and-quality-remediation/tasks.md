@@ -1,23 +1,23 @@
 ## 1. Phase A — Immediate Security + CI (P0)
 
-- [ ] 1.1 Create `src/main/lib/safe-external.ts` with `safeOpenExternal()` utility — validates URL scheme (`https:`, `http:`, `mailto:` only), throws on blocked schemes
-- [ ] 1.2 Replace `shell.openExternal` at `src/main/lib/trpc/routers/external.ts:132` with `safeOpenExternal()`
-- [ ] 1.3 Replace `shell.openExternal` at `src/main/auth-manager.ts:378` with `safeOpenExternal()`
-- [ ] 1.4 Replace `shell.openExternal` at `src/main/lib/enterprise-auth.ts:141` with `safeOpenExternal()`
-- [ ] 1.5 Replace `shell.openExternal` at `src/main/lib/mcp-auth.ts:258` with `safeOpenExternal()`
-- [ ] 1.6 Replace `shell.openExternal` at `src/main/lib/oauth.ts:809` with `safeOpenExternal()`
-- [ ] 1.7 Replace `shell.openExternal` at `src/main/lib/git/git-operations.ts:626` with `safeOpenExternal()`
-- [ ] 1.8 Add `tests/regression/open-external-scheme.test.ts` — scans `src/main/` for direct `shell.openExternal` imports outside `safe-external.ts`
-- [ ] 1.9 Add URL origin allowlist to `api:signed-fetch` handler in `src/main/windows/main.ts` — validate against `getApiUrl()` origin before attaching auth token
-- [ ] 1.10 Add URL origin allowlist to `api:stream-fetch` handler in `src/main/windows/main.ts` — same validation as 1.9
-- [ ] 1.11 Add `tests/regression/signed-fetch-allowlist.test.ts` — verifies signedFetch handler contains URL origin validation
-- [ ] 1.12 Update `docs/enterprise/phase-0-gates.md` — change subtitle from "12 of 15 complete" to "15 of 15 complete", update table to show all 15 gates as Done
-- [ ] 1.13 Update `.github/workflows/ci.yml` audit step — replace `|| true` with severity-gated failure (fail on high-severity direct-dependency advisories only)
-- [ ] 1.14 Rename `deploy/kubernetes/1code-api/app/securitypolicy.draft.yaml` → `securitypolicy.yaml`
-- [ ] 1.15 Add `securitypolicy.yaml` to `deploy/kubernetes/1code-api/app/kustomization.yaml` resources list
-- [ ] 1.16 Change `deploy/kubernetes/1code-api/app/ciliumnetworkpolicy.yaml` — set `enableDefaultDeny: { egress: true, ingress: true }`
-- [ ] 1.17 Verify CiliumNetworkPolicy allow rules cover all legitimate traffic (DNS, PostgreSQL, LiteLLM, health probes, Envoy Gateway ingress)
-- [ ] 1.18 Run all 6 quality gates after Phase A changes: `bun run ts:check && bun run lint && bun run build && bun test && bun audit && (cd docs && bun run build)`
+- [x] 1.1 Create `src/main/lib/safe-external.ts` with `safeOpenExternal()` utility — validates URL scheme (`https:`, `http:`, `mailto:` only), throws on blocked schemes
+- [x] 1.2 Replace `shell.openExternal` at `src/main/lib/trpc/routers/external.ts:132` with `safeOpenExternal()`
+- [x] 1.3 Replace `shell.openExternal` at `src/main/auth-manager.ts:378` with `safeOpenExternal()`
+- [x] 1.4 Replace `shell.openExternal` at `src/main/lib/enterprise-auth.ts:141` with `safeOpenExternal()`
+- [x] 1.5 Replace `shell.openExternal` at `src/main/lib/mcp-auth.ts:258` with `safeOpenExternal()`
+- [x] 1.6 Replace `shell.openExternal` at `src/main/lib/oauth.ts:809` with `safeOpenExternal()`
+- [x] 1.7 Replace `shell.openExternal` at `src/main/lib/git/git-operations.ts:626` with `safeOpenExternal()`
+- [x] 1.8 Add `tests/regression/open-external-scheme.test.ts` — scans `src/main/` for direct `shell.openExternal` imports outside `safe-external.ts`
+- [x] 1.9 Add URL origin allowlist to `api:signed-fetch` handler in `src/main/windows/main.ts` — validate against `getApiUrl()` origin before attaching auth token
+- [x] 1.10 Add URL origin allowlist to `api:stream-fetch` handler in `src/main/windows/main.ts` — same validation as 1.9
+- [x] 1.11 Add `tests/regression/signed-fetch-allowlist.test.ts` — verifies signedFetch handler contains URL origin validation
+- [x] 1.12 Update `docs/enterprise/phase-0-gates.md` — change subtitle from "12 of 15 complete" to "15 of 15 complete", update table to show all 15 gates as Done
+- [x] 1.13 Update `.github/workflows/ci.yml` audit step — replace `|| true` with severity-gated failure (fail on high-severity direct-dependency advisories only)
+- [ ] 1.14 Rename `deploy/kubernetes/1code-api/app/securitypolicy.draft.yaml` → `securitypolicy.yaml` *(cross-repo: cluster)*
+- [ ] 1.15 Add `securitypolicy.yaml` to `deploy/kubernetes/1code-api/app/kustomization.yaml` resources list *(cross-repo: cluster)*
+- [ ] 1.16 Change `deploy/kubernetes/1code-api/app/ciliumnetworkpolicy.yaml` — set `enableDefaultDeny: { egress: true, ingress: true }` *(cross-repo: cluster)*
+- [ ] 1.17 Verify CiliumNetworkPolicy allow rules cover all legitimate traffic (DNS, PostgreSQL, LiteLLM, health probes, Envoy Gateway ingress) *(cross-repo: cluster)*
+- [x] 1.18 Run all 6 quality gates after Phase A changes: `bun run ts:check && bun run lint && bun run build && bun test && bun audit && (cd docs && bun run build)`
 
 ## 2. Phase B — Quick Wins: Performance
 
