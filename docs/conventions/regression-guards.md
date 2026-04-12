@@ -7,10 +7,10 @@ icon: shield
 
 The fork maintains structural regression guards that protect invariants established by Phase 0 hard gates, the brand taxonomy, and the documentation-site capability. Each guard is a single-file `bun:test` test that walks the codebase and fails if a protected invariant is violated.
 
-## Current Inventory (14 guards, 58 tests)
+## Current Inventory (16 guards + 1 unit test = 17 files, 67 tests)
 
-| Guard file | Protects | Motivated by |
-|------------|----------|-------------|
+| File | Protects | Motivated by |
+|------|----------|-------------|
 | `auth-get-token-deleted.test.ts` | Dead `auth:get-token` IPC handler stays deleted | Phase 0 gates #1-4 |
 | `token-leak-logs-removed.test.ts` | No token preview / credential fragments in logs across `src/main/` | Phase 0 gates #5-6 |
 | `credential-manager-deleted.test.ts` | Orphan `credential-manager.ts` stays deleted | tscheck remediation R1 |
@@ -26,6 +26,8 @@ The fork maintains structural regression guards that protect invariants establis
 | `electron-version-pin.test.ts` | Electron version pin matches expected major version | upgrade-electron-40 |
 | `mock-api-consumer-migration.test.ts` | No mock-api imports / api.agents.* / utils.agents.* in migrated consumers; message-parser.ts exports verified | migrate-mock-api-consumers |
 | `1code-api-single-replica.test.ts` | 1code-api HelmRelease pins `controllers['1code-api'].replicas = 1` (prevents duplicate cron runs before distributed-lock machinery is added) | add-1code-api-litellm-provisioning (Decision 10) |
+| `no-gray-matter.test.ts` | No direct `gray-matter` / `front-matter` imports in `src/main/**` outside the canonical shim at `src/main/lib/frontmatter.ts`; root `package.json` does not declare `gray-matter` | replace-gray-matter-with-front-matter |
+| `frontmatter-shim-shape.test.ts` (unit test, not a guard) | Round-trip behavior of the canonical frontmatter shim across standard YAML, empty frontmatter, empty string, BOM-prefixed input, and a sample agent fixture | replace-gray-matter-with-front-matter |
 
 ## Adding a New Guard
 

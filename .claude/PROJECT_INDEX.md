@@ -236,15 +236,15 @@ bun run release =
 
 Regression guards (no Jest/Vitest/Playwright). Run with `bun test` from the repo root to execute the full suite across the main app and the `1code-api` service.
 
-- **15 regression guards** under `tests/regression/`: authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Examples include `auth-get-token-deleted`, `credential-storage-tier`, `enterprise-auth-module`, `enterprise-auth-wiring`, `electron-version-pin`, `no-scratchpad-references`, `mock-api-no-snake-timestamps`, etc.
+- **17 test files in `tests/regression/`** (16 regression guards + 1 frontmatter shim unit test): authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Examples include `auth-get-token-deleted`, `credential-storage-tier`, `enterprise-auth-module`, `enterprise-auth-wiring`, `electron-version-pin`, `no-scratchpad-references`, `mock-api-no-snake-timestamps`, `no-gray-matter` (added 2026-04-12), and `frontmatter-shim-shape` (unit test, added 2026-04-12).
 - **20 service test files** under `services/1code-api/tests/` covering unit tests (`tests/lib/`, `tests/services/`, `tests/routes/`) and 3 docker-compose integration tests (`tests/integration/`) that skip without the harness.
-- **Combined total: 199 tests across 35 files** (189 pass + 10 skipped integration, 0 fail) as of 2026-04-11 post-CodeQL remediation.
+- **Combined total: 207 tests across 37 files** (197 pass + 10 skipped integration, 0 fail) as of 2026-04-12 post-`replace-gray-matter-with-front-matter` archive.
 
 **Quality gates (run all 6 before PR — none is a superset):**
 1. `bun run ts:check` — tsgo TypeScript check (baseline 0)
 2. `bun run lint` — ESLint + eslint-plugin-sonarjs
 3. `bun run build` — electron-vite 5 packaging validation
-4. `bun test` — 15 regression guards + 20 1code-api test files (199 tests, 189 pass + 10 skipped integration)
+4. `bun test` — 16 regression guards + 1 unit test + 20 1code-api test files (207 tests, 197 pass + 10 skipped integration)
 5. `bun audit` — dependency advisories
 6. `cd docs && bun run build` — xyd-js documentation site
 
@@ -377,7 +377,7 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 | 8 | Upstream sandbox OAuth extraction | ✅ Done (archived `remove-upstream-sandbox-oauth`) |
 | 9 | Minimum CI workflow | ✅ Done (`.github/workflows/ci.yml`) |
 | 10 | Dependabot config | ✅ Done |
-| 11 | Test framework + regression guards | ✅ Done (bun:test, 15 guards; combined repo total 199 tests / 189 pass post-CodeQL remediation 2026-04-11) |
+| 11 | Test framework + regression guards | ✅ Done (bun:test, 16 guards + 1 unit test; combined repo total 207 tests / 197 pass post-frontmatter-parsing archive 2026-04-12) |
 | 12 | Feature flag infrastructure + Drizzle schema | ✅ Done |
 | 13 | OpenSpec 1.2.0 migration | ✅ Done |
 | 14 | Electron upgrade (39 → 40 → 41) | ✅ Done (archived `upgrade-electron-40` + `2026-04-11-upgrade-electron-41`, currently on Electron 41.2.0) |

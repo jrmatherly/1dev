@@ -3,8 +3,8 @@
 ## Quality Gates — ALL REQUIRED
 - `bun run ts:check` — tsgo (**baseline: 0 errors** in `.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2` via full 10-bucket sweep from `.scratchpad/code-problems/002-analysis.md`). **CI now fails on ANY new TS error.**
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
-- `bun run build` — electron-vite 5 build. Currently emits 1 known Rollup warning at `node_modules/gray-matter/lib/engines.js (43:13)` — scheduled for removal under active OpenSpec change `replace-gray-matter-with-front-matter`.
-- `bun test` — 15 regression guards + 20 1code-api test files = **199 tests across 35 files** (189 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~7.6s
+- `bun run build` — electron-vite 5 build. **Clean** as of 2026-04-12 — the gray-matter Rollup eval warning was eliminated via PR #14 swap to `front-matter@4.0.2` behind a canonical shim at `src/main/lib/frontmatter.ts`.
+- `bun test` — 16 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **207 tests across 37 files** (197 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~6-7s
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
 
@@ -27,7 +27,7 @@
 - @azure/msal-node ^5.1.2 (upgraded from 3.8.x), @azure/msal-node-extensions ^5.1.2
 - @types/node ^24, @swc/core ^1 (electron-vite 5 peer dep)
 - `build.externalizeDeps` config in electron.vite.config.ts (replaced `externalizeDepsPlugin`)
-- gray-matter@4.0.3 (pending removal under `replace-gray-matter-with-front-matter`; will swap to front-matter@4.0.2 behind a canonical shim at `src/main/lib/frontmatter.ts`)
+- ~~gray-matter@4.0.3~~ — REMOVED 2026-04-12 via PR #14. Replaced by `front-matter@4.0.2` (behind canonical shim at `src/main/lib/frontmatter.ts`). Note: `services/1code-api/src/routes/changelog.ts` still uses `gray-matter` directly because the service workspace has its own `package.json` declaring it (out of scope for the Electron-side migration). If service-side parsing is unified later, the same shim pattern should be replicated under `services/1code-api/src/lib/`.
 
 ## Upgrade Blockers (as of 2026-04-11)
 - **Vite pin (7.x, was 6.x):** Phase A Vite 7.3.2 landed 2026-04-10; Phase B Vite 8 blocked on `electron-vite 6.0.0` stable (currently beta-only `6.0.0-beta.0`)
@@ -67,7 +67,9 @@
 - **`drizzle-kit generate` requires DATABASE_URL even when offline:** Pass placeholder: `DATABASE_URL="postgresql://localhost/x" bunx drizzle-kit generate`.
 - **Postgres 18 volume mount change:** Postgres 18 moved the default data directory; existing volume mounts from Postgres 17 need reconciling.
 - **`.dockerignore` gotcha for bundled TypeScript services:** Don't exclude `tsconfig.json` — the bundler reads it for path aliases. Exclude `dist/`, `node_modules/`, tests, README — but keep tsconfig.
-- **OpenSpec CLI `validate` flag shape:** Use `bunx @fission-ai/openspec@1.2.0 validate <change-name> --strict --no-interactive`. The `--change <name>` form does NOT exist (use positional arg); `--changes` (plural) is a bulk "validate all changes" flag. Discovered during session-sync 2026-04-11.
+- **OpenSpec CLI `validate` flag shape:** Use `bunx @fission-ai/openspec@1.2.0 validate <change-name> --strict --no-interactive`. The `--change <name>` form does NOT exist (use positional arg); `--changes` (plural) is a bulk "validate all changes" flag. Discovered during session-sync 2026-04-11. **Note**: this gotcha was re-confirmed during the gray-matter migration on 2026-04-12 — the original `tasks.md` §12.1 had the wrong flag form which had to be corrected at apply time.
+- **Worktree fresh-checkout install gotchas (3-fold):** A fresh git worktree of this repo needs THREE install passes, not one. (1) `bun install --frozen-lockfile` at root — installs the Electron app deps. (2) `cd services/1code-api && bun install --frozen-lockfile` — services/1code-api/ is NOT a bun workspace (no `workspaces` field in root package.json), it's a standalone subdirectory with its own package.json declaring fastify/yaml/gray-matter/drizzle. Without this, `bun test` walks the repo and finds service test files that fail with `Cannot find package 'fastify'`. (3) `cd docs && bun install --frozen-lockfile` — docs/ is also a separate workspace; needed for `bun run build` (the xyd binary). (3.5 optional) `bun run codex:download` — populates `resources/bin/<platform>-<arch>/codex` for `bun run dev`'s Codex MCP warmup. **Discovered while applying `replace-gray-matter-with-front-matter` 2026-04-12; same pattern was already in CI's docs-build job for docs/, but the test job was missing the services/1code-api/ install — fixed in PR #15 `9efefc9`.**
+- **bun's "orphan node_modules after `bun remove`" quirk:** `bun remove <pkg>` correctly updates `package.json` and `bun.lock` but does NOT prune transitively-dropped packages from `node_modules/` on disk. Subsequent `bun install` reports "no changes" because the lockfile is consistent. Force-prune via `rm -rf node_modules && bun install --frozen-lockfile` is the workaround. Discovered during gray-matter migration: removing gray-matter left `section-matter` and `strip-bom-string` as orphan directories on disk for the disk-state assertion in tasks.md §2.4.
 - **Rollup warnings are static-analysis based, not runtime:** Passing `{ engines: { yaml: ... } }` to gray-matter at call sites does NOT silence the `eval` warning because Rollup inspects the bundled source, not the runtime path. Empirically verified during the `replace-gray-matter-with-front-matter` research spike. Only removing the module from the bundle (via dependency swap) eliminates the warning.
 
 ## TS Baseline Tooling (load-bearing)

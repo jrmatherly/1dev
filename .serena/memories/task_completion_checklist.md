@@ -3,8 +3,8 @@
 ## Required — All Quality Gates
 1. `bun run ts:check` — **baseline 0 errors** (`.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2`). **CI now fails on ANY new TS error.**
 2. `bun run lint` — ESLint + eslint-plugin-sonarjs (~8s)
-3. `bun run build` — electron-vite build (currently emits 1 known Rollup warning from `gray-matter/lib/engines.js`, scheduled for removal under `replace-gray-matter-with-front-matter`)
-4. `bun test` — 15 regression guards + 20 1code-api test files = 199 tests across 35 files (189 pass + 10 skipped integration, 0 fail)
+3. `bun run build` — electron-vite build (clean — the gray-matter Rollup eval warning was eliminated 2026-04-12 via PR #14 swap to front-matter)
+4. `bun test` — 16 regression guards + 1 unit test + 20 1code-api test files = 207 tests across 37 files (197 pass + 10 skipped integration, 0 fail)
 5. `bun audit` — focus on NEW advisories only
 6. CI also runs `cd docs && bun run build` — recommended locally too
 
@@ -59,8 +59,8 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:verify <name>` — verify implementation matches artifacts
 4. `/opsx:archive <name>` — archive and promote capability specs
-- **12 capability specs (85 requirements)** in `openspec/specs/`: `1code-api-litellm-provisioning` (19), `brand-identity` (11), `claude-code-auth-import` (2), `credential-storage` (7), `documentation-site` (5), `electron-runtime` (4), `enterprise-auth` (5), `enterprise-auth-wiring` (4), `feature-flags` (6), `renderer-data-access` (5), `self-hosted-api` (11), `shiki-highlighter` (6)
-- **Active changes (2)**: `replace-gray-matter-with-front-matter` (0/67), `upgrade-vite-8-build-stack` (15/50)
+- **13 capability specs (91 requirements)** in `openspec/specs/`: `1code-api-litellm-provisioning` (19), `brand-identity` (11), `claude-code-auth-import` (2), `credential-storage` (7), `documentation-site` (5), `electron-runtime` (4), `enterprise-auth` (5), `enterprise-auth-wiring` (4), `feature-flags` (6), `frontmatter-parsing` (6), `renderer-data-access` (5), `self-hosted-api` (11), `shiki-highlighter` (6)
+- **Active changes (1)**: `upgrade-vite-8-build-stack` (15/50)
 - Full rules: [`.claude/rules/openspec.md`](../../.claude/rules/openspec.md)
 
 ## Phase 0 Status (15 of 15 complete ✅)
@@ -82,8 +82,8 @@ All gates closed. Phase 0.5 (harden-credential-storage) also complete.
 - Do NOT enable `clientCapabilities: ["CP1"]` — LiteLLM is not CAE-enabled (28h unrevocable tokens)
 - Full rule: [`.claude/rules/auth-env-vars.md`](../../.claude/rules/auth-env-vars.md)
 
-## If Editing Main-Process Frontmatter Parsing (pending `replace-gray-matter-with-front-matter`)
-- Post-merge: all frontmatter parsing SHALL import `matter` from `src/main/lib/frontmatter.ts` (the canonical shim). Direct `front-matter` / `gray-matter` / `vfile-matter` / `js-yaml` imports are forbidden outside the shim.
-- Regression guard `tests/regression/no-gray-matter.test.ts` (planned) will enforce the rule.
-- Implementation MUST happen in a git worktree per `tasks.md` §1 + §13 of the change.
-- Full spec: `openspec/changes/replace-gray-matter-with-front-matter/specs/frontmatter-parsing/spec.md` (not yet promoted to baseline).
+## If Editing Main-Process Frontmatter Parsing
+- All frontmatter parsing MUST import `{ matter }` from `src/main/lib/frontmatter.ts` (the canonical shim). Direct `front-matter` / `gray-matter` / `vfile-matter` / `js-yaml` imports are forbidden outside the shim.
+- Regression guard `tests/regression/no-gray-matter.test.ts` enforces the rule (scans `src/main/**/*.{ts,tsx}` and root `package.json`).
+- Shim signature: `function matter<T extends Record<string, unknown> = Record<string, unknown>>(content: string): { data: T; content: string }`. Generic default is `Record<string, unknown>` not `any` — consumers must narrow before use.
+- Full spec: `openspec/specs/frontmatter-parsing/spec.md` (6 requirements / 15 scenarios, baseline since 2026-04-12 via archived change `2026-04-12-replace-gray-matter-with-front-matter`).
