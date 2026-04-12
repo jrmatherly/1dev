@@ -45,3 +45,6 @@ bun.lockb
 
 # 1code-api runtime teams config (real Entra group IDs — example template is committed)
 services/1code-api/config/teams.yaml
+
+# Git worktrees (isolated workspaces for feature branches)
+.worktrees/
