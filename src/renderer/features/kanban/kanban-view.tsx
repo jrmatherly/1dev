@@ -256,7 +256,7 @@ export function KanbanView() {
   // Build set of chatIds (workspace IDs) that are loading
   // loadingSubChats is Map<subChatId, parentChatId>, we need the VALUES (parentChatId)
   const workspacesLoading = useMemo(
-    () => new Set([...loadingSubChats.values()]),
+    () => new Set(loadingSubChats.values()),
     [loadingSubChats],
   );
 

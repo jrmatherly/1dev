@@ -30,7 +30,7 @@ import type { TerminalInstance } from "./types";
 function getShortPath(fullPath: string | undefined): string | null {
   if (!fullPath) return null;
   const parts = fullPath.split("/").filter(Boolean);
-  return parts[parts.length - 1] || null;
+  return parts.at(-1) || null;
 }
 
 interface TerminalTabProps {

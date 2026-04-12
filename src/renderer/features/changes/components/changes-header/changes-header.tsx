@@ -108,7 +108,7 @@ export function ChangesHeader({
               </TooltipTrigger>
               <SelectContent align="start">
                 {sortedBranches
-                  .filter((branch) => branch)
+                  .filter(Boolean)
                   .map((branch) => (
                     <SelectItem key={branch} value={branch} className="text-xs">
                       {branch}

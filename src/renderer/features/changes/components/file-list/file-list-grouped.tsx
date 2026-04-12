@@ -45,12 +45,12 @@ function groupFilesByFolder(files: ChangedFile[]): FolderGroup[] {
     .map(([folderPath, files]) => {
       const pathParts = folderPath.split("/");
       const folderName =
-        folderPath === "" ? "" : pathParts[pathParts.length - 1];
+        folderPath === "" ? "" : (pathParts.at(-1) ?? "");
 
       return {
         folderPath,
         folderName,
-        files: files.sort((a, b) => {
+        files: files.toSorted((a, b) => {
           const aName = a.path.split("/").pop() || "";
           const bName = b.path.split("/").pop() || "";
           return aName.localeCompare(bName);

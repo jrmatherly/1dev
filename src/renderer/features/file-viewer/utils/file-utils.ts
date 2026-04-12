@@ -3,7 +3,7 @@
  */
 export function getFileName(filePath: string): string {
   const parts = filePath.split("/");
-  return parts[parts.length - 1] || filePath;
+  return parts.at(-1) || filePath;
 }
 
 /**
@@ -20,5 +20,5 @@ export function formatFileSize(bytes: number): string {
  */
 export function getFileExtension(filePath: string): string {
   const parts = filePath.split(".");
-  return parts.length > 1 ? `.${parts[parts.length - 1].toLowerCase()}` : "";
+  return parts.length > 1 ? `.${parts.at(-1)!.toLowerCase()}` : "";
 }

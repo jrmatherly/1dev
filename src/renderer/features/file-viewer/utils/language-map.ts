@@ -197,7 +197,7 @@ export function getMonacoLanguage(filePath: string): string {
     return filenameToMonacoLanguage[filename];
   }
 
-  const ext = filename.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
+  const ext = /\.[^.]+$/.exec(filename.toLowerCase())?.[0] || "";
   if (extensionToMonacoLanguage[ext]) {
     return extensionToMonacoLanguage[ext];
   }
@@ -209,7 +209,7 @@ export function getMonacoLanguage(filePath: string): string {
  * Check if a file is a data file (should open in Data Viewer instead)
  */
 export function isDataFile(filePath: string): boolean {
-  const ext = filePath.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
+  const ext = /\.[^.]+$/.exec(filePath.toLowerCase())?.[0] || "";
   const dataExtensions = [
     ".csv",
     ".tsv",
@@ -232,7 +232,7 @@ export function isDataFile(filePath: string): boolean {
  */
 export type FileViewerType = "code" | "image" | "markdown" | "unsupported";
 
-const IMAGE_EXTENSIONS = [
+const IMAGE_EXTENSIONS = new Set([
   ".png",
   ".jpg",
   ".jpeg",
@@ -241,9 +241,9 @@ const IMAGE_EXTENSIONS = [
   ".webp",
   ".ico",
   ".bmp",
-];
+]);
 
-const UNSUPPORTED_EXTENSIONS = [
+const UNSUPPORTED_EXTENSIONS = new Set([
   ".pdf",
   ".exe",
   ".dll",
@@ -256,16 +256,16 @@ const UNSUPPORTED_EXTENSIONS = [
   ".gz",
   ".7z",
   ".rar",
-];
+]);
 
 /**
  * Get the appropriate viewer type for a file
  */
 export function getFileViewerType(filePath: string): FileViewerType {
-  const ext = filePath.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
+  const ext = /\.[^.]+$/.exec(filePath.toLowerCase())?.[0] || "";
 
-  if (IMAGE_EXTENSIONS.includes(ext)) return "image";
-  if (UNSUPPORTED_EXTENSIONS.includes(ext)) return "unsupported";
+  if (IMAGE_EXTENSIONS.has(ext)) return "image";
+  if (UNSUPPORTED_EXTENSIONS.has(ext)) return "unsupported";
   if ([".md", ".mdx", ".markdown"].includes(ext)) return "markdown";
   return "code";
 }
@@ -274,6 +274,6 @@ export function getFileViewerType(filePath: string): FileViewerType {
  * Check if a file is an image
  */
 export function isImageFile(filePath: string): boolean {
-  const ext = filePath.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
-  return IMAGE_EXTENSIONS.includes(ext);
+  const ext = /\.[^.]+$/.exec(filePath.toLowerCase())?.[0] || "";
+  return IMAGE_EXTENSIONS.has(ext);
 }

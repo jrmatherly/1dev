@@ -34,7 +34,7 @@ function getServerIconUrl(server: MCPServer): string | null {
   let bestSize = 0;
   for (const icon of icons) {
     if (icon.sizes?.length) {
-      const size = parseInt(icon.sizes[0], 10) || 0;
+      const size = Number.parseInt(icon.sizes[0], 10) || 0;
       if (size > bestSize) {
         bestSize = size;
         best = icon;

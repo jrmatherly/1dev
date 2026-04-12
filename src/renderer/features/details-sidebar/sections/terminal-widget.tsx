@@ -45,8 +45,8 @@ function generatePaneId(chatId: string, terminalId: string): string {
 function getNextTerminalName(terminals: TerminalInstance[]): string {
   const existingNumbers = terminals
     .map((t) => {
-      const match = t.name.match(/^Terminal (\d+)$/);
-      return match ? parseInt(match[1], 10) : 0;
+      const match = /^Terminal (\d+)$/.exec(t.name);
+      return match ? Number.parseInt(match[1], 10) : 0;
     })
     .filter((n) => n > 0);
 
@@ -170,7 +170,7 @@ export const TerminalWidget = memo(function TerminalWidget({
       }));
 
       if (currentActiveId === id) {
-        const newActive = newTerminals[newTerminals.length - 1]?.id || null;
+        const newActive = newTerminals.at(-1)?.id || null;
         setAllActiveIds((prev) => ({
           ...prev,
           [currentChatId]: newActive,
@@ -240,12 +240,12 @@ export const TerminalWidget = memo(function TerminalWidget({
       const currentActiveId = activeTerminalIdRef.current;
       if (
         currentActiveId &&
-        !remainingTerminals.find((t) => t.id === currentActiveId)
+        !remainingTerminals.some((t) => t.id === currentActiveId)
       ) {
         setAllActiveIds((prev) => ({
           ...prev,
           [currentChatId]:
-            remainingTerminals[remainingTerminals.length - 1]?.id || null,
+            remainingTerminals.at(-1)?.id || null,
         }));
       }
     },

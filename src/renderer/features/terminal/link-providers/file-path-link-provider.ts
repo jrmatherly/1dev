@@ -112,8 +112,8 @@ export class FilePathLinkProvider implements ILinkProvider {
     while ((match = FILE_PATH_PATTERN.exec(lineText)) !== null) {
       const fullMatch = match[0];
       const path = match[1];
-      const lineNum = match[2] ? parseInt(match[2], 10) : undefined;
-      const colNum = match[3] ? parseInt(match[3], 10) : undefined;
+      const lineNum = match[2] ? Number.parseInt(match[2], 10) : undefined;
+      const colNum = match[3] ? Number.parseInt(match[3], 10) : undefined;
 
       // Skip if it doesn't look like a file
       if (!looksLikeFile(path)) {

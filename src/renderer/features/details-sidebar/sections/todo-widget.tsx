@@ -225,7 +225,7 @@ export const TodoWidget = memo(function TodoWidget({
 
   // Find current task index for progress display
   const currentTaskIndex = currentTask
-    ? todos.findIndex((t) => t === currentTask) + 1
+    ? todos.indexOf(currentTask) + 1
     : completedCount;
 
   // Don't render if no todos

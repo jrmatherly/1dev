@@ -190,7 +190,7 @@ export const FileListItem = memo(function FileListItem({
  */
 export function getFileName(path: string): string {
   const parts = path.split("/");
-  return parts[parts.length - 1] || path;
+  return parts.at(-1) || path;
 }
 
 /**

@@ -173,7 +173,7 @@ export function AutomationsView() {
           {/* Content */}
           {isLoading ? (
             <div className="grid grid-cols-1 min-420:grid-cols-2 md:grid-cols-3 gap-2 mt-3">
-              {[...Array(6)].map((_, i) => (
+              {Array.from({ length: 6 }, (_, i) => (
                 <div
                   key={i}
                   className="bg-background border border-border rounded-[10px] p-4 animate-pulse"

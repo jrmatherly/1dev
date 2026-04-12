@@ -181,9 +181,7 @@ function createAndShowPopup(
   let terminalElement = elementAtCursor?.closest(".xterm") ?? null;
 
   // Fallback: try to find terminal by querying document
-  if (!terminalElement) {
-    terminalElement = document.querySelector(".xterm") as HTMLElement | null;
-  }
+  terminalElement ??= document.querySelector(".xterm") as HTMLElement | null;
 
   if (!terminalElement) {
     return;
