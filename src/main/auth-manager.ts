@@ -350,7 +350,7 @@ export class AuthManager {
   /**
    * Start auth flow by opening browser
    */
-  startAuthFlow(mainWindow: BrowserWindow | null): void {
+  async startAuthFlow(mainWindow: BrowserWindow | null): Promise<void> {
     if (this.isEnterprise) {
       if (!this.enterpriseAuth) {
         console.error("[AuthManager] Enterprise auth not initialized");
@@ -375,7 +375,8 @@ export class AuthManager {
       authUrl += `&protocol=apollosai-agents-dev`;
     }
 
-    shell.openExternal(authUrl);
+    const { safeOpenExternal } = await import("./lib/safe-external");
+    await safeOpenExternal(authUrl);
   }
 
   /**

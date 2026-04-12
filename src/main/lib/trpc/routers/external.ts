@@ -129,7 +129,8 @@ export const externalRouter = router({
   openExternal: publicProcedure
     .input(z.string())
     .mutation(async ({ input: url }) => {
-      await shell.openExternal(url);
+      const { safeOpenExternal } = await import("../../safe-external");
+      await safeOpenExternal(url);
       return { success: true };
     }),
 

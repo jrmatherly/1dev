@@ -806,7 +806,8 @@ export class CraftOAuth {
 
     // Open browser for authorization
     this.callbacks.onStatus("Opening browser for authorization...");
-    await shell.openExternal(authUrl.toString());
+    const { safeOpenExternal } = await import("./safe-external");
+    await safeOpenExternal(authUrl.toString());
 
     // Wait for the authorization code
     this.callbacks.onStatus("Waiting for you to authorize in browser...");

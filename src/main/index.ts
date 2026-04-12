@@ -884,8 +884,8 @@ if (gotTheLock) {
             {
               label: "Learn More",
               click: async () => {
-                const { shell } = await import("electron");
-                await shell.openExternal("https://apollosai.dev");
+                const { safeOpenExternal } = await import("./lib/safe-external");
+                await safeOpenExternal("https://apollosai.dev");
               },
             },
           ],

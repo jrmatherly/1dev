@@ -136,9 +136,9 @@ export class EnterpriseAuth {
     const result = await this.pca.acquireTokenInteractive({
       scopes: DEFAULT_SCOPES,
       openBrowser: async (url) => {
-        // Electron's shell.openExternal handles cross-platform browser launch
-        const { shell } = await import("electron");
-        await shell.openExternal(url);
+        // Use safe wrapper that validates URL scheme
+        const { safeOpenExternal } = await import("./safe-external");
+        await safeOpenExternal(url);
       },
       successTemplate:
         "<h1>Authentication complete</h1><p>You can close this window and return to 1Code.</p>",

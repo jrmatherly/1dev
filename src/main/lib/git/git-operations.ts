@@ -623,7 +623,8 @@ export const createGitOperationsRouter = () => {
             const repo = repoMatch[1].replace(/\.git$/, "");
             const url = `https://github.com/${repo}/compare/${branch}?expand=1`;
 
-            await shell.openExternal(url);
+            const { safeOpenExternal } = await import("../safe-external");
+            await safeOpenExternal(url);
             await git.fetch();
             invalidateGitStateCaches(input.worktreePath);
 

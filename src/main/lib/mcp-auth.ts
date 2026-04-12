@@ -254,8 +254,12 @@ export async function startMcpOAuth(
       timeoutId,
     });
 
-    // Open browser
-    shell.openExternal(authUrl);
+    // Open browser (scheme-validated)
+    import("./safe-external").then(({ safeOpenExternal }) =>
+      safeOpenExternal(authUrl).catch((err) =>
+        console.error("[MCP Auth] Failed to open browser:", err.message),
+      ),
+    );
   });
 }
 
