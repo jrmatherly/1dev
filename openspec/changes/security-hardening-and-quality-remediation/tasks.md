@@ -51,7 +51,7 @@
 - [x] 5.1 Set `readOnlyRootFilesystem: true` in `deploy/kubernetes/1code-api/app/helmrelease.yaml`
 - [x] 5.2 Add `emptyDir` volume mount for `/tmp` in the HelmRelease pod spec *(already existed)*
 - [ ] 5.3 Pin `oven/bun:1` base image to specific digest in `services/1code-api/Dockerfile` *(TODO comment added — needs docker pull for actual digest)*
-- [ ] 5.4 Pin `gcr.io/distroless/nodejs22-debian12` base image to specific digest in `services/1code-api/Dockerfile` *(TODO comment added — needs docker pull for actual digest)*
+- [ ] 5.4 Pin `gcr.io/distroless/nodejs24-debian12` base image to specific digest in `services/1code-api/Dockerfile` *(upgrade from nodejs22 → nodejs24 to match Electron 41's Node.js 24.14 runtime; needs docker pull for actual digest)*
 - [x] 5.5 Add Dockerfile comment documenting why each digest is pinned and when to update
 - [x] 5.6 Add `.gitignore` entries for unencrypted SOPS files: `*.dec.yaml`, `*.unencrypted.yaml`, `*.cleartext.yaml`
 
