@@ -13,10 +13,10 @@
 - [x] 1.11 Add `tests/regression/signed-fetch-allowlist.test.ts` — verifies signedFetch handler contains URL origin validation
 - [x] 1.12 Update `docs/enterprise/phase-0-gates.md` — change subtitle from "12 of 15 complete" to "15 of 15 complete", update table to show all 15 gates as Done
 - [x] 1.13 Update `.github/workflows/ci.yml` audit step — replace `|| true` with severity-gated failure (fail on high-severity direct-dependency advisories only)
-- [ ] 1.14 Rename `deploy/kubernetes/1code-api/app/securitypolicy.draft.yaml` → `securitypolicy.yaml` *(cross-repo: cluster)*
-- [ ] 1.15 Add `securitypolicy.yaml` to `deploy/kubernetes/1code-api/app/kustomization.yaml` resources list *(cross-repo: cluster)*
-- [ ] 1.16 Change `deploy/kubernetes/1code-api/app/ciliumnetworkpolicy.yaml` — set `enableDefaultDeny: { egress: true, ingress: true }` *(cross-repo: cluster)*
-- [ ] 1.17 Verify CiliumNetworkPolicy allow rules cover all legitimate traffic (DNS, PostgreSQL, LiteLLM, health probes, Envoy Gateway ingress) *(cross-repo: cluster)*
+- [x] 1.14 Rename `deploy/kubernetes/1code-api/app/securitypolicy.draft.yaml` → `securitypolicy.yaml`
+- [x] 1.15 Add `securitypolicy.yaml` to `deploy/kubernetes/1code-api/app/kustomization.yaml` resources list
+- [x] 1.16 Change `deploy/kubernetes/1code-api/app/ciliumnetworkpolicy.yaml` — set `enableDefaultDeny: { egress: true, ingress: true }`
+- [x] 1.17 Verify CiliumNetworkPolicy allow rules cover all legitimate traffic (DNS, PostgreSQL, LiteLLM, health probes, Envoy Gateway ingress)
 - [x] 1.18 Run all 6 quality gates after Phase A changes: `bun run ts:check && bun run lint && bun run build && bun test && bun audit && (cd docs && bun run build)`
 
 ## 2. Phase B — Quick Wins: Performance

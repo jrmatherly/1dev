@@ -9,3 +9,4 @@ resources:
   - ./teams-configmap.yaml
   - ./httproute.yaml
   - ./ciliumnetworkpolicy.yaml
+  - ./securitypolicy.yaml

@@ -1,13 +1,8 @@
 ---
-# DRAFT — Envoy Gateway SecurityPolicy for 1code-api
+# Envoy Gateway SecurityPolicy for 1code-api
 #
-# Status: REVIEW ONLY. This file is NOT listed in kustomization.yaml and
-# therefore NOT reconciled by Flux. Promote to production by:
-#   1. Reviewing with the cluster operator (see cluster-agent prompt in
-#      the CodeQL remediation session log for 2026-04-11).
-#   2. Renaming to `securitypolicy.yaml` (drop the `.draft` suffix).
-#   3. Adding `./securitypolicy.yaml` to `kustomization.yaml` resources.
-#   4. Committing and pushing — Flux will reconcile on the next sync.
+# Status: PRODUCTION. Listed in kustomization.yaml and reconciled by Flux.
+# Promoted from draft on 2026-04-12 (security-hardening Phase A, task 1.14).
 #
 # Why a SECOND SecurityPolicy instead of extending the existing one?
 # ------------------------------------------------------------------

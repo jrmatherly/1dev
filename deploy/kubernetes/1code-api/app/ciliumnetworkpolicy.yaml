@@ -8,8 +8,8 @@ spec:
     matchLabels:
       app.kubernetes.io/name: 1code-api
   enableDefaultDeny:
-    egress: false
-    ingress: false
+    egress: true
+    ingress: true
   ingress:
     # Allow traffic from Envoy Gateway
     - fromEndpoints:
