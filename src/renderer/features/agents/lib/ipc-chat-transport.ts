@@ -560,12 +560,20 @@ export class IPCChatTransport implements ChatTransport<UIMessage> {
       const fileContents: string[] = [];
 
       for (const p of msg.parts) {
-        const partType = (p as any).type as string;
-        if (partType === "text" && (p as any).text) {
-          textParts.push((p as any).text);
+        // AI SDK parts are a discriminated union; we touch fields across
+        // multiple variants, so narrow once via a structural shape.
+        const pAny = p as {
+          type?: string;
+          text?: string;
+          filePath?: string;
+          content?: string;
+        };
+        const partType = pAny.type;
+        if (partType === "text" && pAny.text) {
+          textParts.push(pAny.text);
         } else if (partType === "file-content") {
           // Hidden file content - add to prompt but not displayed in UI
-          const fc = p as any;
+          const fc = pAny;
           const fileName =
             fc.filePath?.split("/").pop() || fc.filePath || "file";
           fileContents.push(`\n--- ${fileName} ---\n${fc.content}`);
@@ -589,8 +597,12 @@ export class IPCChatTransport implements ChatTransport<UIMessage> {
 
     for (const part of msg.parts) {
       // Check for data-image parts with base64 data
-      if (part.type === "data-image" && (part as any).data) {
-        const data = (part as any).data;
+      const dataPart = part as {
+        type?: string;
+        data?: { base64Data?: string; mediaType?: string; filename?: string };
+      };
+      if (dataPart.type === "data-image" && dataPart.data) {
+        const data = dataPart.data;
         if (data.base64Data && data.mediaType) {
           images.push({
             base64Data: data.base64Data,

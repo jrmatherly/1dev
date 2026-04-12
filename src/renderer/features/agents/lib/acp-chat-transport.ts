@@ -337,10 +337,17 @@ export class ACPChatTransport implements ChatTransport<UIMessage> {
     const fileContents: string[] = [];
 
     for (const part of message.parts) {
-      if (part.type === "text" && (part as any).text) {
-        textParts.push((part as any).text);
-      } else if ((part as any).type === "file-content") {
-        const filePart = part as any;
+      // AI SDK parts are a discriminated union; narrow structurally.
+      const pAny = part as {
+        type?: string;
+        text?: string;
+        filePath?: string;
+        content?: string;
+      };
+      if (pAny.type === "text" && pAny.text) {
+        textParts.push(pAny.text);
+      } else if (pAny.type === "file-content") {
+        const filePart = pAny;
         const fileName =
           filePart.filePath?.split("/").pop() || filePart.filePath || "file";
         fileContents.push(`\n--- ${fileName} ---\n${filePart.content}`);
@@ -356,8 +363,12 @@ export class ACPChatTransport implements ChatTransport<UIMessage> {
     const images: ImageAttachment[] = [];
 
     for (const part of message.parts) {
-      if (part.type === "data-image" && (part as any).data) {
-        const data = (part as any).data;
+      const dataPart = part as {
+        type?: string;
+        data?: { base64Data?: string; mediaType?: string; filename?: string };
+      };
+      if (dataPart.type === "data-image" && dataPart.data) {
+        const data = dataPart.data;
         if (data.base64Data && data.mediaType) {
           images.push({
             base64Data: data.base64Data,
