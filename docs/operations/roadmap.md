@@ -203,6 +203,70 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None
 **Canonical reference:** Current stable anchor lives in this roadmap file's P1 entry "Extend Envoy SecurityPolicy to cover `1code-api` HTTPRoute" which cites the `enable_jwt_auth` Enterprise gate and the `ValueError("JWT Auth is an enterprise only feature.")` source behavior.
 
+### [Deferred] Decompose `active-chat.tsx` (8,743 lines → focused components with React.memo)
+
+**Added:** 2026-04-12 (Phase D §10.1 of `security-hardening-and-quality-remediation`)
+**Scope:** `src/renderer/features/agents/main/active-chat.tsx` is the single largest renderer file at 8,743 lines. Decompose into focused child components (message list, input box, tool invocation panel, streaming indicator, stop button, etc.) and wrap expensive children in `React.memo` with custom equality checks. Prerequisite for adopting React 19 concurrent features (Suspense, useTransition).
+**Effort:** Large (multi-session)
+**Prereqs:** Phase C §7 `claude.ts` decomposition complete (sets the precedent + extracts shared session-manager that active-chat.tsx consumes)
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.1
+
+### [Deferred] Adopt React 19 features (lazy/Suspense code-splitting, useTransition for streaming, use() hook)
+
+**Added:** 2026-04-12 (Phase D §10.2 of `security-hardening-and-quality-remediation`)
+**Scope:** The renderer bundle is ~15.6 MB main chunk. React 19 ships `use()`, `useTransition`, Suspense for data, and `<Activity>` for pre-rendering hidden tabs. Combine with Vite `manualChunks` splitting (Phase C §8.5) to lazy-load Monaco, mermaid, katex, cytoscape chunks on-demand. Target: first-paint main chunk < 5 MB.
+**Effort:** Large (multi-session)
+**Prereqs:** Phase C §8.5 bundle splitting complete (manualChunks in `electron.vite.config.ts`)
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.2
+
+### [Deferred] Enable TS strictness flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
+
+**Added:** 2026-04-12 (Phase D §10.3 of `security-hardening-and-quality-remediation`)
+**Scope:** Two TypeScript 6 strictness flags still disabled: `noUncheckedIndexedAccess` (catches `arr[i]` returning `T` instead of `T | undefined` on out-of-bounds), `exactOptionalPropertyTypes` (distinguishes `{x?: T}` from `{x: T | undefined}`). Enabling them currently produces hundreds of new errors across the codebase. Requires a systematic `as any` sweep first (Phase C §8.7) to eliminate type escape hatches, then per-module fixes.
+**Effort:** Medium (systematic, can be parallelized per-directory)
+**Prereqs:** Phase C §8.7 `as any` cast sweep complete (96 sites)
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.3
+
+### [Ready] Restructure `provisioning.ts` transaction — move external API calls outside PostgreSQL transaction boundary (saga pattern)
+
+**Added:** 2026-04-12 (Phase D §10.4 of `security-hardening-and-quality-remediation`)
+**Scope:** `services/1code-api/src/services/provisioning.ts` calls the LiteLLM API inside a PostgreSQL transaction, holding the row lock for the duration of the remote HTTP round-trip. Under load this can cascade into connection-pool exhaustion. Refactor to the **saga pattern**: (1) commit local DB state → (2) call LiteLLM API → (3) commit result in a second local transaction, with compensating transactions for partial failures.
+**Effort:** Medium (needs careful rollback-path design + new integration tests)
+**Prereqs:** None
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.4
+
+### [Ready] Wire integration tests into CI — docker-compose harness + scheduled workflow for 10 skipped tests
+
+**Added:** 2026-04-12 (Phase D §10.5 of `security-hardening-and-quality-remediation`)
+**Scope:** `services/1code-api/tests/integration/` contains 10 tests that currently skip without a docker-compose harness (PostgreSQL + LiteLLM fixtures). Add a `.github/workflows/integration-test.yml` scheduled workflow (nightly at 03:00 UTC) that spins up `docker-compose.test.yml`, runs the integration suite with `INTEGRATION_TEST=1`, and fails loudly on regressions. Out of the critical-path CI (too slow) but catches regressions before release.
+**Effort:** Medium (docker-compose file exists; wiring + secrets injection + flake budget needed)
+**Prereqs:** None
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.5
+
+### [Deferred] Add renderer test infrastructure — vitest + @testing-library/react for critical UI paths
+
+**Added:** 2026-04-12 (Phase D §10.6 of `security-hardening-and-quality-remediation`)
+**Scope:** The renderer has zero test coverage — all 231 tests target the main process or `services/1code-api/`. Add `vitest` + `@testing-library/react` and write tests for critical UI paths: sign-in flow, chat send/receive, streaming indicator, error recovery. Start with the 5 most-used components, expand over time.
+**Effort:** Large (new framework + fixture setup + initial test authorship)
+**Prereqs:** None (but benefits from Phase D §10.1 `active-chat.tsx` decomposition for easier isolated testing)
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.6
+
+### [Ready] Empty catch block audit (~79 sites) — add structured error logging or explicit rationale comments
+
+**Added:** 2026-04-12 (Phase D §10.7 of `security-hardening-and-quality-remediation`)
+**Scope:** ~79 empty `catch {}` or `catch (e) {}` blocks across the codebase silently swallow errors. Systematically audit each site and either (a) add structured error logging via the project's logger, or (b) add an explicit comment explaining why the error is intentionally ignored (e.g., "fallback path — primary handler logs"). Prevents future silent-failure debugging pain.
+**Effort:** Medium (systematic, per-directory)
+**Prereqs:** None
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.7
+
+### [Deferred] Reduce unbounded module-level Maps in `active-chat.tsx` — add LRU eviction or WeakMap patterns
+
+**Added:** 2026-04-12 (Phase D §10.8 of `security-hardening-and-quality-remediation`)
+**Scope:** `active-chat.tsx` declares several module-level `Map` instances (per-message state caches, tool invocation tracking) that grow unbounded over a long session. Convert to either `LRUCache` (bounded by count) or `WeakMap` (auto-GC when keys are unreachable). Particularly relevant for the tool invocation result cache which retains payloads for every tool call across all sessions.
+**Effort:** Medium (needs profiling to confirm which Maps leak + per-Map refactor decisions)
+**Prereqs:** Phase D §10.1 `active-chat.tsx` decomposition complete (easier to reason about isolated Maps after split)
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.8
+
 ---
 
 ## Recently Completed

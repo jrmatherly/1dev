@@ -41,7 +41,7 @@ grep -rn "fetch(\`\${apiUrl}\|fetch(\`\${API_BASE}\|getApiBaseUrl" src/main/ src
 1. **Do not introduce new `remoteTrpc.*` call sites** without documenting them in the [Upstream Features Catalog](../enterprise/upstream-features.md). Every upstream call site is future migration cost.
 2. **Any feature touching `remoteTrpc.foo.bar` will break when upstream is retired.** Prefer local tRPC routers for new functionality.
 3. **The `upstream-boundary-check` skill** (`.claude/skills/upstream-boundary-check/`) enforces this rule on every Edit/Write to files under `src/renderer/`.
-4. **`mock-api.ts` is DEPRECATED** but still imported by 6 files in `features/agents/`. Do not delete without migrating call sites first. See the `retire-mock-api-translator` OpenSpec change for the migration plan.
+4. **`mock-api.ts` is DEPRECATED and has zero remaining importers** — the migration is complete. The file now contains only F-entry stubs for the upstream SaaS surface. Do not reintroduce imports; see the archived `retire-mock-api-translator` and `migrate-mock-api-consumers` OpenSpec changes for the migration history.
 
 ## F1-F10 Catalog
 

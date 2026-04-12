@@ -90,21 +90,21 @@
 
 ## 9. Phase C — Documentation
 
-- [ ] 9.1 Fill `docs/architecture/codebase-layout.md` with full `src/` tree content (currently exists in Serena codebase_structure memory)
-- [ ] 9.2 Fill `docs/architecture/database.md` with 7-table schema documentation (currently exists in CLAUDE.md + Serena)
-- [ ] 9.3 Fill `docs/architecture/trpc-routers.md` with 22-router documentation (currently exists in CLAUDE.md + Serena)
-- [ ] 9.4 Fill `docs/architecture/tech-stack.md` with full tech stack documentation
-- [ ] 9.5 Fill `docs/architecture/upstream-boundary.md` with F-entry call site documentation
-- [ ] 9.6 Run `cd docs && bun run build` to verify all architecture pages build correctly
+- [x] 9.1 Fill `docs/architecture/codebase-layout.md` with full `src/` tree content (currently exists in Serena codebase_structure memory) *(filled with top-level tree, services layer, main process key files table, preload, renderer feature modules, state management, docs site, OpenSpec workflow, and file-naming conventions)*
+- [x] 9.2 Fill `docs/architecture/database.md` with 7-table schema documentation (currently exists in CLAUDE.md + Serena) *(filled with 7-table inventory, migration workflow, auto-migration on startup, SQLite pragmas, drift guarantees via db-schema-auditor)*
+- [x] 9.3 Fill `docs/architecture/trpc-routers.md` with 22-router documentation (currently exists in CLAUDE.md + Serena) *(filled with 22-router inventory table, router conventions, how to add a new router, renderer consumption via TRPCProvider, drift guarantees via trpc-router-auditor)*
+- [x] 9.4 Fill `docs/architecture/tech-stack.md` with full tech stack documentation *(already comprehensive pre-task; fixed test count drift from "14 guards, 58 tests" to current "19 guards + 1 unit + 20 service = 231 tests across 40 files")*
+- [x] 9.5 Fill `docs/architecture/upstream-boundary.md` with F-entry call site documentation *(already comprehensive pre-task; fixed mock-api.ts drift — now has zero importers, migration complete)*
+- [x] 9.6 Run `cd docs && bun run build` to verify all architecture pages build correctly *(✓ built in 19.68s)*
 
 ## 10. Phase D — Long-term Roadmap Items
 
-- [ ] 10.1 Add roadmap entry: "Decompose active-chat.tsx (8,743 lines → focused components with React.memo)" — scope: Large, prereq: Phase C claude.ts decomposition complete
-- [ ] 10.2 Add roadmap entry: "Adopt React 19 features (lazy/Suspense code-splitting, useTransition for streaming, use() hook)" — scope: Large, prereq: bundle splitting complete
-- [ ] 10.3 Add roadmap entry: "Enable TS strictness flags (noUncheckedIndexedAccess, exactOptionalPropertyTypes)" — scope: Medium, prereq: `as any` sweep complete
-- [ ] 10.4 Add roadmap entry: "Restructure provisioning.ts transaction — move external API calls outside PostgreSQL transaction boundary (saga pattern)" — scope: Medium, prereq: none
-- [ ] 10.5 Add roadmap entry: "Wire integration tests into CI — docker-compose harness + scheduled workflow for 10 skipped tests" — scope: Medium, prereq: none
-- [ ] 10.6 Add roadmap entry: "Add renderer test infrastructure — vitest + @testing-library/react for critical UI paths" — scope: Large, prereq: none
-- [ ] 10.7 Add roadmap entry: "Empty catch block audit (~79 sites) — add structured error logging or explicit rationale comments" — scope: Medium, prereq: none
-- [ ] 10.8 Add roadmap entry: "Reduce unbounded module-level Maps in active-chat.tsx — add LRU eviction or WeakMap patterns" — scope: Medium, prereq: active-chat.tsx decomposition
+- [x] 10.1 Add roadmap entry: "Decompose active-chat.tsx (8,743 lines → focused components with React.memo)" — scope: Large, prereq: Phase C claude.ts decomposition complete
+- [x] 10.2 Add roadmap entry: "Adopt React 19 features (lazy/Suspense code-splitting, useTransition for streaming, use() hook)" — scope: Large, prereq: bundle splitting complete
+- [x] 10.3 Add roadmap entry: "Enable TS strictness flags (noUncheckedIndexedAccess, exactOptionalPropertyTypes)" — scope: Medium, prereq: `as any` sweep complete
+- [x] 10.4 Add roadmap entry: "Restructure provisioning.ts transaction — move external API calls outside PostgreSQL transaction boundary (saga pattern)" — scope: Medium, prereq: none
+- [x] 10.5 Add roadmap entry: "Wire integration tests into CI — docker-compose harness + scheduled workflow for 10 skipped tests" — scope: Medium, prereq: none
+- [x] 10.6 Add roadmap entry: "Add renderer test infrastructure — vitest + @testing-library/react for critical UI paths" — scope: Large, prereq: none
+- [x] 10.7 Add roadmap entry: "Empty catch block audit (~79 sites) — add structured error logging or explicit rationale comments" — scope: Medium, prereq: none
+- [x] 10.8 Add roadmap entry: "Reduce unbounded module-level Maps in active-chat.tsx — add LRU eviction or WeakMap patterns" — scope: Medium, prereq: active-chat.tsx decomposition
 - [ ] 10.9 Run `/session-sync` after adding all roadmap entries to synchronize documentation surfaces
