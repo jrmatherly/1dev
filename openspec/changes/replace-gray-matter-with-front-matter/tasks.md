@@ -152,8 +152,8 @@
 
 ## 12. OpenSpec validation + commit + push + PR
 
-- [ ] 12.1 Validate the change: `bunx @fission-ai/openspec@1.2.0 validate --change replace-gray-matter-with-front-matter --strict --no-interactive`. Expect a clean validation — no errors, no warnings.
-- [ ] 12.2 Stage only the files this change touches. **Do NOT use `git add -A`** — another change may be in progress in a separate worktree. Explicit `git add`:
+- [x] 12.1 Validate the change: `bunx @fission-ai/openspec@1.2.0 validate --change replace-gray-matter-with-front-matter --strict --no-interactive`. Expect a clean validation — no errors, no warnings. ✓ **CLI flag-form correction**: the `--change <name>` form does NOT exist in OpenSpec 1.2.0. The correct invocation is `bunx @fission-ai/openspec@1.2.0 validate replace-gray-matter-with-front-matter --strict --no-interactive` (positional arg). Documented in Serena `environment_and_gotchas.md` as "OpenSpec CLI `validate` flag shape" gotcha. Result: `Change 'replace-gray-matter-with-front-matter' is valid`.
+- [x] 12.2 Stage only the files this change touches. **Do NOT use `git add -A`** — another change may be in progress in a separate worktree. Explicit `git add`:
   - `git add package.json bun.lock`
   - `git add src/main/lib/frontmatter.ts`
   - `git add src/main/lib/trpc/routers/commands.ts src/main/lib/trpc/routers/plugins.ts src/main/lib/trpc/routers/skills.ts src/main/lib/trpc/routers/agent-utils.ts`
@@ -162,8 +162,9 @@
   - `git add tests/fixtures/sample-agent.md` (if a new fixture was created)
   - `git add docs/operations/roadmap.md`
   - `git add openspec/changes/replace-gray-matter-with-front-matter/` (the OpenSpec artifacts themselves)
-- [ ] 12.3 Review the staged diff one more time: `git diff --cached --stat` then `git diff --cached | less`. Verify you see exactly the expected files, no stray edits.
-- [ ] 12.4 Commit with a descriptive message. Suggested format:
+  ✓ All 13 paths staged explicitly in one combined `git add` invocation.
+- [x] 12.3 Review the staged diff one more time: `git diff --cached --stat` then `git diff --cached | less`. Verify you see exactly the expected files, no stray edits. ✓ `git diff --cached --stat` showed exactly the 13 expected paths: 385 insertions / 99 deletions concentrated in tests (+261 across the 2 new test files), the new shim (+23), the OpenSpec status updates, and the small touches to package.json/bun.lock/vite-config/4 routers/agent-utils.
+- [x] 12.4 Commit with a descriptive message. Suggested format: ✓ Commit `aa95a27` created on `feat/replace-gray-matter-with-front-matter`. Message included the full latent-bug context, the 6-gate verification table, and the bundle introspection results.
 
   ```
   feat(main): replace gray-matter with front-matter to eliminate Rollup eval warning
@@ -183,9 +184,9 @@
   OpenSpec change: replace-gray-matter-with-front-matter
   ```
 
-- [ ] 12.5 Push the feature branch: `git push -u origin feat/replace-gray-matter-with-front-matter`.
-- [ ] 12.6 Open a pull request: `gh pr create --title "feat(main): replace gray-matter with front-matter" --body "<body derived from the commit message plus a link to the OpenSpec change directory>"`. Do NOT reference `.scratchpad/` from the PR body.
-- [ ] 12.7 Record the PR URL in the change's `tasks.md` here (check this item off and paste the URL inline as a reference for `/opsx:verify`).
+- [x] 12.5 Push the feature branch: `git push -u origin feat/replace-gray-matter-with-front-matter`. ✓ Branch pushed; upstream tracking set.
+- [x] 12.6 Open a pull request: `gh pr create --title "feat(main): replace gray-matter with front-matter" --body "<body derived from the commit message plus a link to the OpenSpec change directory>"`. Do NOT reference `.scratchpad/` from the PR body. ✓ PR opened. Body includes Summary, What changed, Empirical proof (build + bundle introspection), Quality gates table, Manual smoke test notes (mentions the unrelated zk-steward.md fix), OpenSpec change reference, and Test plan checklist. **No `.scratchpad/` references in the body.**
+- [x] 12.7 Record the PR URL in the change's `tasks.md` here (check this item off and paste the URL inline as a reference for `/opsx:verify`). **PR URL: https://github.com/jrmatherly/1dev/pull/14**
 
 ## 13. Post-merge cleanup (MUST run last — only after PR is merged)
 
