@@ -107,4 +107,4 @@
 - [x] 10.6 Add roadmap entry: "Add renderer test infrastructure — vitest + @testing-library/react for critical UI paths" — scope: Large, prereq: none
 - [x] 10.7 Add roadmap entry: "Empty catch block audit (~79 sites) — add structured error logging or explicit rationale comments" — scope: Medium, prereq: none
 - [x] 10.8 Add roadmap entry: "Reduce unbounded module-level Maps in active-chat.tsx — add LRU eviction or WeakMap patterns" — scope: Medium, prereq: active-chat.tsx decomposition
-- [ ] 10.9 Run `/session-sync` after adding all roadmap entries to synchronize documentation surfaces
+- [x] 10.9 Run `/session-sync` after adding all roadmap entries to synchronize documentation surfaces *(commit below — updates CLAUDE.md 45/81 → 60/81, Serena project_overview, rebuilds code-review graph)*
