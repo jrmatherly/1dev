@@ -319,14 +319,12 @@ export function AgentPreview({
           className="shrink-0 bg-background/95 backdrop-blur-sm border-b h-11 min-h-[44px] max-h-[44px]"
           data-mobile-preview-header
           style={{
-            // @ts-expect-error - WebKit-specific property for Electron window dragging
             WebkitAppRegion: "drag",
           }}
         >
           <div
             className="flex h-full items-center px-2 gap-2"
             style={{
-              // @ts-expect-error - WebKit-specific property
               WebkitAppRegion: "no-drag",
             }}
           >

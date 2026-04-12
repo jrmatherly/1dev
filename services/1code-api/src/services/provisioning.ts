@@ -45,12 +45,8 @@ export interface ProvisionResult {
   }>;
 }
 
-// ---- Key preview helper ---------------------------------------------------
-
-function makeKeyPreview(rawKey: string): string {
-  if (rawKey.length <= 8) return rawKey;
-  return `${rawKey.slice(0, 4)}...${rawKey.slice(-4)}`;
-}
+// ---- Key preview helper (imported from key-service.ts) --------------------
+import { _makeKeyPreview as makeKeyPreview } from "./key-service.js";
 
 // ---- Alias collision guard ------------------------------------------------
 

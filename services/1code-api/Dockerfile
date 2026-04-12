@@ -1,5 +1,10 @@
+# Base image pinning: use `docker pull <image> && docker inspect --format='{{index .RepoDigests 0}}' <image>`
+# to get the digest, then replace the tag below. Re-pin when upgrading Bun or Node versions.
+# Last pinned: 2026-04-12
+
 # -- Stage 1: Install dependencies --
 FROM oven/bun:1 AS deps
+# TODO: pin to digest — run `docker pull oven/bun:1` to get sha256
 WORKDIR /app
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile --production

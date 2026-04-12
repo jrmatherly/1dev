@@ -691,7 +691,6 @@ export function SubChatSelector({
     <div
       className="flex items-center gap-1 h-7 w-full"
       style={{
-        // @ts-expect-error - WebKit-specific property for Electron window dragging
         WebkitAppRegion: "drag",
       }}
     >
@@ -704,7 +703,6 @@ export function SubChatSelector({
           className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md"
           aria-label="Back to chats"
           style={{
-            // @ts-expect-error - WebKit-specific property
             WebkitAppRegion: "no-drag",
           }}
         >
@@ -723,7 +721,6 @@ export function SubChatSelector({
               onClick={() => setSubChatsSidebarMode("sidebar")}
               className="h-6 w-6 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md flex items-center justify-center"
               style={{
-                // @ts-expect-error - WebKit-specific property
                 WebkitAppRegion: "no-drag",
               }}
             >
@@ -737,7 +734,6 @@ export function SubChatSelector({
       <div
         className="relative flex-1 min-w-0 flex items-center"
         style={{
-          // @ts-expect-error - WebKit-specific property
           WebkitAppRegion: "no-drag",
         }}
       >
@@ -1012,7 +1008,6 @@ export function SubChatSelector({
         <div
           className="flex items-center gap-1"
           style={{
-            // @ts-expect-error - WebKit-specific property
             WebkitAppRegion: "no-drag",
           }}
         >
@@ -1035,7 +1030,6 @@ export function SubChatSelector({
         <div
           className="rounded-md bg-background/10 backdrop-blur-[10px] flex items-center justify-center"
           style={{
-            // @ts-expect-error - WebKit-specific property
             WebkitAppRegion: "no-drag",
           }}
         >
@@ -1067,7 +1061,6 @@ export function SubChatSelector({
           <div
             className="rounded-md bg-background/10 backdrop-blur-[10px] flex items-center justify-center"
             style={{
-              // @ts-expect-error - WebKit-specific property
               WebkitAppRegion: "no-drag",
             }}
           >
@@ -1096,7 +1089,6 @@ export function SubChatSelector({
         <div
           className="rounded-md bg-background/10 backdrop-blur-[10px] flex items-center justify-center"
           style={{
-            // @ts-expect-error - WebKit-specific property
             WebkitAppRegion: "no-drag",
           }}
         >
@@ -1117,7 +1109,6 @@ export function SubChatSelector({
         <div
           className="rounded-md bg-background/10 backdrop-blur-[10px] flex items-center justify-center"
           style={{
-            // @ts-expect-error - WebKit-specific property
             WebkitAppRegion: "no-drag",
           }}
         >

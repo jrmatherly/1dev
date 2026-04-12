@@ -52,6 +52,9 @@ export function initDatabase() {
   sqlite = new Database(dbPath);
   sqlite.pragma("journal_mode = WAL");
   sqlite.pragma("foreign_keys = ON");
+  sqlite.pragma("busy_timeout = 5000");
+  sqlite.pragma("synchronous = NORMAL");
+  sqlite.pragma("cache_size = -8000"); // 8MB cache
 
   // Create Drizzle instance
   db = drizzle(sqlite, { schema });

@@ -444,7 +444,6 @@ export function TerminalSidebar({
           className="flex items-center gap-1.5 px-2 py-2 shrink-0 border-b"
           style={{
             backgroundColor: terminalBg,
-            // @ts-expect-error - WebKit-specific property for Electron window dragging
             WebkitAppRegion: "drag",
             borderBottomWidth: "0.5px",
           }}
@@ -457,7 +456,6 @@ export function TerminalSidebar({
             className="h-7 w-7 p-0 hover:bg-foreground/10 transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] shrink-0 rounded-md"
             aria-label="Back to chat"
             style={{
-              // @ts-expect-error - WebKit-specific property
               WebkitAppRegion: "no-drag",
             }}
           >

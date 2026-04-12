@@ -15,7 +15,7 @@ A sixth check — `bun run lint` — is **strongly recommended as a local-only p
 
 **What it catches:** Type errors that `esbuild` (used by `electron-vite`) silently masks during bundling. `esbuild` only strips types; it doesn't check them.
 
-**Current baseline:** ~87 pre-existing errors stored in `.claude/.tscheck-baseline`. A `PostToolUse` hook tracks drift on every `.ts`/`.tsx` edit. Only fail if the count *increases*.
+**Current baseline:** 0 errors stored in `.claude/.tscheck-baseline` (reduced from 87 → 0 on 2026-04-11). A `PostToolUse` hook tracks drift on every `.ts`/`.tsx` edit. CI fails if ANY new TS error is introduced.
 
 **Distinguish your errors from baseline:**
 ```bash

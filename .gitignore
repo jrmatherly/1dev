@@ -48,3 +48,8 @@ services/1code-api/config/teams.yaml
 
 # Git worktrees (isolated workspaces for feature branches)
 .worktrees/
+
+# Unencrypted SOPS files (prevent accidental plaintext credential commit)
+*.dec.yaml
+*.unencrypted.yaml
+*.cleartext.yaml
