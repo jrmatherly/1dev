@@ -89,7 +89,7 @@ export async function initAutoUpdater(getWindows: () => BrowserWindow[]) {
   autoUpdater.on("update-available", (info: UpdateInfo) => {
     log.info(`[AutoUpdater] Update available: v${info.version}`);
     // Update menu to show "Update to vX.X.X..."
-    const setUpdateAvailable = (global as any).__setUpdateAvailable;
+    const setUpdateAvailable = globalThis.__setUpdateAvailable;
     if (setUpdateAvailable) {
       setUpdateAvailable(true, info.version);
     }
@@ -126,7 +126,7 @@ export async function initAutoUpdater(getWindows: () => BrowserWindow[]) {
   autoUpdater.on("update-downloaded", (info: UpdateInfo) => {
     log.info(`[AutoUpdater] Update downloaded: v${info.version}`);
     // Reset menu back to "Check for Updates..." since update is ready
-    const setUpdateAvailable = (global as any).__setUpdateAvailable;
+    const setUpdateAvailable = globalThis.__setUpdateAvailable;
     if (setUpdateAvailable) {
       setUpdateAvailable(false);
     }

@@ -222,9 +222,9 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 ### [Deferred] Enable TS strictness flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
 
 **Added:** 2026-04-12 (Phase D §10.3 of `security-hardening-and-quality-remediation`)
-**Scope:** Two TypeScript 6 strictness flags still disabled: `noUncheckedIndexedAccess` (catches `arr[i]` returning `T` instead of `T | undefined` on out-of-bounds), `exactOptionalPropertyTypes` (distinguishes `{x?: T}` from `{x: T | undefined}`). Enabling them currently produces hundreds of new errors across the codebase. Requires a systematic `as any` sweep first (Phase C §8.7) to eliminate type escape hatches, then per-module fixes.
+**Scope:** Two TypeScript 6 strictness flags still disabled: `noUncheckedIndexedAccess` (catches `arr[i]` returning `T` instead of `T | undefined` on out-of-bounds), `exactOptionalPropertyTypes` (distinguishes `{x?: T}` from `{x: T | undefined}`). Enabling them currently produces hundreds of new errors across the codebase. Also requires completing the renderer `as any` sweep (77 sites remaining after §8.7 main-process pass took 18 → 2), then per-module fixes.
 **Effort:** Medium (systematic, can be parallelized per-directory)
-**Prereqs:** Phase C §8.7 `as any` cast sweep complete (96 sites)
+**Prereqs:** Renderer `as any` sweep (77 sites) — main-process sweep complete 2026-04-12 (§8.7, 18 → 2)
 **Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §10.3
 
 ### [Ready] Restructure `provisioning.ts` transaction — move external API calls outside PostgreSQL transaction boundary (saga pattern)

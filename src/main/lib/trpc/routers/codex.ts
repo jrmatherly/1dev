@@ -336,7 +336,15 @@ function getActiveLoginSession(): CodexLoginSession | null {
 }
 
 function extractCodexError(error: unknown): { message: string; code?: string } {
-  const anyError = error as any;
+  // Codex JSON-RPC error shapes are dynamic — narrow to an indexable record
+  // and read all known message/code paths, falling back to String(error).
+  const anyError = error as {
+    data?: { message?: unknown; code?: unknown };
+    errorText?: unknown;
+    message?: unknown;
+    error?: unknown;
+    code?: unknown;
+  } | null | undefined;
   const message =
     anyError?.data?.message ||
     anyError?.errorText ||
@@ -556,10 +564,11 @@ async function readLatestTokenCountInfo(
     const rawInfo = parsedLine.payload?.info;
     if (!rawInfo || typeof rawInfo !== "object") continue;
 
-    const rawTokenUsage = (rawInfo as any).last_token_usage;
+    const infoRecord = rawInfo as Record<string, unknown>;
+    const rawTokenUsage = infoRecord.last_token_usage;
     let lastTokenUsage: CodexTokenUsage | undefined;
     if (rawTokenUsage && typeof rawTokenUsage === "object") {
-      const tokenUsage = rawTokenUsage as any;
+      const tokenUsage = rawTokenUsage as Record<string, unknown>;
       const parsedTokenUsage: CodexTokenUsage = {
         input_tokens: toNonNegativeInt(tokenUsage.input_tokens),
         cached_input_tokens: toNonNegativeInt(tokenUsage.cached_input_tokens),
@@ -576,7 +585,7 @@ async function readLatestTokenCountInfo(
     }
 
     const modelContextWindow = toNonNegativeInt(
-      (rawInfo as any).model_context_window,
+      infoRecord.model_context_window,
     );
 
     const info: CodexTokenCountInfo = {
@@ -1883,7 +1892,9 @@ export const codexRouter = router({
                     ? {
                         ...responseMessage,
                         metadata: {
-                          ...((responseMessage as any)?.metadata || {}),
+                          ...((
+                            responseMessage as { metadata?: Record<string, unknown> }
+                          )?.metadata || {}),
                           ...usageMetadata,
                         },
                       }

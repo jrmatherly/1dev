@@ -439,13 +439,13 @@ async function fetchToolsForServer(
     }
 
     // Stdio transport
-    const command = (serverConfig as any).command as string | undefined;
+    const command = serverConfig.command;
     if (command) {
       try {
         return await fetchMcpToolsStdio({
           command,
-          args: (serverConfig as any).args,
-          env: (serverConfig as any).env,
+          args: serverConfig.args,
+          env: serverConfig.env as Record<string, string> | undefined,
         });
       } catch {
         return [];
@@ -952,7 +952,7 @@ export const claudeRouter = router({
             }
 
             // Check if last message is already this user message (avoid duplicate)
-            const lastMsg = existingMessages[existingMessages.length - 1];
+            const lastMsg = existingMessages.at(-1);
             const lastMsgText = lastMsg?.parts?.find(
               (p: any) => p.type === "text",
             )?.text;
@@ -1937,7 +1937,8 @@ ${prompt}
                     safeEmit({
                       type: "ask-user-question",
                       toolUseId: toolUseID,
-                      questions: (toolInput as any).questions,
+                      questions: (toolInput as Record<string, unknown>)
+                        .questions,
                     } as UIMessageChunk);
 
                     // Wait for response (60s timeout)
@@ -1993,7 +1994,9 @@ ${prompt}
                     }
 
                     // Update the tool part with answers result for approved
-                    const answers = (response.updatedInput as any)?.answers;
+                    const answers = (
+                      response.updatedInput as Record<string, unknown> | null
+                    )?.answers;
                     const answerResult = { answers };
                     if (askToolPart) {
                       askToolPart.result = answerResult;
@@ -2115,6 +2118,8 @@ ${prompt}
 
                   // Extra logging for Ollama to diagnose issues
                   if (isUsingOllama) {
+                    // SDK streaming payload — union of many shapes, not worth
+                    // fully typing for diagnostic logging only.
                     const msgAnyPreview = msg as any;
                     console.log(
                       `[Ollama] ===== MESSAGE #${messageCount} =====`,
@@ -2169,6 +2174,8 @@ ${prompt}
                   logRawClaudeMessage(input.chatId, msg);
 
                   // Check for error messages from SDK (error can be embedded in message payload!)
+                  // SDK emits a union of message variants whose published types
+                  // don't expose the runtime `error` field shape.
                   const msgAny = msg as any;
                   if (msgAny.type === "error" || msgAny.error) {
                     // Extract detailed error text from message content if available
