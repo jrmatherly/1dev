@@ -3,7 +3,7 @@ import { router, publicProcedure } from "../index";
 import * as fs from "fs/promises";
 import * as path from "path";
 import * as os from "os";
-import matter from "gray-matter";
+import { matter } from "../../frontmatter";
 import {
   discoverInstalledPlugins,
   getPluginComponentPaths,

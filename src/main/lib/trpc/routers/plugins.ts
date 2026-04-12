@@ -1,7 +1,7 @@
 import { router, publicProcedure } from "../index";
 import * as fs from "fs/promises";
 import * as path from "path";
-import matter from "gray-matter";
+import { matter } from "../../frontmatter";
 import { resolveDirentType } from "../../fs/dirent";
 import {
   discoverInstalledPlugins,

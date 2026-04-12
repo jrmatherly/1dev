@@ -83,7 +83,7 @@
     "drizzle-orm": "^0.45.2",
     "electron-log": "^5.4.3",
     "electron-updater": "^6.8.3",
-    "gray-matter": "^4.0.3",
+    "front-matter": "^4.0.2",
     "jose": "^6.2.2",
     "jotai": "^2.19.1",
     "jsonc-parser": "^3.3.1",

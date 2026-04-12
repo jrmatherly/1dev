@@ -9,7 +9,7 @@ export default defineConfig({
   main: {
     build: {
       externalizeDeps: {
-        exclude: ["superjson", "trpc-electron", "gray-matter", "async-mutex"],
+        exclude: ["superjson", "trpc-electron", "front-matter", "async-mutex"],
       },
       lib: {
         entry: resolve(__dirname, "src/main/index.ts"),
