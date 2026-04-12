@@ -1,7 +1,6 @@
 import {
   BrowserWindow,
   Notification,
-  shell,
   nativeTheme,
   ipcMain,
   app,
@@ -745,7 +744,7 @@ export function createWindow(options?: {
       preload: join(__dirname, "../preload/index.js"),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: false, // Required for electron-trpc
+      sandbox: true, // Empirically validated 2026-04-12 — see §8.9 of security-hardening-and-quality-remediation
       webSecurity: true,
       partition: "persist:main", // Use persistent session for cookies
     },

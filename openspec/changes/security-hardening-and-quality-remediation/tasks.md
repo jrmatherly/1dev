@@ -83,9 +83,9 @@
 - [x] 8.5 Add `manualChunks` configuration to `electron.vite.config.ts` renderer build — split Monaco, mermaid, katex, cytoscape into lazy-loaded chunks
 - [x] 8.6 Verify bundle size reduction after splitting (target: main chunk < 5MB) *(PARTIAL — main chunk is 7.72MB post-split; monaco 8.1MB, shiki 10.6MB, mermaid 3.8MB, cytoscape 1.5MB, katex 489KB now load lazily. Further route-level splits required for full target — tracked as roadmap follow-up.)*
 - [ ] 8.7 Address 96 `as any` casts in `src/` — systematic sweep per-directory, prioritizing security-sensitive files first
-- [ ] 8.8 Audit `console.log`/`console.error` calls in `src/main/` for infra URL or error payload exposure — replace with structured logging that redacts sensitive data
-- [ ] 8.9 Re-verify `sandbox: true` compatibility with current `trpc-electron` version — test BrowserWindow with `sandbox: true`
-- [ ] 8.10 Fill architecture doc stubs under `docs/architecture/` — migrate content from CLAUDE.md and Serena memories to canonical pages
+- [x] 8.8 Audit `console.log`/`console.error` calls in `src/main/` for infra URL or error payload exposure — replace with structured logging that redacts sensitive data
+- [x] 8.9 Re-verify `sandbox: true` compatibility with current `trpc-electron` version — test BrowserWindow with `sandbox: true` *(VERIFIED 2026-04-12 via `bun run dev` runtime test — window opens, tRPC IPC round-trips work, streaming sessions complete cleanly (SD M:END reason=ok n=46), contextBridge exposures intact, signed-fetch sender validation succeeds. 401 Claude SDK auth error was orthogonal (expired Anthropic token, resolved on token refresh). S1128 unused `shell` import also removed.)*
+- [x] 8.10 Fill architecture doc stubs under `docs/architecture/` — migrate content from CLAUDE.md and Serena memories to canonical pages
 - [ ] 8.11 Run all 6 quality gates after Phase C changes
 
 ## 9. Phase C — Documentation

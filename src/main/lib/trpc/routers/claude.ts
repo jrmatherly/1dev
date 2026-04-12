@@ -2094,7 +2094,9 @@ ${prompt}
               if (isUsingOllama) {
                 console.log(`[Ollama] ===== STARTING STREAM ITERATION =====`);
                 console.log(`[Ollama] Model: ${finalCustomConfig?.model}`);
-                console.log(`[Ollama] Base URL: ${finalCustomConfig?.baseUrl}`);
+                console.log(
+                  `[Ollama] Base URL configured: ${finalCustomConfig?.baseUrl ? "yes" : "no"}`,
+                );
                 console.log(
                   `[Ollama] Prompt: "${typeof input.prompt === "string" ? input.prompt.slice(0, 100) : "N/A"}..."`,
                 );

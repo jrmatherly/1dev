@@ -386,7 +386,7 @@ export const sandboxImportRouter = router({
       const db = getDatabase();
       const authManager = getAuthManager();
       const apiUrl = getBaseUrl();
-      console.log(`[OPEN-LOCALLY] API URL: ${apiUrl}`);
+      console.log(`[OPEN-LOCALLY] API origin: ${new URL(apiUrl).origin}`);
 
       // Verify auth
       console.log(`[OPEN-LOCALLY] Getting auth token...`);
