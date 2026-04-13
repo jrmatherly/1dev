@@ -25,7 +25,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Project-orchestrator skill** (added 2026-04-11): routing-layer skill with Step-0 hard-rule gate.
 - **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
 - **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth
-- **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix. Current: **v0.0.82**.
+- **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix. Current: **v0.0.85** (published 2026-04-13 — first release with full container-build pipeline green including Trivy + Cosign).
 - **Active OpenSpec changes (1 as of 2026-04-13 post-archive):**
   - `upgrade-vite-8-build-stack` (15/50, Phase B blocked on electron-vite 6.0.0)
 - **Recently archived:**
