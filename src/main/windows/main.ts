@@ -117,8 +117,26 @@ function checkUpstreamGate(url: string, rawApiUrl: string | undefined): Upstream
 
 function recordUnreachable(origin: string | undefined, err: unknown): void {
   if (!origin) return;
-  const code = (err as { code?: string } | undefined)?.code;
-  if (code === "ECONNREFUSED" || code === "ENOTFOUND") {
+  // Undici's native fetch wraps network errors as TypeError("fetch failed")
+  // with the real code living on `error.cause.code`. Axios and node-fetch
+  // put the code directly on `error.code`. Unwrap both so the cache
+  // actually populates during dev-server smoke — without this, every
+  // renderer mount re-retries the dead upstream.
+  const e = err as
+    | {
+        code?: string;
+        message?: string;
+        cause?: { code?: string };
+      }
+    | undefined;
+  const effectiveCode = e?.code ?? e?.cause?.code;
+  const isFetchFailed = e?.message === "fetch failed";
+  if (
+    effectiveCode === "ECONNREFUSED" ||
+    effectiveCode === "ENOTFOUND" ||
+    effectiveCode === "ETIMEDOUT" ||
+    isFetchFailed
+  ) {
     unreachableCache.set(origin, { checkedAt: Date.now() });
   }
 }

@@ -95,11 +95,21 @@ describe("signed-fetch negative cache", () => {
     expect(source).toMatch(/Date\.now\(\)\s*-\s*cached\.checkedAt\s*<\s*UNREACHABLE_TTL_MS/);
   });
 
-  test("recordUnreachable populates the cache only on ECONNREFUSED/ENOTFOUND", () => {
+  test("recordUnreachable populates the cache on ECONNREFUSED/ENOTFOUND/ETIMEDOUT or fetch-failed", () => {
     const source = readMain();
     expect(source).toContain("function recordUnreachable");
     expect(source).toContain('"ECONNREFUSED"');
     expect(source).toContain('"ENOTFOUND"');
+    expect(source).toContain('"ETIMEDOUT"');
+  });
+
+  test("recordUnreachable unwraps undici's error.cause.code (fetch failed TypeError)", () => {
+    const source = readMain();
+    // Undici wraps native fetch errors as TypeError('fetch failed') with
+    // the real code on error.cause.code. Without the unwrap, the cache
+    // never populates during dev smoke.
+    expect(source).toMatch(/cause\?\.code/);
+    expect(source).toMatch(/message === "fetch failed"/);
   });
 
   test("both fetch error handlers call recordUnreachable", () => {

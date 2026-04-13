@@ -68,7 +68,26 @@ export interface AuxAiDeps {
   getFlag: <K extends FeatureFlagKey>(key: K) => FeatureFlagValue<K>;
 }
 
-const DEFAULT_AUX_MODEL = "claude-3-5-haiku-latest";
+/**
+ * Default aux-AI model per route.
+ *
+ * - **LiteLLM routes** (byok-litellm, subscription-litellm) → `gpt-5-nano`.
+ *   Fast + cheap, universally provisioned on our LiteLLM deployment
+ *   (see cluster repo configmap.yaml.j2 — `gpt-5-nano` falls back to
+ *   `claude-haiku-4-5` via the proxy's fallback chain, so every user
+ *   gets coverage regardless of team-level model allowlists).
+ *
+ * - **byok-direct** (raw Anthropic API) → `claude-haiku-4-5`. The user
+ *   brings their own Anthropic key; the cheapest/fastest SDK-routable
+ *   model from Anthropic is haiku-4-5 (`claude-haiku-4-5-20251001`
+ *   snapshot). Older 3.x haiku aliases were retired by Anthropic and
+ *   must not be used as defaults.
+ *
+ * The operator override (`auxAiModel` feature flag) still wins across
+ * all routes when set.
+ */
+const DEFAULT_LITELLM_AUX_MODEL = "gpt-5-nano";
+const DEFAULT_DIRECT_AUX_MODEL = "claude-haiku-4-5";
 
 /**
  * Truncate a user message to a chat-friendly title (≤25 chars + ellipsis).
@@ -84,14 +103,30 @@ function truncatedFallback(userMessage: string): string {
 /**
  * Resolve the model identifier for a given ProviderMode using the
  * documented precedence chain:
- *   flag override → mode.modelMap.haiku (LiteLLM modes only) → default
+ *   flag override → mode.modelMap.haiku (byok-litellm only) → per-route default
+ *
+ * The per-route default splits on whether the SDK is talking to LiteLLM
+ * (our Azure-backed proxy with gpt-5-nano as the cheap anchor) or to
+ * Anthropic directly (byok-direct, where we use the current haiku).
  */
 function resolveModel(mode: ProviderMode | null, flagOverride: string): string {
   if (flagOverride.length > 0) return flagOverride;
-  if (mode && (mode.kind === "byok-litellm")) {
-    return mode.modelMap.haiku || DEFAULT_AUX_MODEL;
+  if (!mode) return DEFAULT_LITELLM_AUX_MODEL; // default path is LiteLLM-aware
+  switch (mode.kind) {
+    case "byok-litellm":
+      // byok-litellm users explicitly chose per-model overrides; honor modelMap
+      // if populated, else fall through to the LiteLLM default.
+      return mode.modelMap.haiku || DEFAULT_LITELLM_AUX_MODEL;
+    case "subscription-litellm":
+      return DEFAULT_LITELLM_AUX_MODEL;
+    case "byok-direct":
+      return DEFAULT_DIRECT_AUX_MODEL;
+    case "subscription-direct":
+      // Never reaches the SDK — subscription-direct falls through to Ollama.
+      // The default here is only used if someone routes through this helper
+      // from an unexpected branch; stay on the Anthropic-compatible default.
+      return DEFAULT_DIRECT_AUX_MODEL;
   }
-  return DEFAULT_AUX_MODEL;
 }
 
 /**
@@ -177,18 +212,26 @@ export function makeGenerateChatTitle(deps: AuxAiDeps) {
     ollamaModel?: string | null,
   ): Promise<string> {
     if (!deps.getFlag("auxAiEnabled")) {
+      console.log("[aux-ai] generateChatTitle: auxAiEnabled=false, returning truncated");
       return truncatedFallback(userMessage);
     }
 
     const mode = deps.getProviderMode();
     const flagModel = deps.getFlag("auxAiModel");
     const timeoutMs = deps.getFlag("auxAiTimeoutMs");
+    const modeKind = mode?.kind ?? "null";
+    console.log(
+      `[aux-ai] generateChatTitle: mode=${modeKind} flagModel=${flagModel || "(unset)"} timeout=${timeoutMs}ms`,
+    );
 
     const tryViaSdk = async (
       sdkOpts: CreateAnthropicOpts,
     ): Promise<string | null> => {
       const client = deps.createAnthropic(sdkOpts);
       const model = resolveModel(mode, flagModel);
+      console.log(
+        `[aux-ai] SDK call: model=${model} baseURL=${sdkOpts.baseURL ?? "(Anthropic default)"} hasAuthToken=${!!sdkOpts.authToken} hasApiKey=${!!sdkOpts.apiKey} customerId=${sdkOpts.defaultHeaders?.["x-litellm-customer-id"] ?? "(none)"}`,
+      );
       const resp = await withTimeout(
         client.messages.create({
           model,
@@ -210,19 +253,36 @@ export function makeGenerateChatTitle(deps: AuxAiDeps) {
     try {
       if (mode?.kind === "byok-direct") {
         const result = await tryViaSdk({ apiKey: mode.apiKey });
-        if (result) return result;
+        if (result) {
+          console.log(`[aux-ai] generateChatTitle: SDK success (byok-direct) → "${result}"`);
+          return result;
+        }
+        console.warn("[aux-ai] generateChatTitle: SDK returned empty text; falling back");
       } else if (mode?.kind === "byok-litellm" || mode?.kind === "subscription-litellm") {
         const result = await tryViaSdk(liteLlmSdkOpts(mode));
-        if (result) return result;
+        if (result) {
+          console.log(`[aux-ai] generateChatTitle: SDK success (${mode.kind}) → "${result}"`);
+          return result;
+        }
+        console.warn("[aux-ai] generateChatTitle: SDK returned empty text; falling back");
+      } else {
+        console.log(`[aux-ai] generateChatTitle: no SDK route for mode=${modeKind}, trying Ollama`);
       }
     } catch (err) {
-      console.error("[aux-ai] generateChatTitle SDK call failed:", err);
+      console.error(
+        `[aux-ai] generateChatTitle SDK call failed (mode=${modeKind}):`,
+        err instanceof Error ? `${err.name}: ${err.message}` : err,
+      );
     }
 
     // subscription-direct, null mode, or SDK failure → Ollama fallback.
     try {
       const ollamaResult = await deps.generateOllamaName(userMessage, ollamaModel);
-      if (ollamaResult) return ollamaResult;
+      if (ollamaResult) {
+        console.log(`[aux-ai] generateChatTitle: Ollama success → "${ollamaResult}"`);
+        return ollamaResult;
+      }
+      console.log("[aux-ai] generateChatTitle: Ollama unavailable, using truncated fallback");
     } catch (err) {
       console.error("[aux-ai] Ollama fallback failed:", err);
     }
@@ -241,18 +301,26 @@ export function makeGenerateCommitMessage(deps: AuxAiDeps) {
     fallback: string,
   ): Promise<string> {
     if (!deps.getFlag("auxAiEnabled")) {
+      console.log("[aux-ai] generateCommitMessage: auxAiEnabled=false, returning fallback");
       return fallback;
     }
 
     const mode = deps.getProviderMode();
     const flagModel = deps.getFlag("auxAiModel");
     const timeoutMs = deps.getFlag("auxAiTimeoutMs");
+    const modeKind = mode?.kind ?? "null";
+    console.log(
+      `[aux-ai] generateCommitMessage: mode=${modeKind} flagModel=${flagModel || "(unset)"} timeout=${timeoutMs}ms`,
+    );
 
     const tryViaSdk = async (
       sdkOpts: CreateAnthropicOpts,
     ): Promise<string | null> => {
       const client = deps.createAnthropic(sdkOpts);
       const model = resolveModel(mode, flagModel);
+      console.log(
+        `[aux-ai] SDK call: model=${model} baseURL=${sdkOpts.baseURL ?? "(Anthropic default)"} hasAuthToken=${!!sdkOpts.authToken} hasApiKey=${!!sdkOpts.apiKey}`,
+      );
       const resp = await withTimeout(
         client.messages.create({
           model,
@@ -274,13 +342,24 @@ export function makeGenerateCommitMessage(deps: AuxAiDeps) {
     try {
       if (mode?.kind === "byok-direct") {
         const result = await tryViaSdk({ apiKey: mode.apiKey });
-        if (result) return result;
+        if (result) {
+          console.log(`[aux-ai] generateCommitMessage: SDK success (byok-direct)`);
+          return result;
+        }
       } else if (mode?.kind === "byok-litellm" || mode?.kind === "subscription-litellm") {
         const result = await tryViaSdk(liteLlmSdkOpts(mode));
-        if (result) return result;
+        if (result) {
+          console.log(`[aux-ai] generateCommitMessage: SDK success (${mode.kind})`);
+          return result;
+        }
+      } else {
+        console.log(`[aux-ai] generateCommitMessage: no SDK route for mode=${modeKind}, returning heuristic fallback`);
       }
     } catch (err) {
-      console.error("[aux-ai] generateCommitMessage SDK call failed:", err);
+      console.error(
+        `[aux-ai] generateCommitMessage SDK call failed (mode=${modeKind}):`,
+        err instanceof Error ? `${err.name}: ${err.message}` : err,
+      );
     }
     return fallback;
   };

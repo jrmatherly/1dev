@@ -37,6 +37,17 @@ describe("aux-AI module shape", () => {
     expect(source.length).toBeGreaterThan(1000);
   });
 
+  test("observability breadcrumbs present — diagnoses silent fallbacks in dev smoke", () => {
+    const source = readAuxAi();
+    // Every factory must log the mode kind + SDK opts at entry so
+    // operators can diagnose why a title fell back during Group 18 smoke.
+    expect(source).toMatch(/\[aux-ai\] generateChatTitle:.+mode=/);
+    expect(source).toMatch(/\[aux-ai\] generateCommitMessage:.+mode=/);
+    expect(source).toMatch(/\[aux-ai\] SDK call:.+model=/);
+    // SDK errors must surface the mode kind.
+    expect(source).toMatch(/SDK call failed \(mode=/);
+  });
+
   test("exports DI factories + bound versions + setOllamaNameGenerator", () => {
     const source = readAuxAi();
     expect(source).toContain("export function makeGenerateChatTitle");
@@ -108,13 +119,29 @@ describe("aux-AI feature-flag integration", () => {
     expect(source).toContain('getFlag("auxAiTimeoutMs")');
   });
 
-  test("model resolution honors the precedence chain (flag → modelMap → default)", () => {
+  test("model resolution honors the precedence chain (flag → modelMap → per-route default)", () => {
     const source = readAuxAi();
     expect(source).toContain("resolveModel");
-    // Default model is the haiku-class anchor.
-    expect(source).toContain("claude-3-5-haiku-latest");
-    // modelMap precedence is LiteLLM-only.
+    // Per-route defaults: LiteLLM routes use gpt-5-nano (fast/cheap on our
+    // Azure-backed proxy), byok-direct uses claude-haiku-4-5 (current
+    // Anthropic haiku; the retired claude-3-5-haiku-latest alias must not
+    // appear anywhere).
+    expect(source).toContain("DEFAULT_LITELLM_AUX_MODEL");
+    expect(source).toContain("DEFAULT_DIRECT_AUX_MODEL");
+    expect(source).toContain('"gpt-5-nano"');
+    expect(source).toContain('"claude-haiku-4-5"');
+    expect(source).not.toContain("claude-3-5-haiku-latest");
+    // modelMap precedence is byok-litellm-only.
     expect(source).toMatch(/mode\.modelMap\.haiku/);
+  });
+
+  test("resolveModel dispatches per ProviderMode kind", () => {
+    const source = readAuxAi();
+    // Switch statement has all 4 kinds explicitly.
+    expect(source).toMatch(/case "byok-litellm":/);
+    expect(source).toMatch(/case "subscription-litellm":/);
+    expect(source).toMatch(/case "byok-direct":/);
+    expect(source).toMatch(/case "subscription-direct":/);
   });
 });
 
