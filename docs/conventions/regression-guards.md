@@ -7,7 +7,7 @@ icon: shield
 
 The fork maintains structural regression guards that protect invariants established by Phase 0 hard gates, the brand taxonomy, and the documentation-site capability. Each guard is a single-file `bun:test` test that walks the codebase and fails if a protected invariant is violated.
 
-## Current Inventory (19 guards + 1 unit test = 20 files)
+## Current Inventory (29 guards + 1 unit test = 30 files) {#current-inventory}
 
 | File | Protects | Motivated by |
 |------|----------|-------------|
@@ -31,6 +31,15 @@ The fork maintains structural regression guards that protect invariants establis
 | `open-external-scheme.test.ts` | All `shell.openExternal` calls go through `safeOpenExternal()` scheme-validator in `src/main/lib/safe-external.ts` | security-hardening Phase A |
 | `signed-fetch-allowlist.test.ts` | `api:signed-fetch` / `api:stream-fetch` IPC handlers validate URL origin against `getApiUrl()` before attaching auth token | security-hardening Phase A |
 | `mcp-url-ssrf-prevention.test.ts` | `mcpServerUrlSchema` blocks SSRF vectors — loopback, RFC1918 private networks, cloud metadata endpoints, IPv6 ULA/link-local, and non-http(s) schemes | security-hardening Phase C §6 |
+| `spawn-env-invariants.test.ts` | Per-`ProviderMode` expected-key-set matrix for Claude CLI spawn env (subscription-direct, subscription-litellm, byok-direct, byok-litellm) + `sk-ant-*` prefix check for byok-litellm leaks | add-dual-mode-llm-routing |
+| `no-entra-in-anthropic-auth-token.test.ts` | `applyEnterpriseAuth` body + project-wide scan for Entra-to-ANTHROPIC_AUTH_TOKEN assignment (bind-then-assign forbidden in either direction) | remediate-dev-server-findings |
+| `no-legacy-litellm-proxy-url.test.ts` | No legacy LiteLLM proxy URL constants in runtime code | add-dual-mode-llm-routing |
+| `no-migrate-legacy.test.ts` | Legacy `migrateLegacy` code path stays removed (dual-mode routing) | add-dual-mode-llm-routing |
+| `raw-logger-concurrent-writes.test.ts` | Shape guard for singleton-promise pattern in `raw-logger.ts` (`logsDirPromise` replaced `logsDir: string \| null` — prevents concurrent-write race) | remediate-dev-server-findings Group 2 |
+| `no-legacy-oauth-byok-leak.test.ts` | BYOK accounts skip the legacy OAuth token fallback in `getClaudeCodeToken()` (early-return branch before fallback, literal `"byok"` comparison) | remediate-dev-server-findings Group 6 |
+| `aux-ai-provider-dispatch.test.ts` | `src/main/lib/aux-ai.ts` shape: DI factory exports, per-ProviderMode-kind branches, customerId header, model resolution precedence (flag → modelMap → default), `auxAiEnabled` kill-switch in both factories, hardcoded max_tokens/temperature, 25-char truncated fallback | remediate-dev-server-findings Group 13 |
+| `no-apollosai-aux-ai-fetch.test.ts` | Zero references to `apollosai.dev/api/agents/generate-commit-message` or `apollosai.dev/api/agents/sub-chat/generate-name` in `chats.ts` or `aux-ai.ts`; positive control verifies chats.ts delegates to aux-ai | remediate-dev-server-findings Group 14 |
+| `signed-fetch-cache.test.ts` | `checkUpstreamGate` + `isUpstreamDisabled` helpers exist, silent `\|\| "https://apollosai.dev"` fallback removed, `unreachableCache` Map with 60s TTL, `recordUnreachable` called on ECONNREFUSED/ENOTFOUND in both handlers | remediate-dev-server-findings Group 15 |
 | `frontmatter-shim-shape.test.ts` (unit test, not a guard) | Round-trip behavior of the canonical frontmatter shim across standard YAML, empty frontmatter, empty string, BOM-prefixed input, and a sample agent fixture | replace-gray-matter-with-front-matter |
 
 ## Adding a New Guard

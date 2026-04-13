@@ -3,7 +3,7 @@
 > Auto-generated project knowledge base for AI-assisted development.
 > Last indexed: 2026-04-09 | Version: 0.0.72 | Files: 532 TS/TSX in `src/`
 
-**Fork posture:** Enterprise fork of upstream 1Code. Decoupling from `1code.dev` SaaS in favor of self-hosted infrastructure (LiteLLM + Microsoft Entra via Envoy Gateway). All upstream-dependent features (F1–F10) catalogued in `docs/enterprise/upstream-features.md`.
+**Fork posture:** Enterprise fork of upstream 1Code. Decoupling from `1code.dev` SaaS in favor of self-hosted infrastructure (LiteLLM + Microsoft Entra via Envoy Gateway). All upstream-dependent features (F1–F12) catalogued in `docs/enterprise/upstream-features.md`. F11 + F12 (sub-chat name + commit message generation) resolved 2026-04-13 via `src/main/lib/aux-ai.ts` provider-aware dispatch.
 
 ---
 
@@ -236,7 +236,7 @@ bun run release =
 
 Regression guards (no Jest/Vitest/Playwright). Run with `bun test` from the repo root to execute the full suite across the main app and the `1code-api` service.
 
-- **17 test files in `tests/regression/`** (16 regression guards + 1 frontmatter shim unit test): authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Examples include `auth-get-token-deleted`, `credential-storage-tier`, `enterprise-auth-module`, `enterprise-auth-wiring`, `electron-version-pin`, `no-scratchpad-references`, `mock-api-no-snake-timestamps`, `no-gray-matter` (added 2026-04-12), and `frontmatter-shim-shape` (unit test, added 2026-04-12).
+- **30 test files in `tests/regression/`** (29 regression guards + 1 frontmatter shim unit test; 170 tests / 393 expect() / ~6s): authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Recent additions 2026-04-13: `aux-ai-provider-dispatch`, `no-apollosai-aux-ai-fetch`, `signed-fetch-cache`, `raw-logger-concurrent-writes`, `no-legacy-oauth-byok-leak`, `login-flow-uses-msal`, `spawn-env-invariants`, `no-entra-in-anthropic-auth-token`, `no-legacy-litellm-proxy-url`, `no-migrate-legacy`.
 - **20 service test files** under `services/1code-api/tests/` covering unit tests (`tests/lib/`, `tests/services/`, `tests/routes/`) and 3 docker-compose integration tests (`tests/integration/`) that skip without the harness.
 - **Combined total: 207 tests across 37 files** (197 pass + 10 skipped integration, 0 fail) as of 2026-04-12 post-`replace-gray-matter-with-front-matter` archive.
 
@@ -244,7 +244,7 @@ Regression guards (no Jest/Vitest/Playwright). Run with `bun test` from the repo
 1. `bun run ts:check` — tsgo TypeScript check (baseline 0)
 2. `bun run lint` — ESLint + eslint-plugin-sonarjs
 3. `bun run build` — electron-vite 5 packaging validation
-4. `bun test` — 16 regression guards + 1 unit test + 20 1code-api test files (207 tests, 197 pass + 10 skipped integration)
+4. `bun test` — 29 regression guards + 1 unit test (170 tests / 393 expect()) + 20 1code-api test files (242 tests, 232 pass + 10 skipped integration) = ~412 tests across ~71 files
 5. `bun audit` — dependency advisories
 6. `cd docs && bun run build` — xyd-js documentation site
 
@@ -297,7 +297,7 @@ Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `spec
 | `skills/release/` | Release pipeline helper |
 | `agents/security-reviewer.md` | Security-focused subagent |
 | `agents/ui-reviewer.md` | UI-focused subagent |
-| `agents/upstream-dependency-auditor.md` | Investigates F1–F10 upstream dependencies |
+| `agents/upstream-dependency-auditor.md` | Investigates F1–F12 upstream dependencies |
 
 ---
 
@@ -377,11 +377,11 @@ Renderer → tRPC client (trpc.ts) → trpc-electron IPC → Main process router
 | 8 | Upstream sandbox OAuth extraction | ✅ Done (archived `remove-upstream-sandbox-oauth`) |
 | 9 | Minimum CI workflow | ✅ Done (`.github/workflows/ci.yml`) |
 | 10 | Dependabot config | ✅ Done |
-| 11 | Test framework + regression guards | ✅ Done (bun:test, 16 guards + 1 unit test; combined repo total 207 tests / 197 pass post-frontmatter-parsing archive 2026-04-12) |
+| 11 | Test framework + regression guards | ✅ Done (bun:test, 29 guards + 1 unit test; combined repo total 170 regression + 242 service = ~412 tests / 402 pass post-remediate-dev-server-findings Groups 1-19 2026-04-13) |
 | 12 | Feature flag infrastructure + Drizzle schema | ✅ Done |
 | 13 | OpenSpec 1.2.0 migration | ✅ Done |
 | 14 | Electron upgrade (39 → 40 → 41) | ✅ Done (archived `upgrade-electron-40` + `2026-04-11-upgrade-electron-41`, currently on Electron 41.2.0) |
-| 15 | F1–F10 upstream restoration decisions | ✅ Done |
+| 15 | F1–F12 upstream restoration decisions | ✅ Done (F11 + F12 resolved 2026-04-13 via aux-ai.ts; 3/4 modes full, subscription-direct qualified with Ollama/heuristic fallbacks) |
 
 ---
 
