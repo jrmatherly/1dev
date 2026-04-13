@@ -65,12 +65,12 @@ This document proposes an **alternative architecture** for the 1Code enterprise 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Electron App (1Code)                                       │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Main Process                                       │   │
-│  │  ├─ MSAL Node (acquires tokens)                     │   │
-│  │  ├─ Token cache (safeStorage + Drizzle DB)          │   │
-│  │  └─ Spawn CLI tools with Bearer in env              │   │
-│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Main Process                                       │    │
+│  │  ├─ MSAL Node (acquires tokens)                     │    │
+│  │  ├─ Token cache (safeStorage + Drizzle DB)          │    │
+│  │  └─ Spawn CLI tools with Bearer in env              │    │
+│  └─────────────────────────────────────────────────────┘    │
 │                          │                                  │
 │                          ▼                                  │
 │              Authorization: Bearer <token>                  │
@@ -79,27 +79,27 @@ This document proposes an **alternative architecture** for the 1Code enterprise 
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  Talos Kubernetes Cluster                                   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Envoy Gateway (>= v1.7.0)                          │   │
-│  │  ├─ SecurityPolicy: dual-auth                       │   │
-│  │  │   ├─ OIDC (browser flow with cookie session)     │   │
-│  │  │   └─ JWT (Bearer token validation)               │   │
-│  │  ├─ passThroughAuthHeader: true                     │   │
-│  │  │   (Bearer requests skip OIDC redirect)           │   │
-│  │  └─ jwt.optional: true                              │   │
-│  │      (browser requests fall through to OIDC)        │   │
-│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Envoy Gateway (>= v1.7.0)                          │    │
+│  │  ├─ SecurityPolicy: dual-auth                       │    │
+│  │  │   ├─ OIDC (browser flow with cookie session)     │    │
+│  │  │   └─ JWT (Bearer token validation)               │    │
+│  │  ├─ passThroughAuthHeader: true                     │    │
+│  │  │   (Bearer requests skip OIDC redirect)           │    │
+│  │  └─ jwt.optional: true                              │    │
+│  │      (browser requests fall through to OIDC)        │    │
+│  └─────────────────────────────────────────────────────┘    │
 │                          │                                  │
 │                          ▼                                  │
 │              X-User-OID, X-User-Email headers               │
 │                          │                                  │
 │                          ▼                                  │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  LiteLLM Proxy (OSS edition)                        │   │
-│  │  ├─ user_header_mappings consume X-User-Email       │   │
-│  │  ├─ Per-user budgets via virtual keys               │   │
-│  │  └─ MCP servers (Slack, Microsoft Foundry, etc.)    │   │
-│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  LiteLLM Proxy (OSS edition)                        │    │
+│  │  ├─ user_header_mappings consume X-User-Email       │    │
+│  │  ├─ Per-user budgets via virtual keys               │    │
+│  │  └─ MCP servers (Slack, Microsoft Foundry, etc.)    │    │
+│  └─────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                           │
                           ▼
@@ -146,7 +146,7 @@ The architecture has **three trust boundaries** that must be enforced separately
 | TB-3 | LiteLLM ↔ downstream MCP servers (Foundry, GitHub, etc.) | LiteLLM forwards a CLI bearer to a downstream service that shouldn't receive it | LiteLLM `forward_llm_provider_auth_headers` is currently `false`; keep it false unless the downstream specifically needs OBO (the existing `foundry_mcp` uses `auth_type: bearer_token` + explicit `extra_headers` per `cluster-crossref.md`) |
 
 > **Critical:** TB-2 is the strategy's most important boundary and the most under-specified in v1. The cluster's existing `CiliumNetworkPolicy` for LiteLLM (`ciliumnetworkpolicy.yaml.j2:15-22`) allows ingress from the Envoy Gateway namespace but does NOT exclude same-namespace pods. Without the §3.1 lock-down, **every claim in §7 collapses** because any pod in `ai` can curl LiteLLM and claim to be any user.
-
+>
 > **Implementation scope on `1code-api`:** The v2.1 **JWT half** of the dual-auth pattern is implemented on the 1code-api HTTPRoute — the service validates the Envoy-injected `x-user-oid`/`x-user-email`/`x-user-name` headers as trust-the-edge per the OpenSpec change `add-1code-api-litellm-provisioning`. The v2.1 **OIDC half** (browser-facing cookie flow) is explicitly **not** implemented on the 1code-api route — 1code-api is a backend-for-frontend consumed exclusively by the Electron desktop app, which already holds its own MSAL Node tokens. The OIDC half is deployed only on the LiteLLM HTTPRoute. See [`1code-api-provisioning.md`](./1code-api-provisioning.md) for the full provisioning API architecture.
 
 ---
