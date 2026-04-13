@@ -9,7 +9,7 @@ openspec/      — OpenSpec change proposals + 15 capability specs (109 requirem
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — 17 workflow skills incl. `project-orchestrator` (routing + hard-rule gate, added 2026-04-11), roadmap-tracker, phase-0-progress, docs-drift-check, session-sync, 6 openspec-* skills, new-router, new-regression-guard, release, upstream-boundary-check, verify-strategy-compliance, verify-pin
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
-tests/regression/ — 20 bun:test files (19 regression guards + 1 frontmatter shim unit test)
+tests/regression/ — 25 bun:test files (24 regression guards + 1 frontmatter shim unit test)
 tests/fixtures/   — Test fixtures (sample-agent.md added 2026-04-12 for frontmatter shim test)
 drizzle/       — Database migration files
 services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 20 test files (Phase 1 baseline: health, changelog, plan, profile, auth, config; LiteLLM provisioning: lib/{graph-client,slugify,teams-config,litellm-client}, routes/{keys,provision,rate-limit-keygenerator}, services/{key-service,provisioning,rotation,deprovisioning}, 3 integration tests skipped without docker-compose). `add-1code-api-litellm-provisioning` archived 2026-04-11.
@@ -63,6 +63,8 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 1code-api-litellm-provisioning (19), brand-identity (11), claude-code-auth-import (2), credential-storage (**8**), documentation-site (**9**), electron-runtime (4), **electron-security-hardening (4)** (new 2026-04-13), enterprise-auth (5), enterprise-auth-wiring (4), feature-flags (6), **frontmatter-parsing (6)**, renderer-data-access (5), self-hosted-api (**17**), shiki-highlighter (6), **sqlite-performance (3)** (new 2026-04-13).
 
 ## Active OpenSpec Changes (1 as of 2026-04-13 post-archive)
+- `add-dual-mode-llm-routing` (28/55, Groups 1-7 landed commit `51318e1` — Entra decoupling + dual-mode routing; Groups 8-10 pending)
+- `remediate-dev-server-findings` (scaffolded, unimplemented — next session `/opsx:apply`)
 - `upgrade-vite-8-build-stack` (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable)
 
 ## Recently Archived (2026-04-10 → 2026-04-13)

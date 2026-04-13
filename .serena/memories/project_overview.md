@@ -8,7 +8,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - React 19.2.5, TypeScript 6.0.2 (upgraded from 5.9.3 on 2026-04-10), Tailwind CSS 4, Bun
 - @anthropic-ai/claude-agent-sdk 0.2.104, Codex CLI 0.118.0, Ollama
 - 7 Drizzle tables, 22 tRPC routers (incl. enterprise-auth), better-sqlite3, node-pty (lazy-loaded)
-- **21 test files in `tests/regression/`** (20 regression guards + 1 frontmatter shim unit test) + 20 service test files in `services/1code-api/tests/` = **242 tests across 41 files** (232 pass + 10 skipped integration tests needing docker-compose harness, 2026-04-13).
+- **25 test files in `tests/regression/`** (24 regression guards + 1 frontmatter shim unit test; 4 new guards added 2026-04-13 via `add-dual-mode-llm-routing`: `spawn-env-invariants`, `no-entra-in-anthropic-auth-token`, `no-legacy-litellm-proxy-url`, `no-migrate-legacy`) + 20 service test files in `services/1code-api/tests/`.
 
 ## Current State (2026-04-12, post-§7 claude.ts decomposition)
 - **Phase 0:** 15/15 hard gates complete
@@ -26,7 +26,9 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
 - **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth
 - **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix. Current: **v0.0.85** (published 2026-04-13 — first release with full container-build pipeline green including Trivy + Cosign).
-- **Active OpenSpec changes (2 as of 2026-04-13):**
+- **Active OpenSpec changes (4 as of 2026-04-13):**
+  - `add-dual-mode-llm-routing` (28/55, Groups 1-7 landed as commit `51318e1` — Entra decoupling, pure-function `deriveClaudeSpawnEnv`, `anthropicAccounts` dual-mode schema, `migrateLegacy` removal; Groups 8-10 pending: UI wizard + litellmModels router + docs)
+  - `remediate-dev-server-findings` (scaffolded, unimplemented — 20 task groups ~77 tasks; revised per parallel code review to absorb 5 Critical + 13 Important findings. Next session: `/opsx:apply remediate-dev-server-findings`)
   - `wire-login-button-to-msal` (45/57, MSAL sign-in end-to-end; awaiting manual smoke §11 + `/opsx:archive`)
   - `upgrade-vite-8-build-stack` (15/50, Phase B blocked on electron-vite 6.0.0)
 - **Recently archived:**

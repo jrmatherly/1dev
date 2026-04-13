@@ -60,7 +60,7 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 3. `/opsx:verify <name>` — verify implementation matches artifacts
 4. `/opsx:archive <name>` — archive and promote capability specs
 - **15 capability specs (109 requirements)** in `openspec/specs/`: `1code-api-litellm-provisioning` (19), `brand-identity` (11), `claude-code-auth-import` (2), `credential-storage` (8), `documentation-site` (9), `electron-runtime` (4), `electron-security-hardening` (4), `enterprise-auth` (5), `enterprise-auth-wiring` (4), `feature-flags` (6), `frontmatter-parsing` (6), `renderer-data-access` (5), `self-hosted-api` (17), `shiki-highlighter` (6), `sqlite-performance` (3)
-- **Active changes (2)**: `wire-login-button-to-msal` (45/57) · `upgrade-vite-8-build-stack` (15/50)
+- **Active changes (4)**: `add-dual-mode-llm-routing` (28/55, Groups 1-7 committed `51318e1`) · `remediate-dev-server-findings` (scaffolded, next session `/opsx:apply`) · `wire-login-button-to-msal` (45/57) · `upgrade-vite-8-build-stack` (15/50)
 - Full rules: [`.claude/rules/openspec.md`](../../.claude/rules/openspec.md)
 
 ## Phase 0 Status (15 of 15 complete ✅)

@@ -9,7 +9,7 @@
 - `bun run ts:check` — TypeScript check via tsgo (**baseline: 0 errors**, see `.claude/.tscheck-baseline`)
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s) — **local-only advisory, not CI-enforced**
 - `bun run build` — Full electron-vite build
-- `bun test` — 20 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **242 tests across 41 files** (232 pass + 10 skipped integration tests needing docker-compose harness, ~7s)
+- `bun test` — 24 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **246 tests across 45 files** (4 new guards landed 2026-04-13 via `add-dual-mode-llm-routing`)
 - `bun audit` — Dependency vulnerability scan
 - `cd docs && bun run build` — Docs site build (also a CI gate; ~20s). If local `bun install` fails with `FileNotFound: failed opening cache/package/version dir`, run `bun pm cache rm` then retry.
 - Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/conventions/quality-gates.md)
