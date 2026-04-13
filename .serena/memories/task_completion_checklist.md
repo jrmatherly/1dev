@@ -59,7 +59,7 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:verify <name>` — verify implementation matches artifacts
 4. `/opsx:archive <name>` — archive and promote capability specs
-- **13 capability specs (91 requirements)** in `openspec/specs/`: `1code-api-litellm-provisioning` (19), `brand-identity` (11), `claude-code-auth-import` (2), `credential-storage` (7), `documentation-site` (5), `electron-runtime` (4), `enterprise-auth` (5), `enterprise-auth-wiring` (4), `feature-flags` (6), `frontmatter-parsing` (6), `renderer-data-access` (5), `self-hosted-api` (11), `shiki-highlighter` (6)
+- **15 capability specs (109 requirements)** in `openspec/specs/`: `1code-api-litellm-provisioning` (19), `brand-identity` (11), `claude-code-auth-import` (2), `credential-storage` (8), `documentation-site` (9), `electron-runtime` (4), `electron-security-hardening` (4), `enterprise-auth` (5), `enterprise-auth-wiring` (4), `feature-flags` (6), `frontmatter-parsing` (6), `renderer-data-access` (5), `self-hosted-api` (17), `shiki-highlighter` (6), `sqlite-performance` (3)
 - **Active changes (1)**: `upgrade-vite-8-build-stack` (15/50)
 - Full rules: [`.claude/rules/openspec.md`](../../.claude/rules/openspec.md)
 
