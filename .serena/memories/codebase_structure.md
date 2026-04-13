@@ -19,45 +19,50 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 ## Main Process (`src/main/`)
 - `auth-manager.ts` — Strangler Fig adapter: branches on `enterpriseAuthEnabled` flag, delegates to EnterpriseAuth (MSAL) or legacy AuthStore. `ensureReady()` for lazy async MSAL init.
 - `lib/credential-store.ts` — Unified 3-tier credential encryption
-- `lib/safe-external.ts` — **Scheme-validated `safeOpenExternal()` wrapper** (added 2026-04-12 via PR #17). All `shell.openExternal()` calls MUST go through this module — validates URL scheme to `https:`/`http:`/`mailto:` only, blocking `file:`, `javascript:`, `data:`, and custom protocols. Enforced by `tests/regression/open-external-scheme.test.ts`. Mirrors the credential-storage pattern (single canonical module, all callers must import).
-- `lib/frontmatter.ts` — **Canonical frontmatter parser shim** (added 2026-04-12). Wraps `front-matter@4.0.2` and re-exports as `{ data, content }` shape compatible with the former `gray-matter` API. The single sanctioned entry point for main-process frontmatter parsing — enforced by `tests/regression/no-gray-matter.test.ts`. Mirrors the credential-storage pattern.
+- `lib/safe-external.ts` — **Scheme-validated `safeOpenExternal()` wrapper** (added 2026-04-12 via PR #17). All `shell.openExternal()` calls MUST go through this module — validates URL scheme to `https:`/`http:`/`mailto:` only. Enforced by `tests/regression/open-external-scheme.test.ts`.
+- `lib/safe-json-parse.ts` — **Typed `safeJsonParse<T>()` utility** (added 2026-04-12 Phase C §8.1). Returns `T | null` on parse/validator failure. Applied to 8 DB-content deserialization sites in chats.ts (6), claude.ts, auth-store.ts.
+- `lib/frontmatter.ts` — **Canonical frontmatter parser shim** (added 2026-04-12). Wraps `front-matter@4.0.2` and re-exports as `{ data, content }` shape. Enforced by `tests/regression/no-gray-matter.test.ts`.
+- `global.d.ts` — **NEW 2026-04-12 Phase C §8.7** — NodeJS.Global augmentation for runtime-bolted properties (__devToolsUnlocked, __unlockDevTools, __setUpdateAvailable). Eliminates all `(global as any).__xyz` escape hatches in windows/main.ts, auto-updater.ts, index.ts.
 - `lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (wired into auth-manager)
 - `lib/terminal/session.ts` — **Lazy import** for node-pty (prevents crash if native module fails)
 - `lib/db/schema/index.ts` — Drizzle schema (7 tables: projects, chats, subChats, claudeCodeCredentials, anthropicAccounts, anthropicSettings, featureFlagOverrides)
-- `lib/trpc/routers/index.ts` — 22 routers in `createAppRouter` (21 feature routers + `createGitRouter()` for the git changes router). Current list: projects, chats, claude, claudeCode, claudeSettings, anthropicAccounts, ollama, codex, terminal, external, files, debug, skills, agents, worktreeConfig, sandboxImport, commands, voice, plugins, featureFlags, enterpriseAuth + git.
-- `lib/trpc/routers/enterprise-auth.ts` — Enterprise auth tRPC router (signIn/signOut/getStatus/refreshToken)
-- `lib/trpc/routers/external.ts` — Shell operations (openInFinder, openInApp, openFileInEditor, openExternal, **getInstalledEditors** — added 2026-04-12 via PR #16, checks `/Applications/*.app` existence for dynamic Preferred Editor dropdown)
-- `lib/trpc/routers/codex.ts` — `CodexMcpServerForSettings` type now has optional `serverInfo?`/`error?` fields aligning with Claude's `MCPServer` shape (added 2026-04-11 in baseline-reduction sweep)
-- `lib/trpc/routers/{commands,plugins,skills}.ts` + `lib/trpc/routers/agent-utils.ts` — **DONE 2026-04-12**: 8 `import matter from "gray-matter"` call sites swapped to `import { matter } from "../../frontmatter"` pointing at the canonical shim. The `agent-utils.ts:81` narrow-fix (latent bug: `VALID_AGENT_MODELS.includes(data.model)` was silently bypassing validation for non-string values; now uses `typeof data.model === "string" &&` guard) is part of the same change. Merged via PR #14 `f6bf3fb`.
+- `lib/trpc/index.ts` — **`authedProcedure` middleware added 2026-04-12 Phase C §8.3** — centralized auth guard using `authManager.isAuthenticated()` (honors dev bypass), throws `TRPCError UNAUTHORIZED` otherwise. Applied to enterpriseAuth.signOut/refreshToken + external.openExternal.
+- `lib/trpc/routers/index.ts` — 22 routers in `createAppRouter` (21 feature routers + `createGitRouter()` for the git changes router).
+- `lib/trpc/routers/enterprise-auth.ts` — Enterprise auth tRPC router (signIn public, signOut/refreshToken/getStatus). signOut+refreshToken now wrapped by authedProcedure.
+- `lib/trpc/routers/external.ts` — Shell operations. `openExternal` now wrapped by authedProcedure. Also `getInstalledEditors` (added 2026-04-12 via PR #16, checks `/Applications/*.app` existence for dynamic Preferred Editor dropdown).
+- `lib/trpc/routers/codex.ts` — `CodexMcpServerForSettings` type now has optional `serverInfo?`/`error?` fields aligning with Claude's `MCPServer` shape.
 - `lib/feature-flags.ts` — Type-safe feature flags backed by DB table
-- `electron.vite.config.ts` — Uses `build.externalizeDeps` (electron-vite 5.0 API). Current exclude list: `["superjson", "trpc-electron", "front-matter", "async-mutex"]`. Swapped from gray-matter on 2026-04-12 via PR #14.
+- `electron.vite.config.ts` — Uses `build.externalizeDeps` (electron-vite 5.0 API). Current exclude list: `["superjson", "trpc-electron", "front-matter", "async-mutex"]`. **Renderer `manualChunks` added 2026-04-12 Phase C §8.5** — splits Monaco, mermaid, katex, cytoscape, shiki into separate lazy-loaded chunks.
+- `src/main/windows/main.ts` — **`sandbox: true` empirically validated 2026-04-12** via `bun run dev` runtime test (§8.9). Preload surface is sandbox-compatible.
 - `index.ts` line ~908 — `app.dock?.setMenu(dockMenu)` uses optional chaining (macOS-only API)
 
 ## Renderer (`src/renderer/`)
 - `login.html` — Pre-auth sign-in screen (1Code logo, static HTML)
-- `lib/mock-api.ts` — Phase 2 complete: 655 → 144 lines, F-entry stubs only (remaining upstream SaaS surface)
-- `lib/message-parser.ts` — 5-stage tool normalization pipeline extracted during mock-api Phase 2 migration
+- `lib/mock-api.ts` — Phase 2 complete: 655 → 144 lines, F-entry stubs only
+- `lib/message-parser.ts` — 5-stage tool normalization pipeline
 - `lib/remote-trpc.ts` — Upstream tRPC client (F-entry boundary)
 - `features/agents/stores/sub-chat-store.ts` — No persist middleware; rebuilt from DB
-- `features/agents/ui/agent-diff-view.tsx` — `sandboxId: string | null | undefined` (was `string`), `repository?: string` (flat, was `{owner, name} | null` in Renderer variant). Unified prop shape across `AgentDiffView` + `DiffSidebarContentProps` + `DiffSidebarRendererProps` on 2026-04-11.
-- `features/agents/context/text-selection-context.tsx` — **Polyfill deleted** 2026-04-11. `Selection.getComposedRanges` is now in lib.dom.d.ts so the declaration-merging block was causing TS2300/TS2386.
-- `features/agents/ui/agents-content.tsx` — Desktop-mock `useSearchParams`/`useRouter`/`useClerk` stubs now have proper arg signatures (still no-ops at runtime).
+- `features/agents/main/active-chat.tsx` — **Phase C §8.7 complete 2026-04-12** — added `AgentChatExtras` local type near top of file (lines ~290) that captures upstream DTO fields (project, branch, isRemote, sandboxId/sandbox_id, subChats, remoteStats) not on the narrow prop contract. Replaces all 18 `(agentChat as any)?.X` sites with a single named structural narrow. `RollbackLookupMessage` now exported from message-store.ts for the rollback helper.
+- `features/agents/stores/message-store.ts` — exports `RollbackLookupMessage` type for cross-file narrowing.
+- `features/agents/ui/agent-diff-view.tsx` — `sandboxId: string | null | undefined` (was `string`), `repository?: string` (flat). Unified prop shape across `AgentDiffView` + `DiffSidebarContentProps` + `DiffSidebarRendererProps` on 2026-04-11. Imports `SupportedLanguages` from `@pierre/diffs`.
 
 ## Documentation Site (`docs/`)
 - `docs.json` — xyd-js config (5 tabs, operations tab includes roadmap)
 - `operations/roadmap.md` — **Single source of truth** for outstanding work
+- `architecture/overview.md` — **Filled out 2026-04-12 Phase C §8.10** (was stub) — 3-process model, IPC + authedProcedure, state management, AI backend integration, database layer, fork posture.
 - Build: `cd docs && bun run build` (cleans .xyd/ artifacts first)
 
 ## OpenSpec Specs (13 capabilities, 91 requirements as of 2026-04-12)
 1code-api-litellm-provisioning (19), brand-identity (11), claude-code-auth-import (2), credential-storage (7), documentation-site (5), electron-runtime (4), enterprise-auth (5), enterprise-auth-wiring (4), feature-flags (6), **frontmatter-parsing (6)**, renderer-data-access (5), self-hosted-api (11), shiki-highlighter (6).
 
-## Active OpenSpec Changes (1 as of 2026-04-12 session-sync)
+## Active OpenSpec Changes (2 as of 2026-04-12 post-§8.7 session)
+- `security-hardening-and-quality-remediation` (74/81 — all §8 done, only §7 claude.ts decomposition 7 tasks remain)
 - `upgrade-vite-8-build-stack` (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable)
 
 ## Recently Archived (2026-04-10 → 2026-04-12)
-- `2026-04-12-replace-gray-matter-with-front-matter` (67/67, NEW baseline `frontmatter-parsing` 6 requirements / 15 scenarios; merged via PR #14 `f6bf3fb`; required follow-up PR #15 `9efefc9` to fix unrelated CI test job for `services/1code-api/` sub-workspace install)
-- `2026-04-11-upgrade-electron-41` (26/27 — task 5.3 packaged-build auto-updater verification deferred as a roadmap item, blocked on code-signing)
-- `2026-04-11-add-1code-api-litellm-provisioning` (77/77 complete — NEW baseline spec `1code-api-litellm-provisioning` with 19 requirements)
+- `2026-04-12-replace-gray-matter-with-front-matter` (67/67)
+- `2026-04-11-upgrade-electron-41` (26/27)
+- `2026-04-11-add-1code-api-litellm-provisioning` (77/77)
 - `2026-04-10-implement-1code-api`
 - `2026-04-10-upgrade-shiki-4`
 - `2026-04-10-upgrade-tailwind-4`
@@ -65,14 +70,17 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 
 ## IDE Configuration
 .vscode/settings.json — tracked in git (`.gitignore` uses `!.vscode/settings.json`).
-Contains: tsgo native preview flag, SonarLint rule suppressions (50 rules
-disabled project-wide — grew from 16 during 2026-04-10 remediation session).
+Contains: tsgo native preview flag, SonarLint rule suppressions (50+ rules
+disabled project-wide).
 
-## Regression Tests (18 guards + 1 unit test = 19 files in tests/regression/)
+## Regression Tests (19 guards + 1 unit test = 20 files in tests/regression/)
 auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted,
 gpg-verification-present, feature-flags-shape, brand-sweep-complete,
 no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamps,
 credential-storage-tier, enterprise-auth-module, enterprise-auth-wiring, electron-version-pin,
-mock-api-consumer-migration, 1code-api single-replica enforcement, **no-gray-matter** (added 2026-04-12), **open-external-scheme** (added 2026-04-12 — enforces safeOpenExternal() usage, blocks direct shell.openExternal calls), **signed-fetch-allowlist** (added 2026-04-12 — verifies URL origin validation in signedFetch/streamFetch handlers), **mcp-url-ssrf-prevention** (added 2026-04-12 Phase C §6 — 20 tests covering mcpServerUrlSchema loopback/RFC1918/IMDS/IPv6 blocklists + Zod httpUrl scheme restrictions), and one unit test **frontmatter-shim-shape** (added 2026-04-12 — technically a unit test not a regression guard, but lives in `tests/regression/` so glob counts pick it up).
+mock-api-consumer-migration, 1code-api single-replica enforcement, **no-gray-matter** (added 2026-04-12), **open-external-scheme** (added 2026-04-12 — enforces safeOpenExternal() usage), **signed-fetch-allowlist** (added 2026-04-12), **mcp-url-ssrf-prevention** (added 2026-04-12 Phase C §6 — 20 tests covering SSRF + Zod httpUrl scheme restrictions), and one unit test **frontmatter-shim-shape**.
 
-Combined `bun test` total: **211 tests across 39 files** (201 pass + 10 skipped integration tests, 0 fail, ~6-7s) — `services/1code-api/tests/integration/` contains 3 integration tests that skip without a docker-compose harness.
+Combined `bun test` total: **231 tests across 40 files** (221 pass + 10 skipped integration tests, 0 fail, ~6s) — `services/1code-api/tests/integration/` contains integration tests that skip without docker-compose.
+
+## TypeScript type safety (2026-04-12)
+**`as any` casts in src/: 96 → 3 (97% elimination)** via Phase C §8.7 systematic sweep. Only 2 remain in claude.ts at SDK streaming-message union boundaries (documented with justification comments); 1 grep false-positive in global.d.ts JSDoc prose. Reusable patterns from the sweep: (1) local structural narrow types per iteration block (AI SDK `UIMessage.parts`); (2) named "extras" types for upstream-DTO fields not on prop contracts (`AgentChatExtras`); (3) NodeJS.Global augmentation via `*.d.ts` (eliminates `global as any` cluster); (4) importable narrow types across modules (`RollbackLookupMessage` export).
