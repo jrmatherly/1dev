@@ -1,0 +1,315 @@
+/**
+ * Auxiliary-AI dispatch module — provider-aware sub-chat name + commit
+ * message generation.
+ *
+ * Replaces the upstream apollosai.dev/api/agents/* call sites in
+ * src/main/lib/trpc/routers/chats.ts (Groups 10-11 of the
+ * remediate-dev-server-findings change). The dispatch matrix mirrors
+ * the four ProviderMode kinds enumerated by spawn-env.ts and adds a
+ * graceful Ollama-or-truncated fallback for the subscription-direct
+ * case (no API key / virtual key available).
+ *
+ * Design (see openspec/changes/remediate-dev-server-findings/design.md
+ * Decision 1):
+ *   - byok-direct          → Anthropic SDK with apiKey
+ *   - byok-litellm         → Anthropic SDK pointed at LiteLLM, virtualKey + customerId header
+ *   - subscription-litellm → Anthropic SDK pointed at LiteLLM, virtualKey + customerId header
+ *   - subscription-direct  → Ollama (if running) → truncated fallback
+ *   - null mode            → Ollama (if running) → truncated fallback
+ *
+ * The deps-factory pattern (`makeGenerateChatTitle(deps)` →
+ * `generateChatTitle`) exists specifically so the regression guard in
+ * tests/regression/aux-ai-provider-dispatch.test.ts can construct
+ * synthetic AuxAiDeps for each ProviderMode kind without mocking the
+ * real SDK.
+ */
+
+import Anthropic from "@anthropic-ai/sdk";
+import type { ProviderMode } from "./claude/spawn-env";
+import { getFlag, type FeatureFlagKey, type FeatureFlagValue } from "./feature-flags";
+import { getActiveProviderMode } from "./trpc/routers/claude";
+
+/**
+ * Minimal SDK-shape interface — what aux-ai.ts actually exercises.
+ * Production wires this to `new Anthropic(opts)`; tests provide a fake
+ * that records the constructor args + returns a canned response.
+ */
+export interface AnthropicLike {
+  messages: {
+    create(params: {
+      model: string;
+      max_tokens: number;
+      temperature: number;
+      messages: Array<{ role: "user"; content: string }>;
+    }): Promise<{
+      content: Array<{ type: string; text?: string }>;
+    }>;
+  };
+}
+
+export interface CreateAnthropicOpts {
+  apiKey?: string;
+  authToken?: string;
+  baseURL?: string;
+  defaultHeaders?: Record<string, string>;
+}
+
+export interface AuxAiDeps {
+  /** SDK constructor — production: `(opts) => new Anthropic(opts)`. */
+  createAnthropic: (opts: CreateAnthropicOpts) => AnthropicLike;
+  /** Ollama fallback for chat titles (returns null if Ollama not available). */
+  generateOllamaName: (
+    userMessage: string,
+    model?: string | null,
+  ) => Promise<string | null>;
+  /** Resolves the current ProviderMode (or null when no account is active). */
+  getProviderMode: () => ProviderMode | null;
+  /** Type-safe feature-flag accessor — production: `getFlag` from feature-flags.ts. */
+  getFlag: <K extends FeatureFlagKey>(key: K) => FeatureFlagValue<K>;
+}
+
+const DEFAULT_AUX_MODEL = "claude-3-5-haiku-latest";
+
+/**
+ * Truncate a user message to a chat-friendly title (≤25 chars + ellipsis).
+ * Mirrors getFallbackName in chats.ts.
+ */
+function truncatedFallback(userMessage: string): string {
+  const trimmed = userMessage.trim();
+  if (trimmed.length === 0) return "New Chat";
+  if (trimmed.length <= 25) return trimmed;
+  return trimmed.substring(0, 25) + "...";
+}
+
+/**
+ * Resolve the model identifier for a given ProviderMode using the
+ * documented precedence chain:
+ *   flag override → mode.modelMap.haiku (LiteLLM modes only) → default
+ */
+function resolveModel(mode: ProviderMode | null, flagOverride: string): string {
+  if (flagOverride.length > 0) return flagOverride;
+  if (mode && (mode.kind === "byok-litellm")) {
+    return mode.modelMap.haiku || DEFAULT_AUX_MODEL;
+  }
+  return DEFAULT_AUX_MODEL;
+}
+
+/**
+ * Build a constructor-args record for the SDK from a LiteLLM-routing mode.
+ * Throws if MAIN_VITE_LITELLM_BASE_URL is unset — caller catches and
+ * falls back to Ollama/truncated.
+ */
+function liteLlmSdkOpts(
+  mode: Extract<ProviderMode, { kind: "subscription-litellm" | "byok-litellm" }>,
+): CreateAnthropicOpts {
+  const baseURL = process.env.MAIN_VITE_LITELLM_BASE_URL;
+  if (!baseURL || baseURL.length === 0) {
+    throw new Error(
+      "[aux-ai] MAIN_VITE_LITELLM_BASE_URL is not set — cannot route through LiteLLM",
+    );
+  }
+  const opts: CreateAnthropicOpts = {
+    baseURL,
+    authToken: mode.virtualKey,
+  };
+  if (mode.customerId) {
+    opts.defaultHeaders = { "x-litellm-customer-id": mode.customerId };
+  }
+  return opts;
+}
+
+/**
+ * Run an SDK call against an AbortController-backed timeout. The SDK
+ * ignores the signal natively in some versions, so we race the promise
+ * with a setTimeout that rejects.
+ */
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<T> {
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutHandle = setTimeout(
+      () => reject(new Error(`[aux-ai] timed out after ${timeoutMs}ms`)),
+      timeoutMs,
+    );
+  });
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutHandle) clearTimeout(timeoutHandle);
+  }
+}
+
+/**
+ * Extract the first text chunk from an SDK response. Returns trimmed
+ * string or null if no text content.
+ */
+function extractText(resp: { content: Array<{ type: string; text?: string }> }): string | null {
+  for (const block of resp.content) {
+    if (block.type === "text" && block.text) {
+      const trimmed = block.text.trim();
+      if (trimmed.length > 0) return trimmed;
+    }
+  }
+  return null;
+}
+
+/**
+ * Clean an AI-generated title — strip wrapping quotes, leading "Title:",
+ * cap to 50 chars. Mirrors the cleaning in generateChatNameWithOllama.
+ */
+function cleanTitle(raw: string): string {
+  return raw
+    .replace(/^["']|["']$/g, "")
+    .replace(/^title:\s*/i, "")
+    .trim()
+    .slice(0, 50);
+}
+
+/**
+ * Factory — build a chat-title generator bound to the supplied deps.
+ * Returns a function that generates a title for a user message.
+ */
+export function makeGenerateChatTitle(deps: AuxAiDeps) {
+  return async function generateChatTitle(
+    userMessage: string,
+    ollamaModel?: string | null,
+  ): Promise<string> {
+    if (!deps.getFlag("auxAiEnabled")) {
+      return truncatedFallback(userMessage);
+    }
+
+    const mode = deps.getProviderMode();
+    const flagModel = deps.getFlag("auxAiModel");
+    const timeoutMs = deps.getFlag("auxAiTimeoutMs");
+
+    const tryViaSdk = async (
+      sdkOpts: CreateAnthropicOpts,
+    ): Promise<string | null> => {
+      const client = deps.createAnthropic(sdkOpts);
+      const model = resolveModel(mode, flagModel);
+      const resp = await withTimeout(
+        client.messages.create({
+          model,
+          max_tokens: 50,
+          temperature: 0.3,
+          messages: [
+            {
+              role: "user",
+              content: `Generate a very short (2-5 words) title for a coding chat that starts with this message. The title MUST be in the same language as the user's message. Only output the title, nothing else. No quotes, no explanations.\n\nUser message: "${userMessage.slice(0, 500)}"\n\nTitle:`,
+            },
+          ],
+        }),
+        timeoutMs,
+      );
+      const text = extractText(resp);
+      return text ? cleanTitle(text) : null;
+    };
+
+    try {
+      if (mode?.kind === "byok-direct") {
+        const result = await tryViaSdk({ apiKey: mode.apiKey });
+        if (result) return result;
+      } else if (mode?.kind === "byok-litellm" || mode?.kind === "subscription-litellm") {
+        const result = await tryViaSdk(liteLlmSdkOpts(mode));
+        if (result) return result;
+      }
+    } catch (err) {
+      console.error("[aux-ai] generateChatTitle SDK call failed:", err);
+    }
+
+    // subscription-direct, null mode, or SDK failure → Ollama fallback.
+    try {
+      const ollamaResult = await deps.generateOllamaName(userMessage, ollamaModel);
+      if (ollamaResult) return ollamaResult;
+    } catch (err) {
+      console.error("[aux-ai] Ollama fallback failed:", err);
+    }
+    return truncatedFallback(userMessage);
+  };
+}
+
+/**
+ * Factory — build a commit-message generator bound to the supplied deps.
+ * Accepts the diff context as a string (caller stitches diff + stats).
+ * Returns the generated commit message or a deterministic fallback.
+ */
+export function makeGenerateCommitMessage(deps: AuxAiDeps) {
+  return async function generateCommitMessage(
+    context: string,
+    fallback: string,
+  ): Promise<string> {
+    if (!deps.getFlag("auxAiEnabled")) {
+      return fallback;
+    }
+
+    const mode = deps.getProviderMode();
+    const flagModel = deps.getFlag("auxAiModel");
+    const timeoutMs = deps.getFlag("auxAiTimeoutMs");
+
+    const tryViaSdk = async (
+      sdkOpts: CreateAnthropicOpts,
+    ): Promise<string | null> => {
+      const client = deps.createAnthropic(sdkOpts);
+      const model = resolveModel(mode, flagModel);
+      const resp = await withTimeout(
+        client.messages.create({
+          model,
+          max_tokens: 200,
+          temperature: 0.5,
+          messages: [
+            {
+              role: "user",
+              content: `Generate a concise conventional-commit message (under 72 chars on the first line) for the following changes. Only output the message, no explanation.\n\n${context.slice(0, 10000)}`,
+            },
+          ],
+        }),
+        timeoutMs,
+      );
+      const text = extractText(resp);
+      return text ? text.split("\n")[0].slice(0, 200) : null;
+    };
+
+    try {
+      if (mode?.kind === "byok-direct") {
+        const result = await tryViaSdk({ apiKey: mode.apiKey });
+        if (result) return result;
+      } else if (mode?.kind === "byok-litellm" || mode?.kind === "subscription-litellm") {
+        const result = await tryViaSdk(liteLlmSdkOpts(mode));
+        if (result) return result;
+      }
+    } catch (err) {
+      console.error("[aux-ai] generateCommitMessage SDK call failed:", err);
+    }
+    return fallback;
+  };
+}
+
+/**
+ * Production-bound deps wiring. Uses the real Anthropic SDK,
+ * getActiveProviderMode from claude.ts, and getFlag from feature-flags.
+ *
+ * The Ollama generator is supplied at module-init time by chats.ts via
+ * `setOllamaNameGenerator()` to avoid a circular import. Until set,
+ * Ollama fallback is a no-op (returns null). chats.ts MUST call
+ * setOllamaNameGenerator() at module load.
+ */
+let ollamaNameGenerator: AuxAiDeps["generateOllamaName"] = async () => null;
+
+export function setOllamaNameGenerator(
+  fn: AuxAiDeps["generateOllamaName"],
+): void {
+  ollamaNameGenerator = fn;
+}
+
+const productionDeps: AuxAiDeps = {
+  createAnthropic: (opts) => new Anthropic(opts) as unknown as AnthropicLike,
+  generateOllamaName: (userMessage, model) =>
+    ollamaNameGenerator(userMessage, model),
+  getProviderMode: getActiveProviderMode,
+  getFlag,
+};
+
+export const generateChatTitle = makeGenerateChatTitle(productionDeps);
+export const generateCommitMessage = makeGenerateCommitMessage(productionDeps);

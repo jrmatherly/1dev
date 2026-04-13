@@ -56,12 +56,12 @@
 
 ## 10. Provider-aware auxiliary-AI module
 
-- [ ] 10.1 Create `src/main/lib/aux-ai.ts` exporting:
+- [x] 10.1 Create `src/main/lib/aux-ai.ts` exporting:
   - `AuxAiDeps` interface (createAnthropic, generateOllamaName, getProviderMode, getFlag)
   - `makeGenerateChatTitle(deps: AuxAiDeps)` factory
   - `makeGenerateCommitMessage(deps: AuxAiDeps)` factory
   - Already-bound convenience exports `generateChatTitle`, `generateCommitMessage`
-- [ ] 10.2 Implement the dispatch matrix in `makeGenerateChatTitle`:
+- [x] 10.2 Implement the dispatch matrix in `makeGenerateChatTitle`:
   - Guard: `if (!deps.getFlag("auxAiEnabled")) return fallback`
   - Resolve `mode = deps.getProviderMode()`
   - Route: `subscription-litellm`/`byok-litellm` → `generateViaLiteLlm` ; `byok-direct` → `generateViaAnthropicDirect` ; else → Ollama → fallback
@@ -70,25 +70,25 @@
   - Model resolution: `deps.getFlag("auxAiModel")` nonempty → flag value; `mode.kind` is LiteLLM AND `mode.modelMap.haiku` → modelMap value; else `claude-3-5-haiku-latest`
   - Timeout: use `AbortController` with `setTimeout(..., deps.getFlag("auxAiTimeoutMs"))`
   - Hardcoded: `max_tokens: 50`, `temperature: 0.3`
-- [ ] 10.3 Implement `makeGenerateCommitMessage` with the same dispatch but hardcoded `max_tokens: 200`, `temperature: 0.5`.
-- [ ] 10.4 Export bound convenience versions `generateChatTitle` + `generateCommitMessage` that wire `deps` from production sources (real `@anthropic-ai/sdk`, `generateChatNameWithOllama` from `chats.ts`, `getActiveProviderMode` from `claude.ts`, `getFlag` from `feature-flags.ts`).
+- [x] 10.3 Implement `makeGenerateCommitMessage` with the same dispatch but hardcoded `max_tokens: 200`, `temperature: 0.5`.
+- [x] 10.4 Export bound convenience versions `generateChatTitle` + `generateCommitMessage` that wire `deps` from production sources (real `@anthropic-ai/sdk`, `generateChatNameWithOllama` from `chats.ts` via `setOllamaNameGenerator`, `getActiveProviderMode` from `claude.ts`, `getFlag` from `feature-flags.ts`).
 
 ## 11. Refactor chats.ts to delegate to aux-ai.ts
 
-- [ ] 11.1 In `src/main/lib/trpc/routers/chats.ts:1445` (`generateSubChatName`), remove the `apollosai.dev` fetch. Delegate to `generateChatTitle(input.userMessage)` from `aux-ai.ts`. Keep the tRPC procedure signature unchanged (still returns `{ name: string }`).
-- [ ] 11.2 In `src/main/lib/trpc/routers/chats.ts:1340` (the `generate-commit-message` call site), delegate to `generateCommitMessage(context)` from `aux-ai.ts`.
-- [ ] 11.3 Verify `bun run ts:check` — 0 errors.
+- [x] 11.1 In `src/main/lib/trpc/routers/chats.ts:1445` (`generateSubChatName`), remove the `apollosai.dev` fetch. Delegate to `generateChatTitle(input.userMessage)` from `aux-ai.ts`. Keep the tRPC procedure signature unchanged (still returns `{ name: string }`).
+- [x] 11.2 In `src/main/lib/trpc/routers/chats.ts:1340` (the `generate-commit-message` call site), delegate to `generateCommitMessage(context)` from `aux-ai.ts`.
+- [x] 11.3 Verify `bun run ts:check` — 0 errors.
 
 ## 12. Feature flags addition
 
-- [ ] 12.1 Add four entries to `FLAG_DEFAULTS` in `src/main/lib/feature-flags.ts`:
+- [x] 12.1 Add four entries to `FLAG_DEFAULTS` in `src/main/lib/feature-flags.ts`:
   - `auxAiEnabled: true`
   - `auxAiModel: ""`
   - `auxAiTimeoutMs: 5000`
   - `auxAiOrigin: ""`
-- [ ] 12.2 Add per-flag JSDoc blocks explaining each flag's purpose and the precedence chain.
-- [ ] 12.3 Update `docs/conventions/feature-flags.md` with the new flags.
-- [ ] 12.4 Verify type inference: `getFlag("auxAiEnabled")` → `boolean`, `getFlag("auxAiModel")` → `string`, etc.
+- [x] 12.2 Add per-flag JSDoc blocks explaining each flag's purpose and the precedence chain.
+- [x] 12.3 Update `docs/conventions/feature-flags.md` with the new flags.
+- [x] 12.4 Verify type inference: `getFlag("auxAiEnabled")` → `boolean`, `getFlag("auxAiModel")` → `string`, etc.
 
 ## 13. Aux-AI regression guard
 

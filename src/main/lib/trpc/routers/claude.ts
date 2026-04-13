@@ -189,7 +189,7 @@ function getClaudeCodeToken(): string | null {
  * Falls through to the legacy inference path in claude.ts:start when null.
  * See openspec/changes/add-dual-mode-llm-routing/ for the full contract.
  */
-function getActiveProviderMode(): ProviderMode | null {
+export function getActiveProviderMode(): ProviderMode | null {
   try {
     const db = getDatabase();
     const settings = db

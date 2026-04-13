@@ -96,6 +96,41 @@ export const FLAG_DEFAULTS = {
    * tokens. See src/main/lib/credential-store.ts for the 3-tier policy.
    */
   credentialStorageRequireEncryption: false,
+
+  /**
+   * Master kill-switch for the auxiliary-AI module (sub-chat name
+   * generation, commit message generation). When false, callers fall
+   * back to truncated input — no SDK calls, no Ollama, no upstream.
+   * Default true so the user-visible UX continues working post-decoupling.
+   * See src/main/lib/aux-ai.ts and docs/conventions/feature-flags.md.
+   */
+  auxAiEnabled: true,
+
+  /**
+   * Operator override for the aux-AI model identifier. When non-empty,
+   * takes precedence over the per-mode resolution chain (LiteLLM
+   * modelMap.haiku → "claude-3-5-haiku-latest" default). Useful for
+   * pinning a specific model during incident response or A/B testing.
+   */
+  auxAiModel: "",
+
+  /**
+   * Per-call timeout (milliseconds) for the aux-AI SDK invocation.
+   * Aux-AI is best-effort — if the call exceeds this budget, the
+   * caller falls back to truncated input. Default 5000ms is generous
+   * enough for haiku-class models on direct routing; tighten for
+   * latency-sensitive deployments.
+   */
+  auxAiTimeoutMs: 5000,
+
+  /**
+   * Reserved for future use — operator override for the aux-AI
+   * upstream origin when routing through a custom relay. Currently
+   * unused; the SDK uses MAIN_VITE_LITELLM_BASE_URL or the Anthropic
+   * default. Kept in the flag set to avoid a follow-up migration when
+   * the relay path lands.
+   */
+  auxAiOrigin: "",
 } as const;
 
 /**

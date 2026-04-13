@@ -4,7 +4,6 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import simpleGit from "simple-git";
 import { z } from "zod";
-import { getAuthManager } from "../../../index";
 import {
   trackPRCreated,
   trackWorkspaceArchived,
@@ -20,12 +19,18 @@ import {
   sanitizeProjectName,
 } from "../../git";
 import type { WorktreeSetupResult } from "../../git/worktree-config";
+import type { ParsedDiffFile } from "../../git/diff-parser";
 import { computeContentHash, gitCache } from "../../git/cache";
 import { splitUnifiedDiffByFile } from "../../git/diff-parser";
 import { execWithShellEnv } from "../../git/shell-env";
 import { applyRollbackStash } from "../../git/stash";
 import { safeJsonParse } from "../../safe-json-parse";
 import { checkInternetConnection, checkOllamaStatus } from "../../ollama";
+import {
+  generateChatTitle,
+  generateCommitMessage as generateCommitMessageViaAuxAi,
+  setOllamaNameGenerator,
+} from "../../aux-ai";
 import { terminalManager } from "../../terminal/manager";
 import { publicProcedure, router } from "../index";
 
@@ -58,6 +63,62 @@ function sendWorktreeSetupFailure(
   }
 }
 
+/**
+ * Heuristic commit-message generator used as the deterministic fallback
+ * when aux-AI is disabled, offline-with-Ollama-unavailable, or the
+ * provider mode has no SDK route. Mirrors the original inline logic
+ * in generateCommitMessage; extracted so aux-ai delegation can pass it
+ * as the fallback string.
+ */
+function buildHeuristicCommitMessage(files: ParsedDiffFile[]): string {
+  const fileNames = files.map((f) => {
+    const filePath = f.newPath !== "/dev/null" ? f.newPath : f.oldPath;
+    return path.posix.basename(filePath) || filePath;
+  });
+  const hasNewFiles = files.some((f) => f.oldPath === "/dev/null");
+  const hasDeletedFiles = files.some((f) => f.newPath === "/dev/null");
+  const allPaths = files.map((f) =>
+    f.newPath !== "/dev/null" ? f.newPath : f.oldPath,
+  );
+  const hasTestFiles = allPaths.some(
+    (p) => p.includes("test") || p.includes("spec"),
+  );
+  const hasDocFiles = allPaths.some(
+    (p) => p.endsWith(".md") || p.includes("doc"),
+  );
+  const hasConfigFiles = allPaths.some(
+    (p) =>
+      p.includes("config") ||
+      p.endsWith(".json") ||
+      p.endsWith(".yaml") ||
+      p.endsWith(".yml") ||
+      p.endsWith(".toml"),
+  );
+  let prefix = "chore";
+  if (hasNewFiles && !hasDeletedFiles) {
+    prefix = "feat";
+  } else if (hasTestFiles && !hasDocFiles && !hasConfigFiles) {
+    prefix = "test";
+  } else if (hasDocFiles && !hasTestFiles && !hasConfigFiles) {
+    prefix = "docs";
+  } else if (allPaths.some((p) => p.includes("fix") || p.includes("bug"))) {
+    prefix = "fix";
+  } else if (
+    files.length > 0 &&
+    files.every((f) => f.additions > 0 || f.deletions > 0)
+  ) {
+    prefix = "fix";
+  }
+  const uniqueFileNames = [...new Set(fileNames)];
+  if (uniqueFileNames.length === 1) {
+    return `${prefix}: update ${uniqueFileNames[0]}`;
+  }
+  if (uniqueFileNames.length <= 3) {
+    return `${prefix}: update ${uniqueFileNames.join(", ")}`;
+  }
+  return `${prefix}: update ${uniqueFileNames.length} files`;
+}
+
 // Fallback to truncated user message if AI generation fails
 function getFallbackName(userMessage: string): string {
   const trimmed = userMessage.trim();
@@ -73,6 +134,9 @@ function getFallbackName(userMessage: string): string {
  * @param userMessage - The user message to generate a title for
  * @param model - Optional model to use (if not provided, uses recommended model)
  */
+// eslint-disable-next-line @typescript-eslint/no-use-before-define
+setOllamaNameGenerator((msg, model) => generateChatNameWithOllama(msg, model));
+
 async function generateChatNameWithOllama(
   userMessage: string,
   model?: string | null,
@@ -1322,115 +1386,32 @@ export const chatsRouter = router({
         );
         // Fall through to heuristic fallback below
       } else {
-        // Online - call web API to generate commit message
-        let apiError: string | null = null;
+        // Online - delegate to provider-aware aux-AI module. The aux-AI
+        // helper handles the per-ProviderMode dispatch (byok-direct,
+        // *-litellm) and falls back to the heuristic message constructed
+        // below for subscription-direct or null mode.
         try {
-          const authManager = getAuthManager();
-          const token = await authManager.getValidToken();
-          // Use localhost in dev, production otherwise
-          const apiUrl =
-            process.env.NODE_ENV === "development"
-              ? "http://localhost:3000"
-              : "https://apollosai.dev";
-
-          if (!token) {
-            apiError = "No auth token available";
-          } else {
-            const response = await fetch(
-              `${apiUrl}/api/agents/generate-commit-message`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "X-Desktop-Token": token,
-                },
-                body: JSON.stringify({
-                  diff: filteredDiff.slice(0, 10000), // Limit diff size, use filtered diff
-                  fileCount: files.length,
-                  additions,
-                  deletions,
-                }),
-              },
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-              if (data.message) {
-                return { message: data.message };
-              }
-              apiError = "API returned ok but no message in response";
-            } else {
-              apiError = `API returned ${response.status}`;
-            }
+          const auxContext = `Diff (${files.length} files, +${additions}/-${deletions}):\n${filteredDiff.slice(0, 10000)}`;
+          // Compute heuristic fallback up-front so aux-AI can return it
+          // when no SDK route is viable.
+          const heuristicFallback = buildHeuristicCommitMessage(files);
+          const message = await generateCommitMessageViaAuxAi(
+            auxContext,
+            heuristicFallback,
+          );
+          if (message && message !== heuristicFallback) {
+            return { message };
           }
         } catch (error) {
-          apiError = `API call failed: ${error instanceof Error ? error.message : String(error)}`;
+          console.log(
+            "[generateCommitMessage] aux-AI delegation failed:",
+            error instanceof Error ? error.message : String(error),
+          );
         }
-
-        if (apiError) {
-          console.log("[generateCommitMessage] API error:", apiError);
-        }
       }
 
-      // Fallback: Generate commit message with conventional commits style
-      const fileNames = files.map((f) => {
-        const filePath = f.newPath !== "/dev/null" ? f.newPath : f.oldPath;
-        // Note: Git diff paths always use forward slashes
-        return path.posix.basename(filePath) || filePath;
-      });
-
-      // Detect commit type from file changes
-      const hasNewFiles = files.some((f) => f.oldPath === "/dev/null");
-      const hasDeletedFiles = files.some((f) => f.newPath === "/dev/null");
-
-      // Detect type from file paths
-      const allPaths = files.map((f) =>
-        f.newPath !== "/dev/null" ? f.newPath : f.oldPath,
-      );
-      const hasTestFiles = allPaths.some(
-        (p) => p.includes("test") || p.includes("spec"),
-      );
-      const hasDocFiles = allPaths.some(
-        (p) => p.endsWith(".md") || p.includes("doc"),
-      );
-      const hasConfigFiles = allPaths.some(
-        (p) =>
-          p.includes("config") ||
-          p.endsWith(".json") ||
-          p.endsWith(".yaml") ||
-          p.endsWith(".yml") ||
-          p.endsWith(".toml"),
-      );
-
-      // Determine commit type prefix
-      let prefix = "chore";
-      if (hasNewFiles && !hasDeletedFiles) {
-        prefix = "feat";
-      } else if (hasTestFiles && !hasDocFiles && !hasConfigFiles) {
-        prefix = "test";
-      } else if (hasDocFiles && !hasTestFiles && !hasConfigFiles) {
-        prefix = "docs";
-      } else if (allPaths.some((p) => p.includes("fix") || p.includes("bug"))) {
-        prefix = "fix";
-      } else if (
-        files.length > 0 &&
-        files.every((f) => f.additions > 0 || f.deletions > 0)
-      ) {
-        // Default to fix for modifications (most common case)
-        prefix = "fix";
-      }
-
-      const uniqueFileNames = [...new Set(fileNames)];
-      let message: string;
-
-      if (uniqueFileNames.length === 1) {
-        message = `${prefix}: update ${uniqueFileNames[0]}`;
-      } else if (uniqueFileNames.length <= 3) {
-        message = `${prefix}: update ${uniqueFileNames.join(", ")}`;
-      } else {
-        message = `${prefix}: update ${uniqueFileNames.length} files`;
-      }
-
+      // Fallback: deterministic conventional-commits style heuristic.
+      const message = buildHeuristicCommitMessage(files);
       console.log(
         "[generateCommitMessage] Generated fallback message:",
         message,
@@ -1450,66 +1431,18 @@ export const chatsRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
+      // Delegate to the provider-aware aux-AI module. It dispatches to
+      // the active ProviderMode (byok-direct, *-litellm) and falls back
+      // to Ollama → truncated for subscription-direct or null mode.
       try {
-        // Check internet first - if offline, use Ollama
-        const hasInternet = await checkInternetConnection();
-
-        if (!hasInternet) {
-          console.log("[generateSubChatName] Offline - trying Ollama...");
-          const ollamaName = await generateChatNameWithOllama(
-            input.userMessage,
-            input.ollamaModel,
-          );
-          if (ollamaName) {
-            console.log(
-              "[generateSubChatName] Generated name via Ollama:",
-              ollamaName,
-            );
-            return { name: ollamaName };
-          }
-          console.log("[generateSubChatName] Ollama failed, using fallback");
-          return { name: getFallbackName(input.userMessage) };
-        }
-
-        // Online - use web API
-        const authManager = getAuthManager();
-        const token = await authManager.getValidToken();
-        const apiUrl = "https://apollosai.dev";
-
-        console.log(
-          "[generateSubChatName] Online - calling API with token:",
-          token ? "present" : "missing",
+        const name = await generateChatTitle(
+          input.userMessage,
+          input.ollamaModel,
         );
-
-        const response = await fetch(
-          `${apiUrl}/api/agents/sub-chat/generate-name`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { "X-Desktop-Token": token }),
-            },
-            body: JSON.stringify({ userMessage: input.userMessage }),
-          },
-        );
-
-        console.log("[generateSubChatName] Response status:", response.status);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(
-            "[generateSubChatName] API error:",
-            response.status,
-            errorText,
-          );
-          return { name: getFallbackName(input.userMessage) };
-        }
-
-        const data = await response.json();
-        console.log("[generateSubChatName] Generated name:", data.name);
-        return { name: data.name || getFallbackName(input.userMessage) };
+        console.log("[generateSubChatName] Generated name:", name);
+        return { name };
       } catch (error) {
-        console.error("[generateSubChatName] Error:", error);
+        console.error("[generateSubChatName] aux-AI delegation failed:", error);
         return { name: getFallbackName(input.userMessage) };
       }
     }),
