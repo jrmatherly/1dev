@@ -51,6 +51,7 @@ jobs:
             type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: services/1code-api
@@ -72,8 +73,11 @@ jobs:
         # 2026-03-04, before 0.35.0 was published). Never downgrade this pin.
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
-          # Scan the SHA-tagged image pushed by build-push-action
-          image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          # Reference the image by content digest produced by build-push-action.
+          # Digest is immutable and always resolvable after push, unlike
+          # ${{ github.sha }} (full 40-char) which does not match the short
+          # 7-char SHA tag produced by docker/metadata-action `type=sha`.
+          image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
           format: "table"
           exit-code: "1"
           severity: "CRITICAL,HIGH"
@@ -84,11 +88,15 @@ jobs:
 
       - name: Sign container image
         env:
-          DIGEST: ${{ steps.meta.outputs.digest }}
+          # DIGEST comes from docker/build-push-action (not metadata-action —
+          # metadata-action has no `digest` output). Digest is the immutable
+          # content address of the just-pushed image, suitable for Cosign.
+          DIGEST: ${{ steps.build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           # Sign each tag with keyless (GitHub OIDC)
-          # TAGS and DIGEST are from docker/metadata-action, not user input
+          # TAGS comes from docker/metadata-action; DIGEST from build-push-action.
+          # Neither is user input.
           for tag in $TAGS; do
             cosign sign --yes "${tag}@${DIGEST}" || cosign sign --yes "${tag}"
           done
