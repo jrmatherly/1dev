@@ -22,6 +22,13 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 - `lib/safe-external.ts` — **Scheme-validated `safeOpenExternal()` wrapper** (added 2026-04-12 via PR #17). All `shell.openExternal()` calls MUST go through this module — validates URL scheme to `https:`/`http:`/`mailto:` only. Enforced by `tests/regression/open-external-scheme.test.ts`.
 - `lib/safe-json-parse.ts` — **Typed `safeJsonParse<T>()` utility** (added 2026-04-12 Phase C §8.1). Returns `T | null` on parse/validator failure. Applied to 8 DB-content deserialization sites in chats.ts (6), claude.ts, auth-store.ts.
 - `lib/frontmatter.ts` — **Canonical frontmatter parser shim** (added 2026-04-12). Wraps `front-matter@4.0.2` and re-exports as `{ data, content }` shape. Enforced by `tests/regression/no-gray-matter.test.ts`.
+- `lib/claude/` — **Phase C §7 decomposition 2026-04-12** — extracted from `trpc/routers/claude.ts`:
+  - `prompt-parser.ts` (97 lines) — `parseMentions()` for @[agent:/skill:/file:/folder:/tool:] mention parsing + hint injection
+  - `session-manager.ts` (59 lines) — `activeSessions` Map, `pendingToolApprovals` Map, `PLAN_MODE_BLOCKED_TOOLS` Set, `hasActiveClaudeSessions()`, `abortAllClaudeSessions()`, `clearPendingApprovals()`. Consumed by index.ts + windows/main.ts for reload coordination.
+  - `mcp-resolver.ts` (528 lines) — `workingMcpServers`, `symlinksCreated`, `mcpConfigCache`, `projectMcpJsonCache`, `mcpCacheKey()`, `readProjectMcpJsonCached()`, `clearMcpResolverCaches()`, `getServerStatusFromConfig()`, `fetchToolsForServer()`, `getAllMcpConfigHandler()`. Aggregates MCP configs across global/project/plugin scopes and probes liveness.
+  - `tool-executor.ts` (240 lines) — `createCanUseTool(ctx)` factory returning the canUseTool async callback passed to `claudeQuery()`. Captures `isUsingOllama`, `mode`, `subChatId`, `safeEmit`, `parts` from request scope. Handles Ollama parameter normalization, plan-mode guardrails, AskUserQuestion approval flow.
+  - Pre-existing: `env.ts`, `index.ts`, `offline-handler.ts`, `raw-logger.ts`, `transform.ts`, `types.ts`
+  - `trpc/routers/claude.ts` is now **2,503 lines** (down from 3,309, −24%). Residual bulk is the 2,003-line chat subscription handler; further decomposition deferred to P3 roadmap.
 - `global.d.ts` — **NEW 2026-04-12 Phase C §8.7** — NodeJS.Global augmentation for runtime-bolted properties (__devToolsUnlocked, __unlockDevTools, __setUpdateAvailable). Eliminates all `(global as any).__xyz` escape hatches in windows/main.ts, auto-updater.ts, index.ts.
 - `lib/enterprise-auth.ts` — MSAL Node Entra token acquisition (wired into auth-manager)
 - `lib/terminal/session.ts` — **Lazy import** for node-pty (prevents crash if native module fails)
@@ -55,8 +62,8 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 ## OpenSpec Specs (13 capabilities, 91 requirements as of 2026-04-12)
 1code-api-litellm-provisioning (19), brand-identity (11), claude-code-auth-import (2), credential-storage (7), documentation-site (5), electron-runtime (4), enterprise-auth (5), enterprise-auth-wiring (4), feature-flags (6), **frontmatter-parsing (6)**, renderer-data-access (5), self-hosted-api (11), shiki-highlighter (6).
 
-## Active OpenSpec Changes (2 as of 2026-04-12 post-§8.7 session)
-- `security-hardening-and-quality-remediation` (74/81 — all §8 done, only §7 claude.ts decomposition 7 tasks remain)
+## Active OpenSpec Changes (2 as of 2026-04-12 post-§7 decomposition)
+- `security-hardening-and-quality-remediation` (**81/81 tasks complete** — ready for /opsx:verify → /opsx:archive)
 - `upgrade-vite-8-build-stack` (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable)
 
 ## Recently Archived (2026-04-10 → 2026-04-12)

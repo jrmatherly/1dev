@@ -10,10 +10,11 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - 7 Drizzle tables, 22 tRPC routers (incl. enterprise-auth), better-sqlite3, node-pty (lazy-loaded)
 - **20 test files in `tests/regression/`** (19 regression guards + 1 frontmatter shim unit test) + 20 service test files in `services/1code-api/tests/` = **231 tests across 40 files** (221 pass + 10 skipped integration tests needing docker-compose harness, 2026-04-12).
 
-## Current State (2026-04-12, post-§8.7 sweep)
+## Current State (2026-04-12, post-§7 claude.ts decomposition)
 - **Phase 0:** 15/15 hard gates complete
 - **TS baseline: 0 errors** (reduced from 32 → 0 on 2026-04-11). Baseline file = 0; CI fails on ANY new TS error.
 - **`as any` casts in src/: 96 → 3 (97% elimination)** via Phase C §8.7 sweep 2026-04-12. Only 2 legitimate SDK streaming-message escapes in claude.ts remain with justification comments.
+- **claude.ts decomposition (§7):** 3,309 → 2,503 lines (−24%) via 4 new modules in `src/main/lib/claude/`: `prompt-parser` (97), `session-manager` (59), `mcp-resolver` (528), `tool-executor` (240). Target <1,000 not met — remaining bulk is the 2,003-line chat subscription handler (observer-state coupled); further decomposition deferred to P3 roadmap entry.
 - **Tailwind 4.2.2:** Upgraded from 3.4.19 on 2026-04-10.
 - **Vite 7.3.2 (Phase A):** Upgraded from 6.4.2 on 2026-04-10. Phase B blocked on `electron-vite 6.0.0` stable.
 - **TypeScript 6.0.2:** Upgraded from 5.9.3 on 2026-04-10.
@@ -27,9 +28,13 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix. Current: **v0.0.82**.
 - **Active OpenSpec changes (2):**
   - `upgrade-vite-8-build-stack` (15/50, Phase B blocked on electron-vite 6.0.0)
-  - `security-hardening-and-quality-remediation` (**74/81 tasks** — all §8 done 2026-04-12 commit `270cddd`; §7 claude.ts decomposition 7 tasks remain)
+  - `security-hardening-and-quality-remediation` (**81/81 tasks complete** 2026-04-12 — all §6, §7 partial (§7.6 line-target missed, deferred to roadmap), §8, §9, §10 done; ready for /opsx:verify → /opsx:archive)
 - **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → ~~Shiki4~~ ✅ → Vite8-B (blocked)
-- **New main-process utilities (2026-04-12 Phase C §8):**
+- **New main-process utilities (2026-04-12 Phase C §7+§8):**
+  - `src/main/lib/claude/prompt-parser.ts` — `parseMentions()` extracted from claude.ts
+  - `src/main/lib/claude/session-manager.ts` — `activeSessions`, `pendingToolApprovals`, `PLAN_MODE_BLOCKED_TOOLS`, `hasActiveClaudeSessions`, `abortAllClaudeSessions`, `clearPendingApprovals`
+  - `src/main/lib/claude/mcp-resolver.ts` — `workingMcpServers`, 3 mtime caches, `mcpCacheKey`, `readProjectMcpJsonCached`, `getServerStatusFromConfig`, `fetchToolsForServer`, `getAllMcpConfigHandler`, `clearMcpResolverCaches`
+  - `src/main/lib/claude/tool-executor.ts` — `createCanUseTool(ctx)` factory for the canUseTool callback (captures isUsingOllama, mode, subChatId, safeEmit, parts)
   - `src/main/lib/safe-json-parse.ts` — typed safeJsonParse<T>() returning T | null
   - `src/main/lib/trpc/index.ts` `authedProcedure` — centralized auth guard
   - `src/main/global.d.ts` — NodeJS.Global augmentation for `__devToolsUnlocked`, `__unlockDevTools`, `__setUpdateAvailable` (eliminates `global as any` cluster)
@@ -44,9 +49,10 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - `openspec/specs/` has **13 capability specs (91 requirements)** as of 2026-04-12
 - Skills/agents read from canonical docs, not CLAUDE.md
 
-## §8.7 sweep patterns (reusable learnings)
-1. **Local structural narrow types per iteration block** — AI SDK `UIMessage.parts` is a discriminated union; narrow once per loop via `{type?, text?, filePath?, content?}` instead of casting each access.
-2. **Named "extras" types** for upstream-DTO fields not on prop contracts — e.g. `AgentChatExtras` in active-chat.tsx captures `.project`, `.branch`, `.isRemote`, `.sandboxId`, `.subChats`, `.remoteStats` that exist on the runtime object but not on the component's narrower prop type.
-3. **NodeJS.Global augmentation via `*.d.ts`** — eliminates the `(global as any).__x` cluster for runtime-bolted properties.
-4. **Importable narrow types across modules** — exporting `RollbackLookupMessage` from message-store.ts lets call sites in active-chat.tsx narrow without re-declaring the shape.
-5. **`as unknown as T` bridge** — when two types don't sufficiently overlap (Chat<any> → structural transport shape), use the double-cast via unknown to avoid TS2352.
+## §7 claude.ts decomposition patterns (reusable learnings)
+1. **Sequential per-extraction commits** — 5 commits (one per extraction + one for verification) keeps review surgical and rollback cheap. Parallel subagents on shared mutable state (5+ Maps) would have generated merge conflicts.
+2. **Re-export shim for stability** — claude.ts re-exports public API (`hasActiveClaudeSessions`, `abortAllClaudeSessions`, `workingMcpServers`, `getAllMcpConfigHandler`) from extracted modules so external importers (index.ts, windows/main.ts, anthropic-accounts.ts) never need to update their imports.
+3. **Facade over module-state clears** — `clearClaudeCaches()` stays in claude.ts as a thin facade calling `clearMcpResolverCaches()` + resetting the local `cachedClaudeQuery`. External callers keep a single entry point while each module owns its caches.
+4. **Factory-function lift for observer-state closures** — `createCanUseTool(ctx)` accepts 5 closure captures (isUsingOllama, mode, subChatId, safeEmit, parts) and returns the async callback. Pure factory + scoped context is the cleanest way to lift a closure out of an observable.
+5. **Orphan-import pruning after handler removal** — after extracting `getAllMcpConfigHandler`, 8 imports became dead (`GLOBAL_MCP_PATH`, `readProjectMcpJson`, `fetchMcpTools`, `fetchMcpToolsStdio`, `McpToolInfo`, `fetchOAuthMetadata`, `getMcpBaseUrl`, `projectsTable`). Grep for `\b<name>\b` usage count > 1 (filters pure imports); SonarLint S1128 catches what grep misses.
+6. **Honest partial completion over forced fit** — target <1,000 lines was missed by ~1,500. Reporting partial + deferring to roadmap with precise technical rationale (chat subscription observer-state coupling) is better than forcing fragile stream-lifecycle extractions.
