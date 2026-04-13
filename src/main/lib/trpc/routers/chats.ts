@@ -134,7 +134,9 @@ function getFallbackName(userMessage: string): string {
  * @param userMessage - The user message to generate a title for
  * @param model - Optional model to use (if not provided, uses recommended model)
  */
-// eslint-disable-next-line @typescript-eslint/no-use-before-define
+// Wire the production Ollama generator into aux-ai. Forward-references
+// generateChatNameWithOllama (defined below) — function declarations are
+// hoisted, so this runs correctly at module load.
 setOllamaNameGenerator((msg, model) => generateChatNameWithOllama(msg, model));
 
 async function generateChatNameWithOllama(

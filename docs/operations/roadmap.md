@@ -332,6 +332,30 @@ Result: `auth-manager.ts` becomes a pure delegating adapter to `enterprise-auth.
 **Prereqs:** Phase D §10.1 `active-chat.tsx` decomposition complete (easier to reason about isolated Maps after split)
 **Canonical reference:** `openspec/changes/archive/2026-04-13-security-hardening-and-quality-remediation/tasks.md` §10.8
 
+### [Ready] Settings UI for feature-flag runtime toggling
+
+**Added:** 2026-04-13 (Group 19 of `remediate-dev-server-findings`)
+**Scope:** Today every feature flag (`enterpriseAuthEnabled`, `auxAi*`, `voiceViaLiteLLM`, etc.) is toggled via `setFlag()` in the dev console or by a direct DB write. Add a Settings panel that lists every flag from `getAllFlagsWithSources()` with its current value, source (default/override/env), and an inline editor (toggle/string/number). Particularly valuable for the `auxAi*` flags — operators currently have no UI to disable AI title generation if it misbehaves in production.
+**Effort:** Medium (Settings page wiring + tRPC procedure + source-aware editors)
+**Prereqs:** None
+**Canonical reference:** `src/main/lib/feature-flags.ts` `getAllFlagsWithSources()`, `openspec/changes/remediate-dev-server-findings/tasks.md` §19.1
+
+### [Deferred] Codex-direct / Codex-litellm provider modes in aux-ai dispatch
+
+**Added:** 2026-04-13 (Group 19 of `remediate-dev-server-findings`)
+**Scope:** When the Codex integration workstream formalizes ProviderMode kinds for Codex (likely `codex-direct` and `codex-litellm`), extend the dispatch matrix in `src/main/lib/aux-ai.ts` (`makeGenerateChatTitle` + `makeGenerateCommitMessage`) to route those modes to the appropriate SDK. Today Codex sub-chats fall through to the Ollama-or-truncated path because the matrix only knows about Anthropic-shaped modes.
+**Effort:** Small (one new branch per kind in two factories + extend the regression guard)
+**Prereqs:** Codex ProviderMode types added to `spawn-env.ts`
+**Canonical reference:** `src/main/lib/aux-ai.ts`, `openspec/changes/remediate-dev-server-findings/tasks.md` §19.2
+
+### [Ready] Runtime drift detection for landed migrations
+
+**Added:** 2026-04-13 (Group 19 of `remediate-dev-server-findings`)
+**Scope:** `drizzle/0010_flowery_blackheart.sql` is hand-edited (documented exception in `.claude/rules/database.md`). To prevent silent divergence between the SQL and the snapshot (`drizzle/meta/0010_snapshot.json`) in future hand-edits, add a subagent-driven check that regenerates the snapshot from the schema + applied migration and diffs it against the committed snapshot. Wire into the existing `db-schema-auditor` subagent or as a new `tests/regression/migration-drift.test.ts` shape guard.
+**Effort:** Small (one new subagent prompt or one regression guard)
+**Prereqs:** None
+**Canonical reference:** `drizzle/0010_flowery_blackheart.sql` top comment, `.claude/rules/database.md` "Allowed exceptions" section, `openspec/changes/remediate-dev-server-findings/tasks.md` §19.3
+
 ---
 
 ## Recently Completed

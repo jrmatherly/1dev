@@ -115,18 +115,18 @@
 
 ## 16. F-entry catalog updates (with qualified-resolved status)
 
-- [ ] 16.1 Add `### F11. Sub-Chat Name Generation ✅ RESOLVED (3/4 provider modes) 2026-04-13` section to `docs/enterprise/upstream-features.md` after F10. Body: historical dependency on `apollosai.dev/api/agents/sub-chat/generate-name`; current implementation in `src/main/lib/aux-ai.ts`; qualifier — `subscription-direct` users get Ollama-or-truncated-fallback.
-- [ ] 16.2 Add `### F12. Commit Message Generation ✅ RESOLVED (3/4 provider modes) 2026-04-13` section analogously.
-- [ ] 16.3 Run `/docs-drift-check` (manually-invoked skill) to catch any other doc surface mentioning these two call sites.
+- [x] 16.1 Added F11 section to `docs/enterprise/upstream-features.md` between F10 and the Summary Table. Documents historical dependency, current `aux-ai.ts` implementation, per-mode status (3/4 resolved + qualified `subscription-direct`).
+- [x] 16.2 Added F12 section analogously. Both entries also rolled into the Summary Table.
+- [ ] 16.3 Run `/docs-drift-check` (manually-invoked skill) — DEFERRED to operator. Recommended right before archive (Group 20).
 
 ## 17. Quality gates
 
-- [ ] 17.1 `bun run ts:check` — baseline 0 errors preserved.
-- [ ] 17.2 `bun run build` — no new warnings.
-- [ ] 17.3 `bun test tests/regression/` — all guards pass, including the 6 guards (4 updated + 2 new from this change's Groups 2, 6, 13, 14, 15).
-- [ ] 17.4 `bun run lint` (local advisory) — no new lint hotspots.
-- [ ] 17.5 `cd docs && bun run build` — xyd-js docs site builds cleanly.
-- [ ] 17.6 `bun audit` — no NEW advisories.
+- [x] 17.1 `bun run ts:check` — baseline 0 errors preserved.
+- [x] 17.2 `bun run build` — built in 39.54s, no new warnings.
+- [x] 17.3 `bun test tests/regression/` — 170/170 pass (was 138 pre-Group 13; +32 from new guards).
+- [x] 17.4 `bun run lint` (local advisory) — clean (after fixing 1 SonarJS false positive in aux-ai.ts default Ollama generator + removing 1 stale eslint-disable in chats.ts).
+- [x] 17.5 `cd docs && bun run build` — xyd-js docs site built in 20.42s.
+- [x] 17.6 `bun audit` — 55 vulnerabilities (was 56 pre-change), zero NEW advisories from this work.
 
 ## 18. Manual smoke
 
@@ -142,9 +142,9 @@
 
 ## 19. Follow-up roadmap entries
 
-- [ ] 19.1 Add `[P3 Ready] Settings UI for feature-flag runtime toggling` to `docs/operations/roadmap.md` — operator-visible UI for flipping `auxAi*` and other feature flags without DB writes. Effort: Medium.
-- [ ] 19.2 Add `[P3 Deferred] Codex-direct / Codex-litellm provider modes in aux-ai dispatch` — when the Codex integration workstream formalizes ProviderMode kinds for Codex, extend the aux-ai dispatch matrix. Effort: Small (one new case per kind).
-- [ ] 19.3 Add `[P3 Ready] Runtime drift detection for landed migrations` — subagent-driven check that `drizzle/0010_*.sql` matches a regenerated snapshot, alerting on silent divergence. Effort: Small.
+- [x] 19.1 Added `[Ready] Settings UI for feature-flag runtime toggling` to `docs/operations/roadmap.md` P3 section.
+- [x] 19.2 Added `[Deferred] Codex-direct / Codex-litellm provider modes in aux-ai dispatch` to roadmap P3 section.
+- [x] 19.3 Added `[Ready] Runtime drift detection for landed migrations` to roadmap P3 section.
 
 ## 20. Archive
 

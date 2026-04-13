@@ -295,7 +295,10 @@ export function makeGenerateCommitMessage(deps: AuxAiDeps) {
  * Ollama fallback is a no-op (returns null). chats.ts MUST call
  * setOllamaNameGenerator() at module load.
  */
-let ollamaNameGenerator: AuxAiDeps["generateOllamaName"] = async () => null;
+let ollamaNameGenerator: AuxAiDeps["generateOllamaName"] = async (
+  _userMessage,
+  _model,
+) => null;
 
 export function setOllamaNameGenerator(
   fn: AuxAiDeps["generateOllamaName"],

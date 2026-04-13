@@ -351,9 +351,53 @@ README claims "Start and monitor background agents from your phone." This is the
 
 ---
 
+### F11. Sub-Chat Name Generation ✅ RESOLVED (3/4 provider modes) 2026-04-13
+
+**What it did historically:**
+The `generateSubChatName` tRPC procedure in `src/main/lib/trpc/routers/chats.ts` posted the user's first message to `https://apollosai.dev/api/agents/sub-chat/generate-name` and used the upstream-generated short title as the sub-chat name. The endpoint was Anthropic-Haiku-backed on the upstream side.
+
+**Code locations:**
+- `src/main/lib/aux-ai.ts` — `generateChatTitle()` (replaces the upstream call)
+- `src/main/lib/trpc/routers/chats.ts:1444` — `generateSubChatName` procedure (now delegates to `aux-ai.ts`)
+
+**Status as of 2026-04-13:**
+- `byok-direct` — ✅ AI-generated title via Anthropic SDK with the user's API key
+- `byok-litellm` — ✅ AI-generated title via LiteLLM proxy with virtual key + `x-litellm-customer-id` header
+- `subscription-litellm` — ✅ AI-generated title via LiteLLM (same path)
+- `subscription-direct` — ⚠️ **Qualified resolution** — Ollama (if running) → 25-char truncated fallback. No SDK route is viable when the user is on Claude Max OAuth without LiteLLM, because OAuth tokens can't authenticate the SDK directly.
+
+**Restoration mechanism:**
+Group 10 of the `remediate-dev-server-findings` change introduced the provider-aware `aux-ai.ts` module. The DI factory pattern (`makeGenerateChatTitle(deps)` → bound `generateChatTitle`) makes per-mode dispatch testable without mocking the SDK. Behavior gated by `auxAiEnabled` feature flag (default `true`).
+
+**Follow-up roadmap entries:** none — the Ollama-or-truncated fallback is the documented end-state for `subscription-direct`.
+
+---
+
+### F12. Commit Message Generation ✅ RESOLVED (3/4 provider modes) 2026-04-13
+
+**What it did historically:**
+The `generateCommitMessage` tRPC procedure in `src/main/lib/trpc/routers/chats.ts` posted the diff + file stats to `https://apollosai.dev/api/agents/generate-commit-message` and returned a conventional-commits-style message.
+
+**Code locations:**
+- `src/main/lib/aux-ai.ts` — `generateCommitMessage()` (replaces the upstream call)
+- `src/main/lib/trpc/routers/chats.ts:1340` — `generateCommitMessage` procedure (now delegates to `aux-ai.ts` with the heuristic fallback as the safety net)
+
+**Status as of 2026-04-13:**
+- `byok-direct` — ✅ AI-generated message via Anthropic SDK
+- `byok-litellm` — ✅ AI-generated message via LiteLLM proxy
+- `subscription-litellm` — ✅ AI-generated message via LiteLLM
+- `subscription-direct` — ⚠️ **Qualified resolution** — deterministic conventional-commits heuristic from the diff (e.g., `feat: update foo.ts`). No SDK route is viable.
+
+**Restoration mechanism:**
+Same as F11 — the `aux-ai.ts` DI factory dispatches per ProviderMode. The heuristic fallback (`buildHeuristicCommitMessage` in chats.ts) was extracted from the original inline logic so the aux-AI delegation can pass it as the `fallback` arg.
+
+**Follow-up roadmap entries:** none — the heuristic fallback is the documented end-state for `subscription-direct`.
+
+---
+
 ## Summary Table
 
-**All 10 F-entries have decisions as of 2026-04-08.** The overarching theme is self-host-everything; "drop" only appears where investigation proved the feature was already local-only or dead.
+**All 12 F-entries have decisions as of 2026-04-13.** The overarching theme is self-host-everything; "drop" only appears where investigation proved the feature was already local-only or dead. F11/F12 (sub-chat name + commit message generation) were RESOLVED on 2026-04-13 via the provider-aware `aux-ai.ts` module — qualified-resolved for `subscription-direct` mode (Ollama-or-truncated and heuristic fallbacks respectively).
 
 | ID | Feature | Priority | Code touches upstream | Decision |
 |---|---|---|---|---|
@@ -367,6 +411,8 @@ README claims "Start and monitor background agents from your phone." This is the
 | F8 | Subscription Tier Gating | 🟨 P1 | voice.ts, auth-manager.ts | Stub to `true` interim → remove end-state (Phase 1) |
 | F9 | Live Browser Previews | 🟨 P2 | (none on desktop — dead UI) | **Rebuild via port-manager substrate** — investigated 2026-04-08, feature is dead UI today. ~200 LOC Phase 2 greenfield. |
 | F10 | PWA Companion | ⬜ P3 | (not in repo) | Drop from README only |
+| F11 | Sub-Chat Name Generation | ✅ RESOLVED (3/4 modes) | aux-ai.ts, chats.ts:1444 | Provider-aware dispatch via `aux-ai.ts`; Ollama-or-truncated fallback for `subscription-direct` (2026-04-13) |
+| F12 | Commit Message Generation | ✅ RESOLVED (3/4 modes) | aux-ai.ts, chats.ts:1340 | Provider-aware dispatch via `aux-ai.ts`; heuristic conventional-commits fallback for `subscription-direct` (2026-04-13) |
 
 ## Open Investigations
 
