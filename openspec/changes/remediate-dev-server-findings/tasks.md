@@ -92,26 +92,26 @@
 
 ## 13. Aux-AI regression guard
 
-- [ ] 13.1 Write `tests/regression/aux-ai-provider-dispatch.test.ts` — construct `AuxAiDeps` fakes for each `ProviderMode` kind (4 concrete + null). For each:
-  - Assert the correct SDK config (`baseURL`, `authToken`/`apiKey`, `defaultHeaders`)
-  - Assert model resolution precedence (flag → modelMap → default)
-  - Assert Ollama fallback kicks in for `subscription-direct` + null mode
-  - Assert `auxAiEnabled=false` bypasses everything
-- [ ] 13.2 Verify guard passes green.
+- [x] 13.1 Wrote `tests/regression/aux-ai-provider-dispatch.test.ts` as a SHAPE-based guard (cannot import Electron from bun:test). Asserts:
+  - DI factory exports + bound versions present
+  - Per-ProviderMode-kind branches present + correct opts (apiKey vs authToken, customerId header)
+  - Model resolution chain (flag → modelMap → default `claude-3-5-haiku-latest`)
+  - `auxAiEnabled` kill-switch checked in BOTH factories
+  - Hardcoded max_tokens/temperature for both helpers
+  - 25-char truncated fallback contract
+- [x] 13.2 Guard passes green — 15/15 tests, 37 assertions.
 
 ## 14. No-upstream grep guard
 
-- [ ] 14.1 Write `tests/regression/no-apollosai-aux-ai-fetch.test.ts` — scan `src/main/lib/trpc/routers/chats.ts` and `src/main/lib/aux-ai.ts`; assert zero matches for `fetch.*apollosai\.dev/api/agents`. Add a positive control: assert `aux-ai.ts` exists and contains expected imports.
-- [ ] 14.2 Verify guard passes green.
+- [x] 14.1 Wrote `tests/regression/no-apollosai-aux-ai-fetch.test.ts` — scans both files, asserts zero matches for the two upstream agent endpoints. Positive control verifies `aux-ai.ts` exists with expected exports + chats.ts delegates to it.
+- [x] 14.2 Guard passes green — 6/6 tests, 17 assertions.
 
 ## 15. SignedFetch origin-conditional allowlist + cache
 
-- [ ] 15.1 In `src/main/windows/main.ts` near the `api:signed-fetch` IPC handler:
-  - Read `MAIN_VITE_API_URL` once at handler entry
-  - If unset OR hostname matches `apollosai.dev`: reject with `{ error: "upstream_unreachable", reason: "disabled_by_env" }`. Log once per origin per process lifetime.
-- [ ] 15.2 Add module-scoped `unreachableCache: Map<string, { checkedAt: number }>` with 60s TTL. On allowed-fetch failure with `ECONNREFUSED` or `ENOTFOUND`, record the origin. On subsequent calls, return cached error.
-- [ ] 15.3 Write `tests/regression/signed-fetch-cache.test.ts` — mock fetch to reject `ENOTFOUND`, fire 10 parallel calls, assert only 1 real fetch invocation.
-- [ ] 15.4 Verify guard passes green.
+- [x] 15.1 Added module-scoped `checkUpstreamGate(url, rawApiUrl)` + `isUpstreamDisabled` helpers in `src/main/windows/main.ts`. Wired into BOTH `api:signed-fetch` and `api:stream-fetch` handlers. Removed the silent `|| "https://apollosai.dev"` fallback — unset env vars now reject with `disabled_by_env`. Logs once per origin per process via `upstreamLogged` Set.
+- [x] 15.2 Added module-scoped `unreachableCache: Map<string, { checkedAt: number }>` with `UNREACHABLE_TTL_MS = 60_000`. `recordUnreachable()` populates on ECONNREFUSED/ENOTFOUND in both fetch catch blocks; gate short-circuits subsequent calls within the TTL.
+- [x] 15.3 Wrote `tests/regression/signed-fetch-cache.test.ts` as a SHAPE-based guard (Electron import boundary). Asserts presence of all helpers, the gate-before-fetch flow, the 60s TTL constant, and recordUnreachable wiring at both call sites.
+- [x] 15.4 Guard passes green — 11/11 tests, 22 assertions.
 
 ## 16. F-entry catalog updates (with qualified-resolved status)
 

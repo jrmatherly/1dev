@@ -48,6 +48,81 @@ function getWindowFromEvent(
   return win && !win.isDestroyed() ? win : null;
 }
 
+// =============================================================================
+// signed-fetch / stream-fetch upstream gating + negative cache (Group 15 of
+// remediate-dev-server-findings).
+//
+// Two independent protections layered on the existing origin allowlist:
+//
+// 1. UPSTREAM-DISABLED GATE — when MAIN_VITE_API_URL is unset or points
+//    at the dead upstream apollosai.dev origin, every request is rejected
+//    with disabled_by_env. A single warning per origin per process
+//    lifetime keeps logs quiet during normal renderer fan-out (sidebar +
+//    help popover + settings can each invoke signed-fetch on mount).
+//
+// 2. NEGATIVE CACHE — after a real network failure (ECONNREFUSED/
+//    ENOTFOUND), subsequent calls to the same origin within 60s return
+//    the cached error rather than retrying. Prevents repeated DNS noise
+//    during incident windows.
+// =============================================================================
+
+interface UpstreamGateResult {
+  blocked: boolean;
+  reason?: "disabled_by_env" | "upstream_unreachable";
+  origin?: string;
+}
+
+const upstreamLogged = new Set<string>();
+const unreachableCache = new Map<string, { checkedAt: number }>();
+const UNREACHABLE_TTL_MS = 60_000;
+
+function isUpstreamDisabled(rawApiUrl: string | undefined): boolean {
+  if (!rawApiUrl || rawApiUrl.length === 0) return true;
+  try {
+    const host = new URL(rawApiUrl).hostname;
+    if (host === "apollosai.dev" || host.endsWith(".apollosai.dev")) {
+      return true;
+    }
+  } catch {
+    return true;
+  }
+  return false;
+}
+
+function logUpstreamOnce(origin: string, reason: string): void {
+  if (upstreamLogged.has(origin)) return;
+  upstreamLogged.add(origin);
+  console.warn(`[SignedFetch] upstream disabled for ${origin}: ${reason}`);
+}
+
+function checkUpstreamGate(url: string, rawApiUrl: string | undefined): UpstreamGateResult {
+  let requestOrigin: string;
+  try {
+    requestOrigin = new URL(url).origin;
+  } catch {
+    return { blocked: true, reason: "disabled_by_env" };
+  }
+
+  if (isUpstreamDisabled(rawApiUrl)) {
+    logUpstreamOnce(requestOrigin, "MAIN_VITE_API_URL is unset or points at apollosai.dev");
+    return { blocked: true, reason: "disabled_by_env", origin: requestOrigin };
+  }
+
+  const cached = unreachableCache.get(requestOrigin);
+  if (cached && Date.now() - cached.checkedAt < UNREACHABLE_TTL_MS) {
+    return { blocked: true, reason: "upstream_unreachable", origin: requestOrigin };
+  }
+  return { blocked: false, origin: requestOrigin };
+}
+
+function recordUnreachable(origin: string | undefined, err: unknown): void {
+  if (!origin) return;
+  const code = (err as { code?: string } | undefined)?.code;
+  if (code === "ECONNREFUSED" || code === "ENOTFOUND") {
+    unreachableCache.set(origin, { checkedAt: Date.now() });
+  }
+}
+
 // Register IPC handlers for window operations (only once)
 let ipcHandlersRegistered = false;
 
@@ -499,10 +574,21 @@ function registerIpcHandlers(): void {
       }
       console.log("[SignedFetch] Sender validated OK");
 
-      // URL origin allowlist — prevent SSRF via renderer-controlled URLs
-      const apiOrigin = new URL(
-        import.meta.env.MAIN_VITE_API_URL || "https://apollosai.dev",
-      ).origin;
+      // Upstream-disabled gate — reject early when MAIN_VITE_API_URL is
+      // unset or still points at the dead apollosai.dev origin.
+      const rawApiUrl = import.meta.env.MAIN_VITE_API_URL;
+      const gate = checkUpstreamGate(url, rawApiUrl);
+      if (gate.blocked) {
+        return {
+          ok: false,
+          status: gate.reason === "disabled_by_env" ? 503 : 504,
+          data: null,
+          error: gate.reason ?? "blocked",
+        };
+      }
+
+      // URL origin allowlist — prevent SSRF via renderer-controlled URLs.
+      const apiOrigin = new URL(rawApiUrl as string).origin;
       try {
         const requestOrigin = new URL(url).origin;
         if (requestOrigin !== apiOrigin) {
@@ -567,6 +653,7 @@ function registerIpcHandlers(): void {
         };
       } catch (error) {
         console.log("[SignedFetch] Error:", error);
+        recordUnreachable(gate.origin, error);
         return {
           ok: false,
           status: 0,
@@ -597,10 +684,19 @@ function registerIpcHandlers(): void {
         return { ok: false, status: 403, error: "Unauthorized sender" };
       }
 
-      // URL origin allowlist — prevent SSRF via renderer-controlled URLs
-      const streamApiOrigin = new URL(
-        import.meta.env.MAIN_VITE_API_URL || "https://apollosai.dev",
-      ).origin;
+      // Upstream-disabled gate (shared with signed-fetch).
+      const rawStreamApiUrl = import.meta.env.MAIN_VITE_API_URL;
+      const streamGate = checkUpstreamGate(url, rawStreamApiUrl);
+      if (streamGate.blocked) {
+        return {
+          ok: false,
+          status: streamGate.reason === "disabled_by_env" ? 503 : 504,
+          error: streamGate.reason ?? "blocked",
+        };
+      }
+
+      // URL origin allowlist — prevent SSRF via renderer-controlled URLs.
+      const streamApiOrigin = new URL(rawStreamApiUrl as string).origin;
       try {
         const requestOrigin = new URL(url).origin;
         if (requestOrigin !== streamApiOrigin) {
@@ -670,6 +766,7 @@ function registerIpcHandlers(): void {
         return { ok: true, status: response.status };
       } catch (error) {
         console.error("[StreamFetch] Fetch error:", error);
+        recordUnreachable(streamGate.origin, error);
         return {
           ok: false,
           status: 0,
