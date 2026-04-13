@@ -21,6 +21,9 @@
         --text-logo: #fafafa;
         --btn-shadow:
           0 0 0 0.5px rgb(23, 23, 23), inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+        --toast-bg: #7f1d1d;
+        --toast-fg: #fee2e2;
+        --toast-border: #f87171;
       }
 
       /* Light theme */
@@ -31,6 +34,9 @@
           --text-logo: #09090b;
           --btn-shadow:
             0 0 0 0.5px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+          --toast-bg: #fee2e2;
+          --toast-fg: #991b1b;
+          --toast-border: #f87171;
         }
       }
 
@@ -83,53 +89,208 @@
       .login-btn:active {
         transform: scale(0.97);
       }
+      .login-btn[disabled] {
+        opacity: 0.7;
+        cursor: progress;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        -webkit-app-region: no-drag;
+        padding: 12px 16px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 480px;
+        background: var(--toast-bg);
+        color: var(--toast-fg);
+        border: 1px solid var(--toast-border);
+        font-size: 13px;
+        line-height: 1.4;
+        z-index: 1000;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .toast {
+          animation: toast-slide-in 0.18s ease-out;
+        }
+        @keyframes toast-slide-in {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -8px);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+        }
+      }
+      .toast[hidden] {
+        display: none;
+      }
+      .toast-icon {
+        flex: 0 0 auto;
+      }
+      .toast-message {
+        flex: 1 1 auto;
+      }
+      .toast-dismiss {
+        flex: 0 0 auto;
+        background: transparent;
+        color: inherit;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        padding: 0 4px;
+        opacity: 0.8;
+      }
+      .toast-dismiss:hover {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <!-- 1Code Logo -->
+      <!-- Auth error toast — DOM-resident so screen readers see the live region
+           at parse time. Populated by window.desktopApi.onAuthError. -->
+      <div
+        id="authError"
+        class="toast"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        hidden
+      >
+        <span class="toast-icon" aria-hidden="true">⚠</span>
+        <span class="toast-message"></span>
+        <button
+          class="toast-dismiss"
+          type="button"
+          aria-label="Dismiss error"
+        >×</button>
+      </div>
+      <!-- Canonical 1Code logo (sourced from src/renderer/components/ui/logo.tsx).
+           Inline because login.html renders before the React bundle loads.
+           The `class="logo-path"` on the inner path keeps theme fill working. -->
       <svg
         class="logo"
-        viewBox="0 0 560 560"
+        viewBox="0 0 400 400"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="1Code logo"
       >
         <path
           class="logo-path"
           fill-rule="evenodd"
           clip-rule="evenodd"
-          d="M560 560H0V0H560V560ZM250.406 80C248.111 80 246.25 81.8658 246.25 84.167V175.833C246.25 178.134 244.389 180 242.094 180H84.1562C81.8608 180 80 181.866 80 184.167V275.833C80 278.134 81.8608 280 84.1562 280H231.249L231.995 280.065C235.63 280.68 236.766 285.707 233.375 287.747L84.043 377.575C81.5393 379.081 80.0001 381.793 80 384.72V438.333C80 461.345 98.6082 480 121.562 480H341.844C344.139 480 346 478.134 346 475.833V384.167C346 381.866 347.861 380 350.156 380H474.844C477.139 380 479 378.134 479 375.833V121.667C479 98.6551 460.392 80 437.438 80H250.406ZM341.844 180C344.139 180 346 181.866 346 184.167V375.833C346 378.134 344.139 380 341.844 380H250.406C248.111 380 246.25 378.134 246.25 375.833V184.167C246.25 181.866 248.111 180 250.406 180H341.844Z"
+          d="M358.333 0C381.345 0 400 18.6548 400 41.6667V295.833C400 298.135 398.134 300 395.833 300H270.833C268.532 300 266.667 301.865 266.667 304.167V395.833C266.667 398.134 264.801 400 262.5 400H41.6667C18.6548 400 0 381.345 0 358.333V304.72C0 301.793 1.54269 299.081 4.05273 297.575L153.76 207.747C157.159 205.708 156.02 200.679 152.376 200.065L151.628 200H4.16667C1.86548 200 6.71103e-08 198.135 0 195.833V104.167C1.07376e-06 101.865 1.86548 100 4.16667 100H162.5C164.801 100 166.667 98.1345 166.667 95.8333V4.16667C166.667 1.86548 168.532 1.00666e-07 170.833 0H358.333ZM170.833 100C168.532 100 166.667 101.865 166.667 104.167V295.833C166.667 298.135 168.532 300 170.833 300H262.5C264.801 300 266.667 298.135 266.667 295.833V104.167C266.667 101.865 264.801 100 262.5 100H170.833Z"
         />
       </svg>
-      <button class="login-btn" id="loginBtn">Sign in</button>
+      <button class="login-btn" id="signinBtn" autofocus>Sign in</button>
     </div>
     <script>
       console.log("Login page loaded");
       console.log("window.desktopApi:", window.desktopApi);
 
-      // Listen for auth success from main process (via deep link)
-      // This ensures UI updates even if deep link arrives before click handler completes
+      // -- Toast helpers --------------------------------------------------
+      var toast = document.getElementById("authError");
+      var toastMessage = toast.querySelector(".toast-message");
+      var toastDismiss = toast.querySelector(".toast-dismiss");
+      var toastTimer = null;
+      var signinBtn = document.getElementById("signinBtn");
+      var originalLabel = signinBtn.textContent;
+      var loadingTimer = null;
+
+      function hideToast() {
+        toast.setAttribute("hidden", "");
+        if (toastTimer) {
+          clearTimeout(toastTimer);
+          toastTimer = null;
+        }
+        // Return focus to the sign-in button per a11y spec.
+        if (signinBtn && !signinBtn.disabled) {
+          signinBtn.focus();
+        }
+      }
+
+      function showToast(message) {
+        // Use textContent (safe text-only DOM property), never an
+        // HTML-parsing assignment — error messages may contain attacker-
+        // influenced strings via MSAL.
+        toastMessage.textContent = message;
+        toast.removeAttribute("hidden");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(hideToast, 8000);
+      }
+
+      toastDismiss.addEventListener("click", hideToast);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !toast.hasAttribute("hidden")) {
+          hideToast();
+        }
+      });
+
+      // -- Sign-in button loading state ----------------------------------
+      function setLoading(loading) {
+        if (loading) {
+          signinBtn.disabled = true;
+          signinBtn.textContent = "Waiting for browser sign-in…";
+          signinBtn.setAttribute("aria-busy", "true");
+          if (loadingTimer) clearTimeout(loadingTimer);
+          // 90s safety timeout: if MSAL never resolves, restore button.
+          loadingTimer = setTimeout(function () {
+            setLoading(false);
+          }, 90000);
+        } else {
+          signinBtn.disabled = false;
+          signinBtn.textContent = originalLabel;
+          signinBtn.removeAttribute("aria-busy");
+          if (loadingTimer) {
+            clearTimeout(loadingTimer);
+            loadingTimer = null;
+          }
+        }
+      }
+
+      // -- IPC event listeners -------------------------------------------
+      // Auth success — main process reloads the window, no UI work needed.
       if (window.desktopApi && window.desktopApi.onAuthSuccess) {
         window.desktopApi.onAuthSuccess(function (user) {
-          console.log("[Login] Auth success received:", user?.email);
-          // Window will be reloaded by main process, no UI change needed
+          console.log("[Login] Auth success received:", user && user.email);
         });
       }
 
-      document
-        .getElementById("loginBtn")
-        .addEventListener("click", function () {
-          console.log("Sign in clicked");
-          console.log("desktopApi available:", !!window.desktopApi);
-
-          if (window.desktopApi && window.desktopApi.startAuthFlow) {
-            console.log("Calling startAuthFlow...");
-            window.desktopApi.startAuthFlow();
-          } else {
-            console.error("Desktop API not available");
-            alert("Desktop API not available. Please restart the app.");
-          }
+      // Auth error — typed AuthError {kind, message} OR legacy bare string.
+      if (window.desktopApi && window.desktopApi.onAuthError) {
+        window.desktopApi.onAuthError(function (payload) {
+          console.warn("[Login] Auth error received:", payload);
+          var msg =
+            typeof payload === "string"
+              ? payload
+              : payload && typeof payload.message === "string"
+                ? payload.message
+                : "Sign-in failed.";
+          setLoading(false);
+          showToast(msg);
         });
+      }
+
+      // -- Sign-in click handler -----------------------------------------
+      signinBtn.addEventListener("click", function () {
+        console.log("Sign in clicked");
+        if (window.desktopApi && window.desktopApi.startAuthFlow) {
+          setLoading(true);
+          window.desktopApi.startAuthFlow();
+        } else {
+          console.error("Desktop API not available");
+          showToast("Desktop API not available. Please restart the app.");
+        }
+      });
     </script>
   </body>
 </html>

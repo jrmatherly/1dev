@@ -34,4 +34,4 @@ Full catalog: [`docs/enterprise/upstream-features.md`](docs/enterprise/upstream-
 
 **15 of 15 hard gates complete ✅.** Canonical status: [`docs/enterprise/phase-0-gates.md`](docs/enterprise/phase-0-gates.md).
 
-Phase 1 enterprise auth wiring is complete: `auth-manager.ts` uses a Strangler Fig adapter gated by `enterpriseAuthEnabled` flag, `applyEnterpriseAuth()` injects tokens into the Claude spawn env, and the `enterpriseAuth` tRPC router exposes sign-in/out to the renderer. Settings UI and cluster config are deferred to future OpenSpec proposals.
+Phase 1 enterprise auth wiring is complete and the login flow is fully wired (see `docs/enterprise/auth-login-button-wire-msal.md`): `auth-manager.ts` uses a Strangler Fig adapter gated by `enterpriseAuthEnabled` flag (with a dev-only `MAIN_VITE_ENTERPRISE_AUTH_ENABLED` env override), `applyEnterpriseAuth()` injects tokens into the Claude spawn env, the `enterpriseAuth` tRPC router exposes sign-in/out to the renderer, and clicking **Sign in** invokes MSAL `acquireTokenInteractive()` end-to-end. Cluster config is deployed; Settings UI for runtime flag toggles is deferred to a future OpenSpec proposal.

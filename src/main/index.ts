@@ -15,6 +15,7 @@ import {
   initAuthManager,
   getAuthManager as getAuthManagerFromModule,
 } from "./auth-manager";
+import type { AuthUser } from "./auth-store";
 import {
   identify,
   initAnalytics,
@@ -118,6 +119,53 @@ export function getAuthManager(): AuthManager {
   return getAuthManagerFromModule() || authManager;
 }
 
+/**
+ * Complete the auth success path — emit `auth:success` on each window and
+ * reload the renderer so the login page is replaced by the app surface.
+ *
+ * Extracted from `handleAuthCode` so the MSAL interactive path (where
+ * `acquireTokenInteractive()` resolves without a separate exchangeCode step)
+ * can reuse the same window-reload plumbing without duplicating logic.
+ *
+ * Does NOT perform: analytics tracking, subscription-plan fetch, or the
+ * `x-desktop-token` cookie set. Those are legacy-path concerns that either
+ * don't apply in enterprise mode (fetchUserPlan returns null) or belong to
+ * the caller (trackAuthCompleted is called from handleAuthCode before this
+ * helper runs).
+ *
+ * Spec: openspec/specs/enterprise-auth-wiring/spec.md →
+ *   "Successful sign-in reloads the window and emits auth:success"
+ */
+export function completeAuthSuccess(user: AuthUser): void {
+  const windows = getAllWindows();
+  for (const win of windows) {
+    try {
+      if (win.isDestroyed()) continue;
+      win.webContents.send("auth:success", user);
+
+      // Use stable window ID (main, window-2, etc.) instead of Electron's numeric ID
+      const stableId = windowManager.getStableId(win);
+
+      if (process.env.ELECTRON_RENDERER_URL) {
+        // Pass window ID via query param for dev mode
+        const url = new URL(process.env.ELECTRON_RENDERER_URL);
+        url.searchParams.set("windowId", stableId);
+        win.loadURL(url.toString());
+      } else {
+        // Pass window ID via hash for production
+        win.loadFile(join(__dirname, "../renderer/index.html"), {
+          hash: `windowId=${stableId}`,
+        });
+      }
+    } catch (error) {
+      // Window may have been destroyed during iteration
+      console.warn("[Auth] Failed to reload window:", error);
+    }
+  }
+  // Focus the first window so the signed-in user sees the app immediately
+  windows[0]?.focus();
+}
+
 // Handle auth code from deep link (exported for IPC handlers)
 export async function handleAuthCode(code: string): Promise<void> {
   console.log("[Auth] Handling auth code:", code.slice(0, 8) + "...");
@@ -161,34 +209,10 @@ export async function handleAuthCode(code: string): Promise<void> {
       console.warn("[Auth] Cookie set failed (non-critical):", cookieError);
     }
 
-    // Notify all windows and reload them to show app
-    const windows = getAllWindows();
-    for (const win of windows) {
-      try {
-        if (win.isDestroyed()) continue;
-        win.webContents.send("auth:success", authData.user);
-
-        // Use stable window ID (main, window-2, etc.) instead of Electron's numeric ID
-        const stableId = windowManager.getStableId(win);
-
-        if (process.env.ELECTRON_RENDERER_URL) {
-          // Pass window ID via query param for dev mode
-          const url = new URL(process.env.ELECTRON_RENDERER_URL);
-          url.searchParams.set("windowId", stableId);
-          win.loadURL(url.toString());
-        } else {
-          // Pass window ID via hash for production
-          win.loadFile(join(__dirname, "../renderer/index.html"), {
-            hash: `windowId=${stableId}`,
-          });
-        }
-      } catch (error) {
-        // Window may have been destroyed during iteration
-        console.warn("[Auth] Failed to reload window:", error);
-      }
-    }
-    // Focus the first window
-    windows[0]?.focus();
+    // Notify all windows and reload them to show app.
+    // Shared with the MSAL interactive path in windows/main.ts — see
+    // completeAuthSuccess() above.
+    completeAuthSuccess(authData.user);
   } catch (error) {
     console.error("[Auth] Exchange failed:", error);
     // Broadcast auth error to all windows (not just focused)

@@ -10,6 +10,22 @@ export interface UpdateProgress {
   total: number
 }
 
+/**
+ * Discriminated union for auth-flow errors crossing the IPC boundary.
+ * Emitted by the main-process `auth:start-flow` handler in
+ * `src/main/windows/main.ts` after passing the original error through
+ * `formatAuthError()` for sanitization and dev-vs-end-user wording.
+ *
+ * The canonical type lives at src/shared/auth-error-types.ts; this
+ * re-export keeps backwards compatibility for any consumer that
+ * imports from "@preload" or the ambient `DesktopApi` namespace.
+ *
+ * Spec: openspec/specs/enterprise-auth-wiring/spec.md →
+ *   "Auth error IPC payload is a typed discriminated union"
+ */
+export type { AuthError } from "../shared/auth-error-types"
+import type { AuthError } from "../shared/auth-error-types"
+
 export interface DesktopUser {
   id: string
   email: string
@@ -83,7 +99,7 @@ export interface DesktopApi {
   submitAuthCode: (code: string) => Promise<void>
   updateUser: (updates: { name?: string }) => Promise<DesktopUser | null>
   onAuthSuccess: (callback: (user: any) => void) => () => void
-  onAuthError: (callback: (error: string) => void) => () => void
+  onAuthError: (callback: (payload: AuthError | string) => void) => () => void
 
   // Multi-window
   newWindow: (options?: { chatId?: string; subChatId?: string }) => Promise<{ blocked: boolean } | void>

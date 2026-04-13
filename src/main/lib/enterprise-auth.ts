@@ -233,25 +233,31 @@ export async function createEnterpriseAuth(
  * Build an EnterpriseAuthConfig from environment variables.
  * Used during development; Phase 1 change #3 adds UI config.
  *
- * Both ENTRA_CLIENT_ID and ENTRA_TENANT_ID are required — no hardcoded
- * fallbacks so misconfigured environments fail fast rather than silently
- * targeting the wrong tenant.
+ * Both MAIN_VITE_ENTRA_CLIENT_ID and MAIN_VITE_ENTRA_TENANT_ID are required —
+ * no hardcoded fallbacks so misconfigured environments fail fast rather than
+ * silently targeting the wrong tenant.
+ *
+ * Reads from `import.meta.env.MAIN_VITE_*` (Vite-bundled at dev time). Packaged
+ * builds have these values substituted at build time by electron-vite. The
+ * `MAIN_VITE_` prefix matches the existing convention (MAIN_VITE_DEV_BYPASS_AUTH,
+ * MAIN_VITE_API_URL, etc.) — vars without the prefix do NOT propagate from
+ * `.env` to the main process at dev time.
  */
 export function getEnterpriseAuthConfig(): EnterpriseAuthConfig {
-  const clientId = process.env.ENTRA_CLIENT_ID;
-  const tenantId = process.env.ENTRA_TENANT_ID;
+  const clientId = import.meta.env.MAIN_VITE_ENTRA_CLIENT_ID;
+  const tenantId = import.meta.env.MAIN_VITE_ENTRA_TENANT_ID;
 
   if (!clientId) {
     throw new Error(
-      "ENTRA_CLIENT_ID environment variable is required for enterprise auth. " +
-        "Set it to the Entra app registration client ID (GUID).",
+      "MAIN_VITE_ENTRA_CLIENT_ID environment variable is required for enterprise auth. " +
+        "Set it to the Entra app registration client ID (GUID) in your .env.",
     );
   }
 
   if (!tenantId) {
     throw new Error(
-      "ENTRA_TENANT_ID environment variable is required for enterprise auth. " +
-        "Set it to the Entra Directory (tenant) ID (GUID).",
+      "MAIN_VITE_ENTRA_TENANT_ID environment variable is required for enterprise auth. " +
+        "Set it to the Entra Directory (tenant) ID (GUID) in your .env.",
     );
   }
 

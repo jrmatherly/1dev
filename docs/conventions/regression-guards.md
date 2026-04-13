@@ -23,6 +23,7 @@ The fork maintains structural regression guards that protect invariants establis
 | `credential-storage-tier.test.ts` | No direct `safeStorage.*` calls outside `credential-store.ts` | harden-credential-storage |
 | `enterprise-auth-module.test.ts` | MSAL enterprise auth module shape (exports, config, no CP1) | add-enterprise-auth-module |
 | `enterprise-auth-wiring.test.ts` | Enterprise auth wiring invariants (exports, STRIPPED_ENV_KEYS, imports, router, no TOKEN_FILE injection) | wire-enterprise-auth |
+| `login-flow-uses-msal.test.ts` | Login button wired to MSAL (no dead `/auth/desktop?auto=true` URL, `startAuthFlow()` throws typed `AuthError`, dev-only `ENTERPRISE_AUTH_ENABLED` env override scoped to `!app.isPackaged`, `auth:start-flow` IPC handler validates sender + targets `event.sender.send`, `.env.example` documents Entra vars, `login.html` uses canonical 1Code SVG with a11y attrs + accessible toast + safe text-only DOM) | wire-login-button-to-msal |
 | `electron-version-pin.test.ts` | Electron version pin matches expected major version | upgrade-electron-40 |
 | `mock-api-consumer-migration.test.ts` | No mock-api imports / api.agents.* / utils.agents.* in migrated consumers; message-parser.ts exports verified | migrate-mock-api-consumers |
 | `1code-api-single-replica.test.ts` | 1code-api HelmRelease pins `controllers['1code-api'].replicas = 1` (prevents duplicate cron runs before distributed-lock machinery is added) | add-1code-api-litellm-provisioning (Decision 10) |

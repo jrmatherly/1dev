@@ -4,7 +4,7 @@
 1. `bun run ts:check` — **baseline 0 errors** (`.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2`). **CI now fails on ANY new TS error.**
 2. `bun run lint` — ESLint + eslint-plugin-sonarjs (~8s)
 3. `bun run build` — electron-vite build (clean — the gray-matter Rollup eval warning was eliminated 2026-04-12 via PR #14 swap to front-matter)
-4. `bun test` — 20 regression files (19 guards + 1 unit test) + 20 1code-api test files = 231 tests across 40 files (221 pass + 10 skipped integration, 0 fail)
+4. `bun test` — 21 regression files (20 guards + 1 unit test) + 20 1code-api test files = 242 tests across 41 files (232 pass + 10 skipped integration, 0 fail)
 5. `bun audit` — focus on NEW advisories only
 6. CI also runs `cd docs && bun run build` — recommended locally too
 
@@ -60,7 +60,7 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 3. `/opsx:verify <name>` — verify implementation matches artifacts
 4. `/opsx:archive <name>` — archive and promote capability specs
 - **15 capability specs (109 requirements)** in `openspec/specs/`: `1code-api-litellm-provisioning` (19), `brand-identity` (11), `claude-code-auth-import` (2), `credential-storage` (8), `documentation-site` (9), `electron-runtime` (4), `electron-security-hardening` (4), `enterprise-auth` (5), `enterprise-auth-wiring` (4), `feature-flags` (6), `frontmatter-parsing` (6), `renderer-data-access` (5), `self-hosted-api` (17), `shiki-highlighter` (6), `sqlite-performance` (3)
-- **Active changes (1)**: `upgrade-vite-8-build-stack` (15/50)
+- **Active changes (2)**: `wire-login-button-to-msal` (45/57) · `upgrade-vite-8-build-stack` (15/50)
 - Full rules: [`.claude/rules/openspec.md`](../../.claude/rules/openspec.md)
 
 ## Phase 0 Status (15 of 15 complete ✅)

@@ -38,6 +38,7 @@
  *    a key that isn't in `FLAG_DEFAULTS` fails to typecheck.
  */
 
+import { app } from "electron";
 import { eq } from "drizzle-orm";
 import { getDatabase, featureFlagOverrides } from "./db";
 
@@ -147,6 +148,24 @@ function loadFlagCache(): Map<string, string> {
 
 export function getFlag<K extends FeatureFlagKey>(key: K): FeatureFlagValue<K> {
   const defaultValue = FLAG_DEFAULTS[key];
+
+  // Dev-only environment-variable override for `enterpriseAuthEnabled`.
+  // Gated by `!app.isPackaged` so packaged builds never consult the env.
+  // Hardcoded to one flag — generalize only if a second flag adopts the
+  // same pattern (see openspec/specs/feature-flags/spec.md).
+  //
+  // Reads from `import.meta.env.MAIN_VITE_*` (Vite-bundled at dev time) rather
+  // than `process.env.*` because electron-vite loads `.env` through Vite's env
+  // system, which exposes values via `import.meta.env` only. Values are
+  // substituted at build time; packaged builds have `undefined` here and fall
+  // through. Matches the existing `MAIN_VITE_DEV_BYPASS_AUTH` pattern.
+  if (!app.isPackaged && key === "enterpriseAuthEnabled") {
+    const envVal = import.meta.env.MAIN_VITE_ENTERPRISE_AUTH_ENABLED;
+    if (envVal === "true") return true as FeatureFlagValue<K>;
+    if (envVal === "false") return false as FeatureFlagValue<K>;
+    // Any other value (including undefined): fall through to DB / default
+  }
+
   const cache = loadFlagCache();
   const cachedValue = cache.get(key);
   if (cachedValue === undefined) return defaultValue;
@@ -174,6 +193,31 @@ export function getFlag<K extends FeatureFlagKey>(key: K): FeatureFlagValue<K> {
     );
     return defaultValue;
   }
+}
+
+/**
+ * Like `getFlag` but also returns where the value came from. Used at app
+ * startup to log a single line answering "why is enterpriseAuthEnabled on?"
+ * (env override vs database row vs hardcoded default).
+ */
+export function getFlagWithSource<K extends FeatureFlagKey>(
+  key: K,
+): { value: FeatureFlagValue<K>; source: "env" | "db" | "default" } {
+  if (!app.isPackaged && key === "enterpriseAuthEnabled") {
+    const envVal = import.meta.env.MAIN_VITE_ENTERPRISE_AUTH_ENABLED;
+    if (envVal === "true") {
+      return { value: true as FeatureFlagValue<K>, source: "env" };
+    }
+    if (envVal === "false") {
+      return { value: false as FeatureFlagValue<K>, source: "env" };
+    }
+  }
+  const cache = loadFlagCache();
+  const cachedValue = cache.get(key);
+  if (cachedValue !== undefined) {
+    return { value: getFlag(key), source: "db" };
+  }
+  return { value: FLAG_DEFAULTS[key] as FeatureFlagValue<K>, source: "default" };
 }
 
 /**

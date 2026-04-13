@@ -67,6 +67,26 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ## P2 -- Medium Priority
 
+### [Deferred] auth-manager.ts Phase D — full Strangler Fig retirement
+
+**Added:** 2026-04-13 (carved out of `wire-login-button-to-msal` as deferred follow-up per `auth-strategy.md` §5.3.1 Step D)
+**Scope:** Once `wire-login-button-to-msal` has been live in dev for 2+ weeks with no rollbacks, delete the legacy 21st.dev branch entirely from `src/main/auth-manager.ts`:
+- `exchangeCode()` — POST `/api/auth/desktop/exchange` (already throws when flag is on)
+- `refresh()` legacy `fetch` fallback — POST `/api/auth/desktop/refresh`
+- `updateUser()` — PATCH `/api/user/profile` (already throws when flag is on)
+- `fetchUserPlan()` — GET `/api/desktop/user/plan` (already returns null when flag is on)
+- `getApiUrl()` / `getApiBaseUrl()` — return `apollosai.dev`
+- The `Legacy21stUser` type union (if extant)
+- Any consumer call sites still expecting these legacy methods
+
+Result: `auth-manager.ts` becomes a pure delegating adapter to `enterprise-auth.ts`. The `enterpriseAuthEnabled` flag's "off" branch becomes "not yet provisioned" (already fail-fast as of `wire-login-button-to-msal`), no longer "use legacy SaaS."
+
+**IMPORTANT:** New regression guards will be required when Phase D lands — the current `tests/regression/login-flow-uses-msal.test.ts` guard's scope is intentionally narrow to the dead-URL fallthrough. It does NOT cover the legacy `fetch(${apiUrl}/api/auth/desktop/exchange)`, `/api/auth/desktop/refresh`, `/api/user/profile`, or `/api/desktop/user/plan` fetch sites that Phase D will remove. Plan an additive guard at that time.
+
+**Effort:** Small (cleanup, ~150 LOC removed)
+**Prereqs:** `wire-login-button-to-msal` landed and stable in dev for 2+ weeks
+**Canonical reference:** `docs/enterprise/auth-strategy.md` §5.3.1 Step D, `docs/enterprise/auth-login-button-wire-msal.md` §7
+
 ### [Ready] SLSA provenance attestation for release artifacts
 
 **Added:** 2026-04-10
@@ -178,6 +198,21 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Effort:** Small
 **Prereqs:** `upgrade-electron-41` complete (✅ landed 2026-04-09)
 **Canonical reference:** `openspec/changes/upgrade-electron-41/proposal.md` (Prepare-now section)
+
+### [Cleanup] Replace remaining 21st.dev brand assets
+
+**Added:** 2026-04-13 (discovered during `wire-login-button-to-msal` UX review — login.html SVG was upstream geometry; raster build assets remain)
+**Scope:** Replace upstream brand artifacts with apollosai.dev / 1Code enterprise marks:
+- `build/icon.png`, `build/icon.ico`, `build/icon.icns` (Dock, taskbar, installer icons)
+- `build/background.svg`, `build/background@2x.png`, `build/background.tiff` (DMG installer artwork)
+- `build/dmg-background.svg`, `build/dmg-background.png`, `build/dmg-background@2x.png` (DMG drag-target artwork)
+- Any other `build/*` or `resources/*` artifact carrying upstream branding (verify via brand audit before/after)
+
+**Note:** The `src/renderer/login.html` SVG was already replaced with the canonical 1Code mark in `wire-login-button-to-msal` (see assertion 8 in `tests/regression/login-flow-uses-msal.test.ts`). This entry tracks the remaining raster + DMG artwork only.
+
+**Effort:** Small once apollosai.dev brand mark assets are finalized (asset swap + visual smoke test on packaged builds for all 3 OSes)
+**Prereqs:** apollosai.dev / 1Code enterprise brand mark assets finalized and provided
+**Canonical reference:** `docs/conventions/brand-taxonomy.md` (Tier A/B/C classification rules), `docs/enterprise/auth-login-button-wire-msal.md`
 
 ### [Cleanup] Refresh distroless base image pin to clear CVE-2026-28390
 

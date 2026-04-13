@@ -14,7 +14,12 @@ import { readFileSync, existsSync, writeFileSync, mkdirSync } from "fs";
 import { createIPCHandler } from "trpc-electron/main";
 import { setOptOut } from "../lib/analytics";
 import { createAppRouter } from "../lib/trpc/routers";
-import { getAuthManager, handleAuthCode, getBaseUrl } from "../index";
+import {
+  getAuthManager,
+  handleAuthCode,
+  getBaseUrl,
+  completeAuthSuccess,
+} from "../index";
 import { registerGitWatcherIPC } from "../lib/git/watcher";
 import {
   hasActiveClaudeSessions,
@@ -400,10 +405,49 @@ function registerIpcHandlers(): void {
     }
   });
 
-  ipcMain.handle("auth:start-flow", (event) => {
+  ipcMain.handle("auth:start-flow", async (event) => {
     if (!validateSender(event)) return;
     const win = getWindowFromEvent(event);
-    getAuthManager().startAuthFlow(win);
+    const authManager = getAuthManager();
+    // Race fix: ensure async MSAL init has resolved before checking
+    // enterpriseAuth state. Otherwise a fast click can hit the null guard
+    // before initEnterprise() finishes, surfacing "init failed" when the
+    // right answer was "init pending".
+    // Spec: "ensureReady awaited before evaluating null"
+    await authManager.ensureReady();
+    try {
+      await authManager.startAuthFlow(win);
+      // Success: MSAL interactive flow resolved (loopback callback received).
+      // Unlike the legacy deep-link path (handleAuthCode) that's triggered by
+      // a protocol-handler event, MSAL resolves in-process with no external
+      // hand-off — so this IPC handler is solely responsible for signaling
+      // the renderer and reloading windows.
+      // Spec: "Successful sign-in reloads the window and emits auth:success"
+      const user = authManager.getUser();
+      if (user) {
+        completeAuthSuccess(user);
+      } else {
+        // Should not happen: startAuthFlow resolved but MSAL cache has no
+        // account. Treat as a msal-error so the user gets visible feedback
+        // rather than a silent stall.
+        const { formatAuthError } = await import("../lib/auth-error");
+        const payload = formatAuthError(
+          new Error("MSAL resolved without an account"),
+          app.isPackaged,
+        );
+        event.sender.send("auth:error", payload);
+      }
+    } catch (err) {
+      // Convert the thrown error to a typed, sanitized AuthError payload
+      // and emit to the validated sender ONLY (event.sender.send), NOT a
+      // broadcast across all windows.
+      // Note: src/main/index.ts:198 is a parallel `auth:error` broadcast
+      // emitter for deep-link auth callback failures — do not unify; the
+      // two emitters serve different code paths.
+      const { formatAuthError } = await import("../lib/auth-error");
+      const payload = formatAuthError(err, app.isPackaged);
+      event.sender.send("auth:error", payload);
+    }
   });
 
   ipcMain.handle("auth:submit-code", async (event, code: string) => {

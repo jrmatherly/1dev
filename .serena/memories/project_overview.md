@@ -8,7 +8,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - React 19.2.5, TypeScript 6.0.2 (upgraded from 5.9.3 on 2026-04-10), Tailwind CSS 4, Bun
 - @anthropic-ai/claude-agent-sdk 0.2.104, Codex CLI 0.118.0, Ollama
 - 7 Drizzle tables, 22 tRPC routers (incl. enterprise-auth), better-sqlite3, node-pty (lazy-loaded)
-- **20 test files in `tests/regression/`** (19 regression guards + 1 frontmatter shim unit test) + 20 service test files in `services/1code-api/tests/` = **231 tests across 40 files** (221 pass + 10 skipped integration tests needing docker-compose harness, 2026-04-12).
+- **21 test files in `tests/regression/`** (20 regression guards + 1 frontmatter shim unit test) + 20 service test files in `services/1code-api/tests/` = **242 tests across 41 files** (232 pass + 10 skipped integration tests needing docker-compose harness, 2026-04-13).
 
 ## Current State (2026-04-12, post-§7 claude.ts decomposition)
 - **Phase 0:** 15/15 hard gates complete
@@ -21,12 +21,13 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Electron 41.2.0:** Upgraded from 40.8.5. Auto-updater end-to-end pending packaged-build verification.
 - **sandbox: true** — Empirically validated 2026-04-12 via `bun run dev` runtime test; BrowserWindow renders cleanly, tRPC IPC round-trips, contextBridge exposures intact, SDK streaming sessions complete with M:END reason=ok.
 - **1code-api service + LiteLLM provisioning:** Fully shipped. `services/1code-api/` with Fastify+tRPC+Drizzle/PostgreSQL. Container: `ghcr.io/jrmatherly/1code-api`.
-- **Enterprise auth:** Wired into auth-manager via Strangler Fig adapter pattern (`enterpriseAuthEnabled` flag). `authedProcedure` middleware added 2026-04-12 for signOut/refreshToken/openExternal.
+- **Enterprise auth:** Wired into auth-manager via Strangler Fig adapter pattern (`enterpriseAuthEnabled` flag). `authedProcedure` middleware added 2026-04-12 for signOut/refreshToken/openExternal. Login button wired end-to-end via MSAL 2026-04-13 (`wire-login-button-to-msal` change) — dev-only `MAIN_VITE_ENTERPRISE_AUTH_ENABLED` env override via `import.meta.env` (not `process.env` — electron-vite only bundles `MAIN_VITE_*` prefixed vars); typed `AuthError` discriminated union via IPC; shared `completeAuthSuccess(user)` helper extracted from `handleAuthCode` handles both MSAL loopback + deep-link success paths; canonical 1Code SVG on login.html with `aria-label`/`role="img"`/`class="logo-path"`; DOM-resident accessible toast (role=alert, aria-live=assertive, textContent-only, Esc-dismiss).
 - **Project-orchestrator skill** (added 2026-04-11): routing-layer skill with Step-0 hard-rule gate.
 - **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
 - **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth
 - **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix. Current: **v0.0.85** (published 2026-04-13 — first release with full container-build pipeline green including Trivy + Cosign).
-- **Active OpenSpec changes (1 as of 2026-04-13 post-archive):**
+- **Active OpenSpec changes (2 as of 2026-04-13):**
+  - `wire-login-button-to-msal` (45/57, MSAL sign-in end-to-end; awaiting manual smoke §11 + `/opsx:archive`)
   - `upgrade-vite-8-build-stack` (15/50, Phase B blocked on electron-vite 6.0.0)
 - **Recently archived:**
   - 2026-04-13 `security-hardening-and-quality-remediation` (81/81 tasks, +18 requirements promoted to baselines; created `electron-security-hardening` + `sqlite-performance` baselines; expanded `credential-storage` 7→8, `self-hosted-api` 11→17, `documentation-site` 5→9; §7 chat-handler residual tracked as P3 roadmap entry)

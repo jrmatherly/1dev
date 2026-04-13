@@ -253,8 +253,22 @@ contextBridge.exposeInMainWorld("desktopApi", {
     ipcRenderer.on("auth:success", handler);
     return () => ipcRenderer.removeListener("auth:success", handler);
   },
-  onAuthError: (callback: (error: string) => void) => {
-    const handler = (_event: unknown, error: string) => callback(error);
+  // `auth:error` payload may arrive in two shapes for backwards compatibility:
+  //   - new (wire-login-button-to-msal): typed AuthError discriminated union
+  //     with `{ kind, message }` (emitted by the auth:start-flow IPC handler)
+  //   - legacy: bare string (still emitted by src/main/index.ts:198 on
+  //     deep-link auth callback failures)
+  // The renderer-side login.html handler accepts both shapes — see Spec
+  // requirement "Auth error IPC payload is a typed discriminated union".
+  onAuthError: (
+    callback: (
+      payload: import("../shared/auth-error-types").AuthError | string,
+    ) => void,
+  ) => {
+    const handler = (
+      _event: unknown,
+      payload: import("../shared/auth-error-types").AuthError | string,
+    ) => callback(payload);
     ipcRenderer.on("auth:error", handler);
     return () => ipcRenderer.removeListener("auth:error", handler);
   },
