@@ -4,7 +4,7 @@
 - **Project**: 1Code — local-first Electron desktop app for parallel AI-assisted development
 - **Fork posture**: This is the **enterprise fork** of upstream 1Code, being decoupled from the `1code.dev` hosted backend in favor of self-hosted infrastructure (LiteLLM + Microsoft Entra via Envoy Gateway). See [`docs/enterprise/fork-posture.md`](docs/enterprise/fork-posture.md) for the full context.
 - **Canonical docs**: [`docs/`](docs/) — xyd-js site with five tabs (Architecture, Enterprise, Conventions, Operations, API Reference). This is the source-of-truth home for all architectural facts.
-- **Claude Code guidance**: [`CLAUDE.md`](CLAUDE.md) — concise identity + critical rules + pointers (124 lines, links to `docs/` and `.claude/rules/` for details).
+- **Claude Code guidance**: [`CLAUDE.md`](CLAUDE.md) — concise identity + critical rules + pointers (~135 lines, links to `docs/` and `.claude/rules/` for details).
 - **Claude Code rules (auto-loaded)**: [`.claude/rules/`](.claude/rules/) — 2 global rules (scratchpad, roadmap) + 8 path-scoped rules (auth-env-vars, credential-storage, database, openspec, testing, tscheck-baseline, upstream-boundary, vite-config).
 - **Repo map**: [`.claude/PROJECT_INDEX.md`](.claude/PROJECT_INDEX.md) — structural index (routers, tables, migrations, features).
 - **Proposal workflow**: OpenSpec 1.2.0. From Claude Code, run `/opsx:propose`, `/opsx:apply`, `/opsx:explore`, or `/opsx:archive`. Active proposals live in `openspec/changes/`.

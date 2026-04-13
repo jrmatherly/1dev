@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Token caching for legacy auth
 The AuthStore legacy authentication path SHALL cache the decrypted token in memory after first read. Subsequent `getValidToken()` calls SHALL return the cached value without re-reading from disk or re-decrypting. The cache SHALL be invalidated when the token is written or the auth session ends.

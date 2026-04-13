@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Phase 0 gates page accuracy
 The `docs/enterprise/phase-0-gates.md` page SHALL reflect the current Phase 0 gate status (15/15 complete). The subtitle and table SHALL match the actual gate completion state.

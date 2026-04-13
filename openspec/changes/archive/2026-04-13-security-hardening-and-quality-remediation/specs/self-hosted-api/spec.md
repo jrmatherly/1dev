@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: SecurityPolicy deployed and enforced
 The Envoy Gateway SecurityPolicy for the 1code-api HTTPRoute SHALL be deployed (not draft) and reconciled by Flux. The policy SHALL validate JWT tokens from the configured OIDC issuer.

@@ -26,9 +26,10 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
 - **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth
 - **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix. Current: **v0.0.82**.
-- **Active OpenSpec changes (2):**
+- **Active OpenSpec changes (1 as of 2026-04-13 post-archive):**
   - `upgrade-vite-8-build-stack` (15/50, Phase B blocked on electron-vite 6.0.0)
-  - `security-hardening-and-quality-remediation` (**81/81 tasks complete** 2026-04-12 — all §6, §7 partial (§7.6 line-target missed, deferred to roadmap), §8, §9, §10 done; ready for /opsx:verify → /opsx:archive)
+- **Recently archived:**
+  - 2026-04-13 `security-hardening-and-quality-remediation` (81/81 tasks, +18 requirements promoted to baselines; created `electron-security-hardening` + `sqlite-performance` baselines; expanded `credential-storage` 7→8, `self-hosted-api` 11→17, `documentation-site` 5→9; §7 chat-handler residual tracked as P3 roadmap entry)
 - **Upgrade execution order:** ~~E41~~ ✅ → ~~TS6~~ ✅ → ~~Vite7-A~~ ✅ → ~~TW4~~ ✅ → ~~Shiki4~~ ✅ → Vite8-B (blocked)
 - **New main-process utilities (2026-04-12 Phase C §7+§8):**
   - `src/main/lib/claude/prompt-parser.ts` — `parseMentions()` extracted from claude.ts
@@ -46,7 +47,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - CLAUDE.md is a ~135-line thin index (links, doesn't contain content)
 - `docs/` is the canonical source of truth (Operations tab has roadmap)
 - `.claude/rules/` has 9 behavioral rules (2 global + 7 path-scoped)
-- `openspec/specs/` has **13 capability specs (91 requirements)** as of 2026-04-12
+- `openspec/specs/` has **15 capability specs (109 requirements)** as of 2026-04-13 (post-archive of security-hardening-and-quality-remediation)
 - Skills/agents read from canonical docs, not CLAUDE.md
 
 ## §7 claude.ts decomposition patterns (reusable learnings)

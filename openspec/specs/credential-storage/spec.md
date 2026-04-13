@@ -3,9 +3,7 @@
 ## Purpose
 
 Unified 3-tier credential encryption via credential-store.ts. No direct safeStorage calls outside this module.
-
 ## Requirements
-
 ### Requirement: Unified credential encryption module with 3-tier degradation
 
 The system SHALL provide a single TypeScript module at `src/main/lib/credential-store.ts` that ALL credential encryption and decryption operations in the main process delegate to. No other file SHALL call `safeStorage.encryptString()` or `safeStorage.decryptString()` directly.
@@ -167,3 +165,23 @@ A new regression test file at `tests/regression/credential-storage-tier.test.ts`
 
 - **WHEN** a developer adds `safeStorage.encryptString()` to a new file under `src/main/`
 - **THEN** the regression guard fails with a message identifying the violating file
+
+### Requirement: Token caching for legacy auth
+The AuthStore legacy authentication path SHALL cache the decrypted token in memory after first read. Subsequent `getValidToken()` calls SHALL return the cached value without re-reading from disk or re-decrypting. The cache SHALL be invalidated when the token is written or the auth session ends.
+
+#### Scenario: Cached token read
+- **WHEN** `getValidToken()` is called after an initial successful token read
+- **THEN** the token is returned from memory without calling `readFileSync()` or `decryptCredential()`
+
+#### Scenario: Cache invalidation on token write
+- **WHEN** a new token is stored via `storeOAuthToken()`
+- **THEN** the in-memory cache is updated with the new token value
+
+#### Scenario: Cache cleared on logout
+- **WHEN** the user logs out or the auth session ends
+- **THEN** the in-memory cache is cleared
+
+#### Scenario: Enterprise mode unaffected
+- **WHEN** `enterpriseAuthEnabled` is true
+- **THEN** the legacy AuthStore cache is not used (MSAL has its own cache plugin)
+

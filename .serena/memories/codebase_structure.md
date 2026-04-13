@@ -5,7 +5,7 @@
 src/           — Application source code
 docs/          — Canonical xyd-js documentation site (Operations tab has roadmap)
 deploy/        — K8s Flux v2 manifests: 1code-api, envoy-auth-policy (all ${PLACEHOLDER}). 1code-update-server DELETED (F5 resolved via GitHub Releases).
-openspec/      — OpenSpec change proposals + 13 capability specs (91 requirements)
+openspec/      — OpenSpec change proposals + 15 capability specs (109 requirements)
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — 17 workflow skills incl. `project-orchestrator` (routing + hard-rule gate, added 2026-04-11), roadmap-tracker, phase-0-progress, docs-drift-check, session-sync, 6 openspec-* skills, new-router, new-regression-guard, release, upstream-boundary-check, verify-strategy-compliance, verify-pin
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
@@ -59,14 +59,14 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 - `architecture/overview.md` — **Filled out 2026-04-12 Phase C §8.10** (was stub) — 3-process model, IPC + authedProcedure, state management, AI backend integration, database layer, fork posture.
 - Build: `cd docs && bun run build` (cleans .xyd/ artifacts first)
 
-## OpenSpec Specs (13 capabilities, 91 requirements as of 2026-04-12)
-1code-api-litellm-provisioning (19), brand-identity (11), claude-code-auth-import (2), credential-storage (7), documentation-site (5), electron-runtime (4), enterprise-auth (5), enterprise-auth-wiring (4), feature-flags (6), **frontmatter-parsing (6)**, renderer-data-access (5), self-hosted-api (11), shiki-highlighter (6).
+## OpenSpec Specs (15 capabilities, 109 requirements as of 2026-04-13)
+1code-api-litellm-provisioning (19), brand-identity (11), claude-code-auth-import (2), credential-storage (**8**), documentation-site (**9**), electron-runtime (4), **electron-security-hardening (4)** (new 2026-04-13), enterprise-auth (5), enterprise-auth-wiring (4), feature-flags (6), **frontmatter-parsing (6)**, renderer-data-access (5), self-hosted-api (**17**), shiki-highlighter (6), **sqlite-performance (3)** (new 2026-04-13).
 
-## Active OpenSpec Changes (2 as of 2026-04-12 post-§7 decomposition)
-- `security-hardening-and-quality-remediation` (**81/81 tasks complete** — ready for /opsx:verify → /opsx:archive)
+## Active OpenSpec Changes (1 as of 2026-04-13 post-archive)
 - `upgrade-vite-8-build-stack` (15/50, Phase A done, Phase B blocked on electron-vite 6.0.0 stable)
 
-## Recently Archived (2026-04-10 → 2026-04-12)
+## Recently Archived (2026-04-10 → 2026-04-13)
+- `2026-04-13-security-hardening-and-quality-remediation` (81/81 tasks; +18 requirements: `electron-security-hardening` & `sqlite-performance` specs created; `credential-storage`, `self-hosted-api`, `documentation-site` baselines expanded)
 - `2026-04-12-replace-gray-matter-with-front-matter` (67/67)
 - `2026-04-11-upgrade-electron-41` (26/27)
 - `2026-04-11-add-1code-api-litellm-provisioning` (77/77)
