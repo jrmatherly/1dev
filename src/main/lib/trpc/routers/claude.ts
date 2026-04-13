@@ -20,6 +20,20 @@ import {
 } from "../../claude";
 import { parseMentions } from "../../claude/prompt-parser";
 import {
+  activeSessions,
+  pendingToolApprovals,
+  PLAN_MODE_BLOCKED_TOOLS,
+  clearPendingApprovals,
+} from "../../claude/session-manager";
+
+// Re-export public API so existing importers (index.ts, windows/main.ts)
+// continue to resolve hasActiveClaudeSessions / abortAllClaudeSessions
+// from "./claude" without touching those files.
+export {
+  hasActiveClaudeSessions,
+  abortAllClaudeSessions,
+} from "../../claude/session-manager";
+import {
   getMergedGlobalMcpServers,
   getMergedLocalProjectMcpServers,
   GLOBAL_MCP_PATH,
@@ -149,24 +163,6 @@ const getClaudeQuery = async () => {
   return cachedClaudeQuery;
 };
 
-// Active sessions for cancellation (onAbort handles stash + abort + restore)
-// Active sessions for cancellation
-const activeSessions = new Map<string, AbortController>();
-
-/** Check if there are any active Claude streaming sessions */
-export function hasActiveClaudeSessions(): boolean {
-  return activeSessions.size > 0;
-}
-
-/** Abort all active Claude sessions so their cleanup saves partial state */
-export function abortAllClaudeSessions(): void {
-  for (const [subChatId, controller] of activeSessions) {
-    console.log(`[claude] Aborting session ${subChatId} before reload`);
-    controller.abort();
-  }
-  activeSessions.clear();
-}
-
 // In-memory cache of working MCP server names (resets on app restart)
 // Key: "scope::serverName" where scope is "__global__" or projectPath
 // Value: true if working (has tools), false if failed
@@ -225,28 +221,6 @@ async function readProjectMcpJsonCached(
     return {};
   }
 }
-
-const pendingToolApprovals = new Map<
-  string,
-  {
-    subChatId: string;
-    resolve: (decision: {
-      approved: boolean;
-      message?: string;
-      updatedInput?: unknown;
-    }) => void;
-  }
->();
-
-const PLAN_MODE_BLOCKED_TOOLS = new Set(["Bash", "NotebookEdit"]);
-
-const clearPendingApprovals = (message: string, subChatId?: string) => {
-  for (const [toolUseId, pending] of pendingToolApprovals) {
-    if (subChatId && pending.subChatId !== subChatId) continue;
-    pending.resolve({ approved: false, message });
-    pendingToolApprovals.delete(toolUseId);
-  }
-};
 
 // Image attachment schema
 const imageAttachmentSchema = z.object({
