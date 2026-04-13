@@ -203,6 +203,14 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** None
 **Canonical reference:** Current stable anchor lives in this roadmap file's P1 entry "Extend Envoy SecurityPolicy to cover `1code-api` HTTPRoute" which cites the `enable_jwt_auth` Enterprise gate and the `ValueError("JWT Auth is an enterprise only feature.")` source behavior.
 
+### [Deferred] Further `claude.ts` decomposition — decompose the 2,003-line chat subscription handler
+
+**Added:** 2026-04-12 (follow-up to Phase C §7 of `security-hardening-and-quality-remediation`)
+**Scope:** Phase C §7 reduced `src/main/lib/trpc/routers/claude.ts` from 3,309 → 2,503 lines (−24%) via four extractions: `prompt-parser`, `session-manager`, `mcp-resolver`, `tool-executor` (canUseTool factory). The original target of <1,000 lines was not met because the dominant remaining bulk is the **2,003-line `chat` tRPC subscription handler** (`claudeRouter.chat` at `src/main/lib/trpc/routers/claude.ts:201-~2200`). The handler owns deeply coupled state: `emit`/`safeEmit`/`safeComplete`, `parts[]`, `currentText`, `abortController`, `transform.on(...)` hooks, the `for await (const msg of stream)` message-processing loop, MCP symlink setup (~400 lines around line 1060-1165), server-config merging, and the `onAbort` + `finally` rollback cleanup. Further decomposition requires extracting: (a) `chat-stream-processor` (the for-await loop + transform wiring), (b) `chat-mcp-setup` (the symlink + server-config merge block), (c) `chat-cleanup` (onAbort + finally). Each captures enough observer state that a factory-function lift alone is insufficient — needs a small per-request context object passed through.
+**Effort:** Large (multi-session)
+**Prereqs:** None hard-blocking, but coordinate with active-chat.tsx decomposition (same session state flows cross-layer)
+**Canonical reference:** `openspec/changes/security-hardening-and-quality-remediation/tasks.md` §7.6 (line-count verification reported partial completion)
+
 ### [Deferred] Decompose `active-chat.tsx` (8,743 lines → focused components with React.memo)
 
 **Added:** 2026-04-12 (Phase D §10.1 of `security-hardening-and-quality-remediation`)
