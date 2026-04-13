@@ -25,10 +25,22 @@ function storeOAuthToken(oauthToken: string, setAsActive = true): string {
   const db = getDatabase();
   const newId = createId();
 
-  // Store in new multi-account table
+  // Route mode defaults to "litellm" unless the deployment explicitly opted
+  // into direct-to-Anthropic via MAIN_VITE_ALLOW_DIRECT_ANTHROPIC=true.
+  // add-dual-mode-llm-routing: routingMode is the source of truth for
+  // spawn-env derivation.
+  const allowDirect =
+    process.env.MAIN_VITE_ALLOW_DIRECT_ANTHROPIC === "true";
+  const routingMode: "direct" | "litellm" = allowDirect
+    ? "direct"
+    : "litellm";
+
+  // Store in the multi-account table as a Claude Code Subscription account.
   db.insert(anthropicAccounts)
     .values({
       id: newId,
+      accountType: "claude-subscription",
+      routingMode,
       oauthToken: encryptedToken,
       displayName: "Anthropic Account",
       connectedAt: new Date(),
@@ -54,19 +66,9 @@ function storeOAuthToken(oauthToken: string, setAsActive = true): string {
       .run();
   }
 
-  // Also update legacy table for backward compatibility
-  db.delete(claudeCodeCredentials)
-    .where(eq(claudeCodeCredentials.id, "default"))
-    .run();
-
-  db.insert(claudeCodeCredentials)
-    .values({
-      id: "default",
-      oauthToken: encryptedToken,
-      connectedAt: new Date(),
-      userId: user?.id ?? null,
-    })
-    .run();
+  // Legacy `claudeCodeCredentials` mirror write removed by
+  // add-dual-mode-llm-routing (Group 7). The `anthropicAccounts` row
+  // above is now the sole persistence path.
 
   return newId;
 }
@@ -204,7 +206,7 @@ export const claudeCodeRouter = router({
         .where(eq(anthropicAccounts.id, settings.activeAccountId))
         .get();
 
-      if (account) {
+      if (account?.oauthToken) {
         try {
           const token = decryptCredential(account.oauthToken);
           return { token, error: null };

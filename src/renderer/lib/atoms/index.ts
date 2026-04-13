@@ -211,12 +211,33 @@ export type CustomClaudeConfig = {
   baseUrl: string;
 };
 
+// Dual-mode routing fields (add-dual-mode-llm-routing). Optional on the
+// client ModelProfile type because legacy offline profiles and pre-migration
+// rows don't populate them; spawn-env derivation reads the typed shape from
+// the main-process `anthropicAccounts` row, not this atom.
+export type AccountType = "claude-subscription" | "byok";
+export type RoutingMode = "direct" | "litellm";
+
+export type ModelProfileSlotMap = {
+  sonnet: string;
+  haiku: string;
+  opus: string;
+};
+
 // Model profile system - support multiple configs
 export type ModelProfile = {
   id: string;
   name: string;
   config: CustomClaudeConfig;
   isOffline?: boolean; // Mark as offline/Ollama profile
+  // Dual-mode routing extension — optional for back-compat with the OFFLINE_PROFILE
+  // and any pre-migration profiles; the main-process account row is the source
+  // of truth for real credentials.
+  accountType?: AccountType;
+  routingMode?: RoutingMode;
+  apiKey?: string;
+  virtualKey?: string;
+  modelMap?: ModelProfileSlotMap;
 };
 
 // Selected Ollama model for offline mode

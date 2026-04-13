@@ -18,6 +18,11 @@ import {
   logRawClaudeMessage,
   type UIMessageChunk,
 } from "../../claude";
+import {
+  deriveClaudeSpawnEnv,
+  type ProviderMode,
+} from "../../claude/spawn-env";
+import { getAuthManager } from "../../../index";
 import { parseMentions } from "../../claude/prompt-parser";
 import { createCanUseTool } from "../../claude/tool-executor";
 import {
@@ -155,6 +160,92 @@ function getClaudeCodeToken(): string | null {
     return decrypted;
   } catch (error) {
     console.error("[claude-auth] Error getting Claude Code token:", error);
+    return null;
+  }
+}
+
+/**
+ * Resolve the active anthropicAccounts row into a typed ProviderMode the
+ * pure `deriveClaudeSpawnEnv` function can consume. Returns null when
+ * there is no qualifying account (e.g., first run, Ollama-only session,
+ * or a row that predates the dual-mode-llm-routing migration).
+ *
+ * Falls through to the legacy inference path in claude.ts:start when null.
+ * See openspec/changes/add-dual-mode-llm-routing/ for the full contract.
+ */
+function getActiveProviderMode(): ProviderMode | null {
+  try {
+    const db = getDatabase();
+    const settings = db
+      .select()
+      .from(anthropicSettings)
+      .where(eq(anthropicSettings.id, "singleton"))
+      .get();
+    if (!settings?.activeAccountId) return null;
+
+    const account = db
+      .select()
+      .from(anthropicAccounts)
+      .where(eq(anthropicAccounts.id, settings.activeAccountId))
+      .get();
+    if (!account) return null;
+
+    // Entra oid for x-litellm-customer-id audit attribution. Present only
+    // when enterprise auth is active; undefined otherwise.
+    const authManager = getAuthManager();
+    const customerId = authManager?.getUser()?.id ?? undefined;
+
+    // Defensive decrypt helper — returns null on failure so we can fall
+    // back to the legacy path rather than crashing the chat stream.
+    const tryDecrypt = (enc: string | null | undefined): string | null => {
+      if (!enc) return null;
+      try {
+        return decryptCredential(enc);
+      } catch (err) {
+        console.error(
+          "[claude-auth] Failed to decrypt credential column:",
+          err,
+        );
+        return null;
+      }
+    };
+
+    const oauthToken = tryDecrypt(account.oauthToken);
+    const apiKey = tryDecrypt(account.apiKey);
+    const virtualKey = tryDecrypt(account.virtualKey);
+
+    if (account.accountType === "claude-subscription") {
+      if (!oauthToken) return null;
+      if (account.routingMode === "direct") {
+        return { kind: "subscription-direct", oauthToken };
+      }
+      if (!virtualKey) return null; // subscription-litellm requires a virtual key
+      return {
+        kind: "subscription-litellm",
+        oauthToken,
+        virtualKey,
+        customerId,
+      };
+    }
+
+    if (account.accountType === "byok") {
+      if (account.routingMode === "direct") {
+        if (!apiKey) return null;
+        return { kind: "byok-direct", apiKey };
+      }
+      if (!virtualKey) return null;
+      const modelMap = {
+        sonnet: account.modelSonnet ?? "",
+        haiku: account.modelHaiku ?? "",
+        opus: account.modelOpus ?? "",
+      };
+      if (!modelMap.sonnet || !modelMap.haiku || !modelMap.opus) return null;
+      return { kind: "byok-litellm", virtualKey, customerId, modelMap };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("[claude-auth] getActiveProviderMode failed:", error);
     return null;
   }
 }
@@ -818,32 +909,77 @@ export const claudeRouter = router({
               );
             }
 
-            // Check if user has existing API key or proxy configured in their shell environment
-            // If so, use that instead of OAuth (allows using custom API proxies)
-            // Based on PR #29 by @sa4hnd
+            // Resolve the account-backed ProviderMode for Claude Code Subscription
+            // and future anthropicAccounts-backed BYOK sessions. Ollama and legacy
+            // Jotai-atom BYOK keep their existing inference path (see roadmap
+            // entry "Migrate Ollama + legacy Jotai BYOK into deriveClaudeSpawnEnv"
+            // scheduled for a follow-up change).
+            const providerMode = finalCustomConfig
+              ? null
+              : getActiveProviderMode();
+            const liteLlmBaseUrl = process.env.MAIN_VITE_LITELLM_BASE_URL;
+
+            let derivedEnv: Record<string, string> | null = null;
+            if (providerMode) {
+              try {
+                derivedEnv = deriveClaudeSpawnEnv(providerMode, liteLlmBaseUrl);
+                console.log(
+                  `[claude-auth] Using deriveClaudeSpawnEnv (kind=${providerMode.kind})`,
+                );
+              } catch (err) {
+                const message =
+                  err instanceof Error ? err.message : String(err);
+                console.error(
+                  `[claude-auth] deriveClaudeSpawnEnv threw: ${message}`,
+                );
+                emitError(
+                  new Error(message),
+                  "LLM routing configuration error",
+                );
+                safeEmit({ type: "finish" } as UIMessageChunk);
+                safeComplete();
+                return;
+              }
+            }
+
+            // Legacy inference path — kept for Ollama and Jotai-atom BYOK.
+            // Will be retired when the roadmap follow-up migrates those paths.
             const hasExistingApiConfig = !!(
               claudeEnv.ANTHROPIC_API_KEY ||
               claudeEnv.ANTHROPIC_AUTH_TOKEN ||
               claudeEnv.ANTHROPIC_BASE_URL
             );
 
-            if (hasExistingApiConfig) {
+            if (hasExistingApiConfig && !derivedEnv) {
               console.log(
                 `[claude] Using existing CLI config - API_KEY: ${claudeEnv.ANTHROPIC_API_KEY ? "set" : "not set"}, BASE_URL: ${claudeEnv.ANTHROPIC_BASE_URL || "default"}`,
               );
             }
 
-            // Build final env - only add OAuth token if we have one AND no existing API config
-            // Existing CLI config takes precedence over OAuth
-            const finalEnv: Record<string, string | undefined> = {
-              ...claudeEnv,
-              ...(claudeCodeToken &&
-                !hasExistingApiConfig && {
-                  CLAUDE_CODE_OAUTH_TOKEN: claudeCodeToken,
-                }),
-              // Re-enable CLAUDE_CONFIG_DIR now that we properly map MCP configs
-              CLAUDE_CONFIG_DIR: isolatedConfigDir,
-            };
+            // Build final env. Precedence:
+            //   1. derivedEnv (authoritative for anthropicAccounts-backed sessions)
+            //   2. claudeEnv + legacy CLAUDE_CODE_OAUTH_TOKEN fallback (Ollama / Jotai BYOK)
+            const finalEnv: Record<string, string | undefined> = derivedEnv
+              ? {
+                  ...claudeEnv,
+                  // Clear any pre-existing auth env vars to avoid conflicts — the
+                  // derived set is the ONLY source of truth for this spawn.
+                  ANTHROPIC_AUTH_TOKEN: undefined,
+                  ANTHROPIC_API_KEY: undefined,
+                  ANTHROPIC_BASE_URL: undefined,
+                  ANTHROPIC_CUSTOM_HEADERS: undefined,
+                  CLAUDE_CODE_OAUTH_TOKEN: undefined,
+                  ...derivedEnv,
+                  CLAUDE_CONFIG_DIR: isolatedConfigDir,
+                }
+              : {
+                  ...claudeEnv,
+                  ...(claudeCodeToken &&
+                    !hasExistingApiConfig && {
+                      CLAUDE_CODE_OAUTH_TOKEN: claudeCodeToken,
+                    }),
+                  CLAUDE_CONFIG_DIR: isolatedConfigDir,
+                };
 
             // Log auth method being used
             console.log("[claude-auth] ========== AUTH METHOD USED ==========");

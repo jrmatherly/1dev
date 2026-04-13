@@ -67,6 +67,20 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 
 ## P2 -- Medium Priority
 
+### [Ready] 1code-api LiteLLM virtual-key auto-provisioning
+**Added:** 2026-04-13
+**Scope:** Replace the manual "paste your LiteLLM virtual key" UX step (add-dual-mode-llm-routing Group 9 wizard) with automatic provisioning. On Entra sign-in, Electron calls `1code-api` which provisions (or fetches existing) virtual keys per user via the LiteLLM `/key/generate` endpoint; the key is encrypted via `credential-store.ts` and stored on the `anthropicAccounts` row. Unblocks BYOK-via-LiteLLM and subscription-via-LiteLLM accounts in one click.
+**Effort:** Medium
+**Prereqs:** `add-dual-mode-llm-routing` archived; `1code-api` deployed with `PROVISIONING_ENABLED=true`
+**Canonical reference:** [`openspec/changes/add-dual-mode-llm-routing/design.md`](../../openspec/changes/add-dual-mode-llm-routing/design.md) §Decision 4
+
+### [Ready] Migrate Ollama + legacy Jotai BYOK into deriveClaudeSpawnEnv
+**Added:** 2026-04-13
+**Scope:** `add-dual-mode-llm-routing` Group 5 intentionally scoped the pure-function rewire to `anthropicAccounts`-backed sessions only. The other two auth sources in `src/main/lib/trpc/routers/claude.ts` — Ollama via `finalCustomConfig` and BYOK via the renderer's `customClaudeConfigAtom` Jotai atom — still flow through the legacy `hasExistingApiConfig` branch. Follow-up change: add an `ollama` branch to `ProviderMode` and migrate the Jotai-atom BYOK records into `anthropicAccounts` rows so there is one source of truth for spawn-env assembly.
+**Effort:** Medium
+**Prereqs:** `add-dual-mode-llm-routing` archived; Group 9 UI wizard shipped so Jotai-atom BYOK users have a migration target
+**Canonical reference:** `openspec/changes/add-dual-mode-llm-routing/tasks.md` Group 5 scoping note; `src/renderer/lib/atoms/index.ts` `customClaudeConfigAtom` + `OFFLINE_PROFILE`
+
 ### [Deferred] auth-manager.ts Phase D — full Strangler Fig retirement
 
 **Added:** 2026-04-13 (carved out of `wire-login-button-to-msal` as deferred follow-up per `auth-strategy.md` §5.3.1 Step D)

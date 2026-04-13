@@ -157,6 +157,13 @@ export const anthropicAccountsRouter = router({
       return { token: null, error: "Active account not found" };
     }
 
+    if (!account.oauthToken) {
+      // Accounts with non-oauth credential types (byok) have no oauth token
+      // to hand out. Callers relying on this endpoint (legacy Claude CLI
+      // OAuth path) should treat this as "not connected".
+      return { token: null, error: "Account has no OAuth token" };
+    }
+
     try {
       const token = decryptCredential(account.oauthToken);
       return { token, error: null };
@@ -207,18 +214,22 @@ export const anthropicAccountsRouter = router({
         .where(eq(anthropicAccounts.id, input.accountId))
         .run();
 
-      // Sync legacy table so all code paths use the correct token
+      // Sync legacy table so existing consumers (being deprecated in Group 7
+      // of add-dual-mode-llm-routing) see the correct token. Skip entirely
+      // when the active account has no oauth token (byok account types).
       db.delete(claudeCodeCredentials)
         .where(eq(claudeCodeCredentials.id, "default"))
         .run();
 
-      db.insert(claudeCodeCredentials)
-        .values({
-          id: "default",
-          oauthToken: account.oauthToken,
-          connectedAt: new Date(),
-        })
-        .run();
+      if (account.oauthToken) {
+        db.insert(claudeCodeCredentials)
+          .values({
+            id: "default",
+            oauthToken: account.oauthToken,
+            connectedAt: new Date(),
+          })
+          .run();
+      }
 
       // Clear cached SDK state to ensure fresh token is used
       clearClaudeCaches();
@@ -234,26 +245,62 @@ export const anthropicAccountsRouter = router({
    */
   add: publicProcedure
     .input(
-      z.object({
-        oauthToken: z.string().min(1),
-        email: z.string().optional(),
-        displayName: z.string().optional(),
-      }),
+      z
+        .object({
+          // Existing callers only pass oauthToken; keep for back-compat.
+          oauthToken: z.string().min(1).optional(),
+          // Dual-mode routing fields (add-dual-mode-llm-routing)
+          accountType: z
+            .enum(["claude-subscription", "byok"])
+            .default("claude-subscription"),
+          routingMode: z.enum(["direct", "litellm"]).default("litellm"),
+          apiKey: z.string().min(1).optional(),
+          virtualKey: z.string().min(1).optional(),
+          modelSonnet: z.string().optional(),
+          modelHaiku: z.string().optional(),
+          modelOpus: z.string().optional(),
+          email: z.string().optional(),
+          displayName: z.string().optional(),
+        })
+        .refine(
+          (v) =>
+            (v.oauthToken ? 1 : 0) +
+              (v.apiKey ? 1 : 0) +
+              (v.virtualKey ? 1 : 0) >=
+            1,
+          "At least one of oauthToken, apiKey, virtualKey must be provided",
+        ),
     )
     .mutation(({ input }) => {
       const db = getDatabase();
       const authManager = getAuthManager();
       const user = authManager.getUser();
 
-      const encryptedToken = encryptCredential(input.oauthToken);
+      // All three credential columns route through credential-store.ts
+      const encOauth = input.oauthToken
+        ? encryptCredential(input.oauthToken)
+        : null;
+      const encApiKey = input.apiKey
+        ? encryptCredential(input.apiKey)
+        : null;
+      const encVirtualKey = input.virtualKey
+        ? encryptCredential(input.virtualKey)
+        : null;
       const newId = createId();
 
       db.insert(anthropicAccounts)
         .values({
           id: newId,
+          accountType: input.accountType,
+          routingMode: input.routingMode,
           email: input.email ?? null,
           displayName: input.displayName || input.email || "Anthropic Account",
-          oauthToken: encryptedToken,
+          oauthToken: encOauth,
+          apiKey: encApiKey,
+          virtualKey: encVirtualKey,
+          modelSonnet: input.modelSonnet ?? null,
+          modelHaiku: input.modelHaiku ?? null,
+          modelOpus: input.modelOpus ?? null,
           connectedAt: new Date(),
           desktopUserId: user?.id ?? null,
         })
@@ -283,7 +330,9 @@ export const anthropicAccountsRouter = router({
           .run();
       }
 
-      console.log(`[AnthropicAccounts] Added new account: ${newId}`);
+      console.log(
+        `[AnthropicAccounts] Added new account: ${newId} (type=${input.accountType}, routing=${input.routingMode})`,
+      );
       return { id: newId, success: true };
     }),
 
@@ -380,63 +429,11 @@ export const anthropicAccountsRouter = router({
     return { hasAccounts: (countResult?.count ?? 0) > 0 };
   }),
 
-  /**
-   * Migrate legacy account from claude_code_credentials to anthropic_accounts
-   * Called automatically if legacy account exists but no multi-accounts
-   */
-  migrateLegacy: publicProcedure.mutation(() => {
-    const db = getDatabase();
-
-    // Check if we already have accounts
-    const existingAccounts = db
-      .select({ count: sql<number>`count(*)` })
-      .from(anthropicAccounts)
-      .get();
-
-    if ((existingAccounts?.count ?? 0) > 0) {
-      return { migrated: false, reason: "accounts_exist" };
-    }
-
-    // Check for legacy credential
-    const legacyCred = db
-      .select()
-      .from(claudeCodeCredentials)
-      .where(eq(claudeCodeCredentials.id, "default"))
-      .get();
-
-    if (!legacyCred?.oauthToken) {
-      return { migrated: false, reason: "no_legacy" };
-    }
-
-    const newId = createId();
-
-    // Insert into new table
-    db.insert(anthropicAccounts)
-      .values({
-        id: newId,
-        oauthToken: legacyCred.oauthToken,
-        displayName: "Anthropic Account",
-        connectedAt: legacyCred.connectedAt,
-        desktopUserId: legacyCred.userId,
-      })
-      .run();
-
-    // Set as active
-    db.insert(anthropicSettings)
-      .values({
-        id: "singleton",
-        activeAccountId: newId,
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: anthropicSettings.id,
-        set: {
-          activeAccountId: newId,
-          updatedAt: new Date(),
-        },
-      })
-      .run();
-
-    return { migrated: true, accountId: newId };
-  }),
+  // `migrateLegacy` mutation removed by add-dual-mode-llm-routing.
+  // Greenfield project: there is no legacy data to migrate, and the
+  // useEffect that called this mutation was resurrecting deleted accounts
+  // by re-seeding from the claude_code_credentials table. Deletion is
+  // enforced by tests/regression/no-migrate-legacy.test.ts.
+  // See openspec/changes/add-dual-mode-llm-routing/specs/claude-code-auth-import/spec.md
+  // (REMOVED Requirements) for rationale.
 });

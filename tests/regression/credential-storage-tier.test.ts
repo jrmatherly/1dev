@@ -82,6 +82,19 @@ describe("credential-storage-tier", () => {
     expect(content).not.toMatch(/^function decryptToken/m);
   });
 
+  test("anthropic-accounts.ts routes oauth/api/virtual key writes through credential-store", () => {
+    // add-dual-mode-llm-routing: all three credential columns must be
+    // encrypted via credential-store.ts (never written raw).
+    const content = readFileSync(ANTHROPIC_ACCOUNTS, "utf-8");
+    expect(content).toContain(
+      'import { encryptCredential, decryptCredential } from "../../credential-store"',
+    );
+    // Any write to oauthToken/apiKey/virtualKey columns in a db.insert(...).values block
+    // should go through encryptCredential(...) — catch unwrapped assignments.
+    const rawAssignment = /(oauthToken|apiKey|virtualKey):\s*input\.(oauthToken|apiKey|virtualKey)(?!\s*\?\s*encryptCredential)/;
+    expect(content).not.toMatch(rawAssignment);
+  });
+
   test("claude-code.ts has no local encryptToken or decryptToken", () => {
     const content = readFileSync(CLAUDE_CODE, "utf-8");
     expect(content).not.toMatch(/^function encryptToken/m);

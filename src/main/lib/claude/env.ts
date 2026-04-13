@@ -222,28 +222,30 @@ export async function applyEnterpriseAuth(
 
   const authManager = getAuthManager();
   if (!authManager) {
-    console.warn("[claude-env] Enterprise auth enabled but AuthManager not initialized");
+    console.warn(
+      "[claude-env] Enterprise auth enabled but AuthManager not initialized",
+    );
     return env;
   }
 
+  // Entra token acquisition is performed here for its side effect only:
+  // keeping the MSAL cache warm and surfacing failure early. The token
+  // itself is NEVER written into ANTHROPIC_AUTH_TOKEN — see the
+  // add-dual-mode-llm-routing OpenSpec change. Anthropic's API does not
+  // understand Entra JWTs and rejects them with a 401 referencing
+  // x-azure-signature. Entra identity for LiteLLM audit flows through
+  // the x-litellm-customer-id header assembled in deriveClaudeSpawnEnv.
   const token = await authManager.getValidToken();
   if (!token) {
-    console.warn("[claude-env] Enterprise auth enabled but no valid token available");
+    console.warn(
+      "[claude-env] Enterprise auth enabled but no valid token available",
+    );
     return env;
   }
 
-  if (env.ANTHROPIC_AUTH_TOKEN) {
-    console.warn("[claude-env] Overwriting existing ANTHROPIC_AUTH_TOKEN with enterprise token");
-  }
-  env.ANTHROPIC_AUTH_TOKEN = token;
-
-  // Set ANTHROPIC_BASE_URL to LiteLLM proxy if configured via env
-  const proxyUrl = process.env.LITELLM_PROXY_URL ?? process.env.ANTHROPIC_BASE_URL;
-  if (proxyUrl) {
-    env.ANTHROPIC_BASE_URL = proxyUrl;
-  }
-
-  console.log("[claude-env] Enterprise auth token injected via ANTHROPIC_AUTH_TOKEN");
+  console.log(
+    "[claude-env] Enterprise auth active (token acquired; not injected into spawn env)",
+  );
   return env;
 }
 

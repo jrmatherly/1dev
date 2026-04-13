@@ -71,6 +71,13 @@
       "when": 1775997594895,
       "tag": "0009_closed_mephistopheles",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1776097357773,
+      "tag": "0010_flowery_blackheart",
+      "breakpoints": true
     }
   ]
 }

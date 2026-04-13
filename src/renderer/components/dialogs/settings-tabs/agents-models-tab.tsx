@@ -155,30 +155,13 @@ function AnthropicAccountsSection() {
       refetchOnMount: true,
       staleTime: 0,
     });
-  const { data: claudeCodeIntegration } =
-    trpc.claudeCode.getIntegration.useQuery();
   const trpcUtils = trpc.useUtils();
 
-  // Auto-migrate legacy account if needed
-  const migrateLegacy = trpc.anthropicAccounts.migrateLegacy.useMutation({
-    onSuccess: async () => {
-      await refetchList();
-      await refetchActive();
-    },
-  });
-
-  // Trigger migration if: no accounts, not loading, has legacy connection, not already migrating
-  useEffect(() => {
-    if (
-      !isAccountsLoading &&
-      accounts?.length === 0 &&
-      claudeCodeIntegration?.isConnected &&
-      !migrateLegacy.isPending &&
-      !migrateLegacy.isSuccess
-    ) {
-      migrateLegacy.mutate();
-    }
-  }, [isAccountsLoading, accounts, claudeCodeIntegration, migrateLegacy]);
+  // `migrateLegacy` auto-migration removed by add-dual-mode-llm-routing.
+  // The useEffect that called it was resurrecting deleted accounts by
+  // re-seeding from the legacy claude_code_credentials table. Users now
+  // add accounts explicitly via the Add Account wizard (Group 9 — not
+  // yet shipped) or via the existing Keychain-import onboarding flow.
 
   const setActiveMutation = trpc.anthropicAccounts.setActive.useMutation({
     onSuccess: () => {

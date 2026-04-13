@@ -111,14 +111,39 @@ export const claudeCodeCredentials = sqliteTable("claude_code_credentials", {
 });
 
 // ============ ANTHROPIC ACCOUNTS (Multi-account support) ============
-// Stores multiple Anthropic OAuth accounts for quick switching
+// Stores Anthropic routing profiles for quick switching. Supports two
+// account types (claude-subscription | byok) crossed with two routing
+// modes (direct | litellm), per openspec/changes/add-dual-mode-llm-routing.
+//
+// Credential columns (oauth_token, api_key, virtual_key) are all nullable
+// because each account type populates only one; encryption for all three
+// routes through src/main/lib/credential-store.ts.
 export const anthropicAccounts = sqliteTable("anthropic_accounts", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
+  // Account type discriminator
+  accountType: text("account_type", {
+    enum: ["claude-subscription", "byok"],
+  })
+    .notNull()
+    .default("claude-subscription"),
+  // Routing mode — default litellm so enterprise deployments are safe by default
+  routingMode: text("routing_mode", {
+    enum: ["direct", "litellm"],
+  })
+    .notNull()
+    .default("litellm"),
   email: text("email"), // User's email from OAuth (if available)
   displayName: text("display_name"), // User-editable label
-  oauthToken: text("oauth_token").notNull(), // Encrypted with safeStorage
+  // Credentials — exactly one populated per row based on accountType + routingMode
+  oauthToken: text("oauth_token"), // Claude subscription (encrypted)
+  apiKey: text("api_key"), // BYOK direct — Anthropic API key (encrypted)
+  virtualKey: text("virtual_key"), // BYOK/subscription via LiteLLM — virtual key (encrypted)
+  // BYOK-litellm only: model slot mapping (enumerated via GET /v1/models)
+  modelSonnet: text("model_sonnet"),
+  modelHaiku: text("model_haiku"),
+  modelOpus: text("model_opus"),
   connectedAt: integer("connected_at", { mode: "timestamp" }).$defaultFn(
     () => new Date(),
   ),

@@ -665,7 +665,7 @@ export async function applyEnterpriseAuth(
   }
 
   const baseUrlPatch = {
-    ANTHROPIC_BASE_URL: process.env.LITELLM_PROXY_URL ?? "https://llms.<domain>",
+    ANTHROPIC_BASE_URL: process.env.MAIN_VITE_LITELLM_BASE_URL ?? "https://llms.<domain>",
   };
 
   if (options.useTokenFile) {
