@@ -25,21 +25,34 @@ import {
   PLAN_MODE_BLOCKED_TOOLS,
   clearPendingApprovals,
 } from "../../claude/session-manager";
+import {
+  workingMcpServers,
+  symlinksCreated,
+  mcpConfigCache,
+  projectMcpJsonCache,
+  mcpCacheKey,
+  readProjectMcpJsonCached,
+  clearMcpResolverCaches,
+  getServerStatusFromConfig,
+  getAllMcpConfigHandler,
+} from "../../claude/mcp-resolver";
 
-// Re-export public API so existing importers (index.ts, windows/main.ts)
-// continue to resolve hasActiveClaudeSessions / abortAllClaudeSessions
-// from "./claude" without touching those files.
+// Re-export public API so existing importers (index.ts, windows/main.ts,
+// anthropic-accounts.ts) continue to resolve them from "./claude" without
+// touching those files.
 export {
   hasActiveClaudeSessions,
   abortAllClaudeSessions,
 } from "../../claude/session-manager";
+export {
+  workingMcpServers,
+  getAllMcpConfigHandler,
+} from "../../claude/mcp-resolver";
 import {
   getMergedGlobalMcpServers,
   getMergedLocalProjectMcpServers,
-  GLOBAL_MCP_PATH,
   readClaudeConfig,
   readClaudeDirConfig,
-  readProjectMcpJson,
   removeMcpServerConfig,
   resolveProjectPathFromWorktree,
   updateMcpServerConfig,
@@ -53,19 +66,15 @@ import {
   chats,
   claudeCodeCredentials,
   getDatabase,
-  projects as projectsTable,
   subChats,
 } from "../../db";
 import { createRollbackStash } from "../../git/stash";
 import {
   ensureMcpTokensFresh,
-  fetchMcpTools,
-  fetchMcpToolsStdio,
   getMcpAuthStatus,
   startMcpOAuth,
-  type McpToolInfo,
 } from "../../mcp-auth";
-import { fetchOAuthMetadata, getMcpBaseUrl } from "../../oauth";
+
 import { discoverPluginMcpServers } from "../../plugins";
 import { publicProcedure, router } from "../index";
 import { buildAgentsOption } from "./agent-utils";
@@ -163,64 +172,6 @@ const getClaudeQuery = async () => {
   return cachedClaudeQuery;
 };
 
-// In-memory cache of working MCP server names (resets on app restart)
-// Key: "scope::serverName" where scope is "__global__" or projectPath
-// Value: true if working (has tools), false if failed
-export const workingMcpServers = new Map<string, boolean>();
-
-// Helper to build scoped cache key
-const GLOBAL_SCOPE = "__global__";
-function mcpCacheKey(scope: string | null, serverName: string): string {
-  return `${scope ?? GLOBAL_SCOPE}::${serverName}`;
-}
-
-// Cache for symlinks (track which subChatIds have already set up symlinks)
-const symlinksCreated = new Set<string>();
-
-// Cache for MCP config (avoid re-reading ~/.claude.json on every message)
-const mcpConfigCache = new Map<
-  string,
-  {
-    config: Record<string, any> | undefined;
-    mtime: number;
-  }
->();
-
-// Cache for .mcp.json files (avoid re-reading on every message)
-const projectMcpJsonCache = new Map<
-  string,
-  {
-    servers: Record<string, McpServerConfig>;
-    mtime: number;
-  }
->();
-
-/**
- * Read .mcp.json with mtime-based caching
- */
-async function readProjectMcpJsonCached(
-  projectPath: string,
-): Promise<Record<string, McpServerConfig>> {
-  try {
-    const mcpJsonPath = path.join(projectPath, ".mcp.json");
-    const stats = await fs.stat(mcpJsonPath).catch(() => null);
-    if (!stats) return {};
-
-    const cached = projectMcpJsonCache.get(mcpJsonPath);
-    if (cached?.mtime === stats.mtimeMs) {
-      return cached.servers;
-    }
-
-    const servers = await readProjectMcpJson(projectPath);
-    projectMcpJsonCache.set(mcpJsonPath, {
-      servers,
-      mtime: stats.mtimeMs,
-    });
-    return servers;
-  } catch {
-    return {};
-  }
-}
 
 // Image attachment schema
 const imageAttachmentSchema = z.object({
@@ -232,457 +183,16 @@ const imageAttachmentSchema = z.object({
 export type ImageAttachment = z.infer<typeof imageAttachmentSchema>;
 
 /**
- * Clear all performance caches (for testing/debugging)
+ * Clear all performance caches (for testing/debugging). Facade over per-module
+ * clear functions so external callers (anthropic-accounts.ts) keep a single
+ * entry point.
  */
 export function clearClaudeCaches() {
   cachedClaudeQuery = null;
-  symlinksCreated.clear();
-  mcpConfigCache.clear();
-  projectMcpJsonCache.clear();
+  clearMcpResolverCaches();
   console.log("[claude] All caches cleared");
 }
 
-/**
- * Determine server status based on config
- * - If authType is "none" -> "connected" (no auth required)
- * - If has Authorization header -> "connected" (OAuth completed, SDK can use it)
- * - If has _oauth but no headers -> "needs-auth" (legacy config, needs re-auth to migrate)
- * - If HTTP server (has URL) with explicit authType -> "needs-auth"
- * - HTTP server without authType -> "connected" (assume public)
- * - Local stdio server -> "connected"
- */
-// Mirror of MCPServerStatus from src/renderer/lib/atoms/index.ts. Defined
-// locally here because main process code must not import from renderer.
-// TypeScript structural typing ensures the two literal unions stay
-// compatible across the tRPC boundary.
-type McpServerStatus = "connected" | "failed" | "pending" | "needs-auth";
-
-function getServerStatusFromConfig(
-  serverConfig: McpServerConfig,
-): McpServerStatus {
-  const headers = serverConfig.headers as Record<string, string> | undefined;
-  const { _oauth: oauth, authType } = serverConfig;
-
-  // If authType is explicitly "none", no auth required
-  if (authType === "none") {
-    return "connected";
-  }
-
-  // If has Authorization header, it's ready for SDK to use
-  if (headers?.Authorization) {
-    return "connected";
-  }
-
-  // If has _oauth but no headers, this is a legacy config that needs re-auth
-  // (old format that SDK can't use)
-  if (oauth?.accessToken && !headers?.Authorization) {
-    return "needs-auth";
-  }
-
-  // If HTTP server with explicit authType (oauth/bearer), needs auth
-  if (serverConfig.url && ["oauth", "bearer"].includes(authType ?? "")) {
-    return "needs-auth";
-  }
-
-  // HTTP server without authType - assume no auth required (public endpoint)
-  // Local stdio server - also connected
-  return "connected";
-}
-
-const MCP_FETCH_TIMEOUT_MS = 40_000;
-
-/**
- * Fetch tools from an MCP server (HTTP or stdio transport)
- * Times out after MCP_FETCH_TIMEOUT_MS seconds to prevent slow MCPs from blocking the cache update
- */
-async function fetchToolsForServer(
-  serverConfig: McpServerConfig,
-): Promise<McpToolInfo[]> {
-  const timeoutPromise = new Promise<McpToolInfo[]>((_, reject) =>
-    setTimeout(() => reject(new Error("Timeout")), MCP_FETCH_TIMEOUT_MS),
-  );
-
-  const fetchPromise = (async () => {
-    // HTTP transport
-    if (serverConfig.url) {
-      const headers = serverConfig.headers as
-        | Record<string, string>
-        | undefined;
-      try {
-        return await fetchMcpTools(serverConfig.url, headers);
-      } catch {
-        return [];
-      }
-    }
-
-    // Stdio transport
-    const command = serverConfig.command;
-    if (command) {
-      try {
-        return await fetchMcpToolsStdio({
-          command,
-          args: serverConfig.args,
-          env: serverConfig.env as Record<string, string> | undefined,
-        });
-      } catch {
-        return [];
-      }
-    }
-
-    return [];
-  })();
-
-  try {
-    return await Promise.race([fetchPromise, timeoutPromise]);
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Handler for getAllMcpConfig - exported so it can be called on app startup
- */
-export async function getAllMcpConfigHandler() {
-  try {
-    const totalStart = Date.now();
-
-    // Clear cache before repopulating
-    workingMcpServers.clear();
-
-    const config = await readClaudeConfig();
-
-    const convertServers = async (
-      servers: Record<string, McpServerConfig> | undefined,
-      scope: string | null,
-    ) => {
-      if (!servers) return [];
-
-      const results = await Promise.all(
-        Object.entries(servers).map(async ([name, serverConfig]) => {
-          const configObj = serverConfig as Record<string, unknown>;
-          const headers = serverConfig.headers as
-            | Record<string, string>
-            | undefined;
-
-          let tools: McpToolInfo[] = [];
-          let needsAuth = false;
-
-          try {
-            tools = await fetchToolsForServer(serverConfig);
-          } catch (error) {
-            console.error(`[MCP] Failed to fetch tools for ${name}:`, error);
-          }
-
-          let status: string;
-          const cacheKey = mcpCacheKey(scope, name);
-          if (tools.length > 0) {
-            status = "connected";
-            workingMcpServers.set(cacheKey, true);
-          } else {
-            workingMcpServers.set(cacheKey, false);
-            if (serverConfig.url) {
-              try {
-                const baseUrl = getMcpBaseUrl(serverConfig.url);
-                const metadata = await fetchOAuthMetadata(baseUrl);
-                needsAuth = !!metadata && !!metadata.authorization_endpoint;
-              } catch {
-                // If probe fails, assume no auth needed
-              }
-            } else if (
-              serverConfig.authType === "oauth" ||
-              serverConfig.authType === "bearer"
-            ) {
-              needsAuth = true;
-            }
-
-            if (needsAuth && !headers?.Authorization) {
-              status = "needs-auth";
-            } else {
-              // No tools and doesn't need auth - server failed to connect or has no tools
-              status = "failed";
-            }
-          }
-
-          return { name, status, tools, needsAuth, config: configObj };
-        }),
-      );
-
-      return results;
-    };
-
-    // Build list of all groups to process with timing
-    const groupTasks: Array<{
-      groupName: string;
-      projectPath: string | null;
-      promise: Promise<{
-        mcpServers: Array<{
-          name: string;
-          status: string;
-          tools: McpToolInfo[];
-          needsAuth: boolean;
-          config: Record<string, unknown>;
-        }>;
-        duration: number;
-      }>;
-    }> = [];
-
-    // Read ~/.claude/.claude.json once for reuse across global + project merging
-    let claudeDirConfig: ClaudeConfig = {};
-    try {
-      claudeDirConfig = await readClaudeDirConfig();
-    } catch {
-      /* ignore */
-    }
-
-    // Global MCPs (merged from ~/.claude.json + ~/.claude/.claude.json + ~/.claude/mcp.json)
-    const mergedGlobalServers = await getMergedGlobalMcpServers(
-      config,
-      claudeDirConfig,
-    );
-    if (Object.keys(mergedGlobalServers).length > 0) {
-      groupTasks.push({
-        groupName: "Global",
-        projectPath: null,
-        promise: (async () => {
-          const start = Date.now();
-          const freshServers = await ensureMcpTokensFresh(
-            mergedGlobalServers,
-            GLOBAL_MCP_PATH,
-          );
-          const mcpServers = await convertServers(freshServers, null); // null = global scope
-          return { mcpServers, duration: Date.now() - start };
-        })(),
-      });
-    } else {
-      groupTasks.push({
-        groupName: "Global",
-        projectPath: null,
-        promise: Promise.resolve({ mcpServers: [], duration: 0 }),
-      });
-    }
-
-    // Project MCPs from ~/.claude.json + ~/.claude/.claude.json (per-project configs)
-    // Collect all known project paths from both configs
-    const allProjectPaths = new Set<string>();
-    if (config.projects) {
-      for (const p of Object.keys(config.projects)) allProjectPaths.add(p);
-    }
-    if (claudeDirConfig.projects) {
-      for (const p of Object.keys(claudeDirConfig.projects))
-        allProjectPaths.add(p);
-    }
-
-    for (const projectPath of allProjectPaths) {
-      const mergedProjectServers = await getMergedLocalProjectMcpServers(
-        projectPath,
-        config,
-        claudeDirConfig,
-      );
-
-      // Also read .mcp.json from project root
-      const projectMcpJsonServers = await readProjectMcpJsonCached(projectPath);
-
-      // Merge: per-project config servers override .mcp.json
-      const allProjectServers = {
-        ...projectMcpJsonServers,
-        ...mergedProjectServers,
-      };
-
-      if (Object.keys(allProjectServers).length > 0) {
-        const groupName = path.basename(projectPath) || projectPath;
-        groupTasks.push({
-          groupName,
-          projectPath,
-          promise: (async () => {
-            const start = Date.now();
-            const freshServers = await ensureMcpTokensFresh(
-              allProjectServers,
-              projectPath,
-            );
-            const mcpServers = await convertServers(freshServers, projectPath);
-            return { mcpServers, duration: Date.now() - start };
-          })(),
-        });
-      }
-    }
-
-    // DB project discovery: find projects with .mcp.json that aren't in configs
-    try {
-      const db = getDatabase();
-      const dbProjects = db
-        .select({ path: projectsTable.path })
-        .from(projectsTable)
-        .all();
-      for (const proj of dbProjects) {
-        if (!proj.path || allProjectPaths.has(proj.path)) continue;
-        const mcpJsonServers = await readProjectMcpJsonCached(proj.path);
-        if (Object.keys(mcpJsonServers).length > 0) {
-          const groupName = path.basename(proj.path) || proj.path;
-          groupTasks.push({
-            groupName,
-            projectPath: proj.path,
-            promise: (async () => {
-              const start = Date.now();
-              const mcpServers = await convertServers(
-                mcpJsonServers,
-                proj.path,
-              );
-              return { mcpServers, duration: Date.now() - start };
-            })(),
-          });
-        }
-      }
-    } catch (dbErr) {
-      console.error("[MCP] DB project discovery error:", dbErr);
-    }
-
-    // Process all groups in parallel
-    const results = await Promise.all(groupTasks.map((t) => t.promise));
-
-    // Build groups with timing info
-    const groupsWithTiming = groupTasks.map((task, i) => ({
-      groupName: task.groupName,
-      projectPath: task.projectPath,
-      mcpServers: results[i].mcpServers,
-      duration: results[i].duration,
-    }));
-
-    // Log performance (sorted by duration DESC)
-    const totalDuration = Date.now() - totalStart;
-    const workingCount = [...workingMcpServers.values()].filter(
-      Boolean,
-    ).length;
-    const sortedByDuration = [...groupsWithTiming].sort(
-      (a, b) => b.duration - a.duration,
-    );
-
-    console.log(
-      `[MCP] Cache updated in ${totalDuration}ms. Working: ${workingCount}/${workingMcpServers.size}`,
-    );
-    for (const g of sortedByDuration) {
-      if (g.mcpServers.length > 0) {
-        console.log(
-          `[MCP]   ${g.groupName}: ${g.duration}ms (${g.mcpServers.length} servers)`,
-        );
-      }
-    }
-
-    // Return groups without timing info
-    const groups = groupsWithTiming.map(
-      ({ groupName, projectPath, mcpServers }) => ({
-        groupName,
-        projectPath,
-        mcpServers,
-      }),
-    );
-
-    // Plugin MCPs (from installed plugins)
-    const [enabledPluginSources, pluginMcpConfigs, approvedServers] =
-      await Promise.all([
-        getEnabledPlugins(),
-        discoverPluginMcpServers(),
-        getApprovedPluginMcpServers(),
-      ]);
-
-    for (const pluginConfig of pluginMcpConfigs) {
-      // Only show MCP servers from enabled plugins
-      if (!enabledPluginSources.includes(pluginConfig.pluginSource)) continue;
-
-      const globalServerNames = Object.keys(mergedGlobalServers);
-      if (Object.keys(pluginConfig.mcpServers).length > 0) {
-        const pluginMcpServers = (
-          await Promise.all(
-            Object.entries(pluginConfig.mcpServers).map(
-              async ([name, serverConfig]) => {
-                // Skip servers that have been promoted to ~/.claude.json (e.g., after OAuth)
-                if (globalServerNames.includes(name)) return null;
-
-                const configObj = serverConfig as Record<string, unknown>;
-                const identifier = `${pluginConfig.pluginSource}:${name}`;
-                const isApproved = approvedServers.includes(identifier);
-
-                if (!isApproved) {
-                  return {
-                    name,
-                    status: "pending-approval",
-                    tools: [] as McpToolInfo[],
-                    needsAuth: false,
-                    config: configObj,
-                    isApproved,
-                  };
-                }
-
-                // Try to get status and tools for approved servers
-                const headers = serverConfig.headers as
-                  | Record<string, string>
-                  | undefined;
-                let tools: McpToolInfo[] = [];
-                let needsAuth = false;
-
-                try {
-                  tools = await fetchToolsForServer(serverConfig);
-                } catch (error) {
-                  console.error(
-                    `[MCP] Failed to fetch tools for plugin ${name}:`,
-                    error,
-                  );
-                }
-
-                let status: string;
-                if (tools.length > 0) {
-                  status = "connected";
-                } else {
-                  // Same OAuth detection logic as regular MCP servers
-                  if (serverConfig.url) {
-                    try {
-                      const baseUrl = getMcpBaseUrl(serverConfig.url);
-                      const metadata = await fetchOAuthMetadata(baseUrl);
-                      needsAuth =
-                        !!metadata && !!metadata.authorization_endpoint;
-                    } catch {
-                      // If probe fails, assume no auth needed
-                    }
-                  } else if (
-                    serverConfig.authType === "oauth" ||
-                    serverConfig.authType === "bearer"
-                  ) {
-                    needsAuth = true;
-                  }
-
-                  if (needsAuth && !headers?.Authorization) {
-                    status = "needs-auth";
-                  } else {
-                    status = "failed";
-                  }
-                }
-
-                return {
-                  name,
-                  status,
-                  tools,
-                  needsAuth,
-                  config: configObj,
-                  isApproved,
-                };
-              },
-            ),
-          )
-        ).filter((s): s is NonNullable<typeof s> => s !== null);
-
-        groups.push({
-          groupName: `Plugin: ${pluginConfig.pluginSource}`,
-          projectPath: null,
-          mcpServers: pluginMcpServers,
-        });
-      }
-    }
-
-    return { groups };
-  } catch (error) {
-    console.error("[getAllMcpConfig] Error:", error);
-    return { groups: [], error: String(error) };
-  }
-}
 
 export const claudeRouter = router({
   /**

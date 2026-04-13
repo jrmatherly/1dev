@@ -69,7 +69,7 @@
 - [x] 7.1 Identify extraction boundaries in `src/main/lib/trpc/routers/claude.ts` (3,298 lines) — map the ~2,000-line chat handler, prompt parsing, session management, MCP resolution, and tool execution segments *(mapped: prompt-parser 60-159, session-manager 249-264+326-346, mcp-resolver 267-324+368-808, tool-executor inside 2019-line chat subscription, clearClaudeCaches cross-cutting → facade pattern)*
 - [x] 7.2 Extract prompt-parser module from claude.ts *(moved `parseMentions` to `src/main/lib/claude/prompt-parser.ts`; claude.ts 3309 → 3212)*
 - [x] 7.3 Extract session-manager module from claude.ts *(moved `activeSessions`, `pendingToolApprovals`, `PLAN_MODE_BLOCKED_TOOLS`, `hasActiveClaudeSessions`, `abortAllClaudeSessions`, `clearPendingApprovals` to `src/main/lib/claude/session-manager.ts`; claude.ts 3212 → 3188, re-exports preserve import stability for index.ts + windows/main.ts)*
-- [ ] 7.4 Extract mcp-resolver module from claude.ts
+- [x] 7.4 Extract mcp-resolver module from claude.ts *(moved `workingMcpServers`, `symlinksCreated`, `mcpConfigCache`, `projectMcpJsonCache`, `mcpCacheKey`, `readProjectMcpJsonCached`, `clearMcpResolverCaches`, `getServerStatusFromConfig`, `fetchToolsForServer`, `getAllMcpConfigHandler` to `src/main/lib/claude/mcp-resolver.ts` (528 lines); claude.ts 3188 → 2696 (-492); `clearClaudeCaches` becomes a facade calling `clearMcpResolverCaches()`; 8 orphan imports pruned (GLOBAL_MCP_PATH, readProjectMcpJson, fetchMcpTools, fetchMcpToolsStdio, McpToolInfo, fetchOAuthMetadata, getMcpBaseUrl, projectsTable))*
 - [ ] 7.5 Extract tool-executor module from claude.ts
 - [ ] 7.6 Verify claude.ts < 1,000 lines after extraction
 - [ ] 7.7 Run all 6 quality gates after claude.ts decomposition
