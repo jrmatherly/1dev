@@ -7885,6 +7885,12 @@ Make sure to preserve all functionality from both branches when resolving confli
           return generateSubChatNameMutation.mutateAsync({
             userMessage: msg,
             ollamaModel: selectedOllamaModel,
+            // Pass the legacy Custom Model config through so aux-ai can
+            // synthesize a LiteLLM-style SDK call when no
+            // anthropicAccounts row is active (onboarded via Custom Model).
+            customConfig: customClaudeConfig?.token
+              ? customClaudeConfig
+              : null,
           });
         },
         renameSubChat: async (input) => {

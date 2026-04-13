@@ -65,6 +65,19 @@ describe("aux-AI module shape", () => {
     expect(source).toMatch(/getProviderMode:\s*\(\)/);
     expect(source).toMatch(/getFlag:\s*</);
   });
+
+  test("LegacyCustomConfig bridge — synthesizes SDK call when ProviderMode null but renderer supplies Custom Model config", () => {
+    const source = readAuxAi();
+    expect(source).toContain("export interface LegacyCustomConfig");
+    expect(source).toContain("export interface GenerateChatTitleOpts");
+    expect(source).toContain("export interface GenerateCommitMessageOpts");
+    expect(source).toContain("function legacyCustomConfigSdkOpts");
+    // Heuristic: sk-ant-* tokens get apiKey; anything else gets authToken.
+    expect(source).toMatch(/token\.startsWith\("sk-ant-"\)/);
+    // Both factories must branch on the legacy config when ProviderMode null.
+    const legacyBranchHits = source.match(/else if \(legacy\)/g) ?? [];
+    expect(legacyBranchHits.length).toBeGreaterThanOrEqual(2);
+  });
 });
 
 describe("aux-AI dispatch matrix coverage", () => {

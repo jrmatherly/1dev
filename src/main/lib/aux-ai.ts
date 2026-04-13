@@ -69,6 +69,34 @@ export interface AuxAiDeps {
 }
 
 /**
+ * Renderer-supplied legacy customConfig — the Jotai-atom BYOK path from
+ * the "Custom Model" onboarding form (src/renderer/lib/atoms/index.ts
+ * `customClaudeConfigAtom`). Populated by users on the LiteLLM / BYOK
+ * onboarding screen; stored in localStorage, not in anthropicAccounts.
+ *
+ * When `getProviderMode()` returns null but a valid customConfig is
+ * supplied by the caller, aux-ai synthesizes a LiteLLM-style SDK call
+ * (baseURL + authToken + model override). This is the bridge between
+ * the legacy onboarding flow and the provider-aware aux-AI dispatch.
+ */
+export interface LegacyCustomConfig {
+  model: string;
+  token: string;
+  baseUrl: string;
+}
+
+export interface GenerateChatTitleOpts {
+  ollamaModel?: string | null;
+  /** Legacy custom-provider config from the renderer's Jotai atom. */
+  customConfig?: LegacyCustomConfig | null;
+}
+
+export interface GenerateCommitMessageOpts {
+  /** Legacy custom-provider config from the renderer's Jotai atom. */
+  customConfig?: LegacyCustomConfig | null;
+}
+
+/**
  * Default aux-AI model per route.
  *
  * - **LiteLLM routes** (byok-litellm, subscription-litellm) → `gpt-5-nano`.
@@ -154,6 +182,35 @@ function liteLlmSdkOpts(
 }
 
 /**
+ * Build SDK opts from the renderer-side legacy customConfig. Auto-detects
+ * whether the baseUrl points at LiteLLM (→ authToken) or Anthropic
+ * direct (→ apiKey). Returns null if the config is incomplete.
+ *
+ * This is the bridge for users who onboarded via "Custom Model" rather
+ * than "Claude Pro/Max" — their creds live in localStorage, not
+ * anthropicAccounts, so getActiveProviderMode() returns null and aux-ai
+ * would otherwise fall through to Ollama-or-truncated.
+ */
+function legacyCustomConfigSdkOpts(
+  config: LegacyCustomConfig | null | undefined,
+): { opts: CreateAnthropicOpts; model: string } | null {
+  if (!config) return null;
+  const model = config.model.trim();
+  const token = config.token.trim();
+  const baseUrl = config.baseUrl.trim();
+  if (!model || !token || !baseUrl) return null;
+
+  // Heuristic: sk-ant-* tokens → Anthropic apiKey header. Anything else
+  // → LiteLLM-compatible authToken (Bearer). The user's custom base URL
+  // is passed through either way.
+  const isAnthropicKey = token.startsWith("sk-ant-");
+  const opts: CreateAnthropicOpts = isAnthropicKey
+    ? { apiKey: token, baseURL: baseUrl }
+    : { authToken: token, baseURL: baseUrl };
+  return { opts, model };
+}
+
+/**
  * Run an SDK call against an AbortController-backed timeout. The SDK
  * ignores the signal natively in some versions, so we race the promise
  * with a setTimeout that rejects.
@@ -209,7 +266,7 @@ function cleanTitle(raw: string): string {
 export function makeGenerateChatTitle(deps: AuxAiDeps) {
   return async function generateChatTitle(
     userMessage: string,
-    ollamaModel?: string | null,
+    opts: GenerateChatTitleOpts = {},
   ): Promise<string> {
     if (!deps.getFlag("auxAiEnabled")) {
       console.log("[aux-ai] generateChatTitle: auxAiEnabled=false, returning truncated");
@@ -220,15 +277,22 @@ export function makeGenerateChatTitle(deps: AuxAiDeps) {
     const flagModel = deps.getFlag("auxAiModel");
     const timeoutMs = deps.getFlag("auxAiTimeoutMs");
     const modeKind = mode?.kind ?? "null";
+    const legacy = legacyCustomConfigSdkOpts(opts.customConfig);
     console.log(
-      `[aux-ai] generateChatTitle: mode=${modeKind} flagModel=${flagModel || "(unset)"} timeout=${timeoutMs}ms`,
+      `[aux-ai] generateChatTitle: mode=${modeKind} flagModel=${flagModel || "(unset)"} timeout=${timeoutMs}ms hasLegacyConfig=${!!legacy}`,
     );
 
     const tryViaSdk = async (
       sdkOpts: CreateAnthropicOpts,
+      modelOverride?: string,
     ): Promise<string | null> => {
       const client = deps.createAnthropic(sdkOpts);
-      const model = resolveModel(mode, flagModel);
+      // Precedence: explicit caller override (legacy customConfig.model)
+      // → flag override → per-route default.
+      const model =
+        modelOverride && modelOverride.length > 0
+          ? modelOverride
+          : resolveModel(mode, flagModel);
       console.log(
         `[aux-ai] SDK call: model=${model} baseURL=${sdkOpts.baseURL ?? "(Anthropic default)"} hasAuthToken=${!!sdkOpts.authToken} hasApiKey=${!!sdkOpts.apiKey} customerId=${sdkOpts.defaultHeaders?.["x-litellm-customer-id"] ?? "(none)"}`,
       );
@@ -265,19 +329,31 @@ export function makeGenerateChatTitle(deps: AuxAiDeps) {
           return result;
         }
         console.warn("[aux-ai] generateChatTitle: SDK returned empty text; falling back");
+      } else if (legacy) {
+        // Null ProviderMode but the renderer supplied a legacy customConfig
+        // (Custom Model onboarding path — localStorage-backed Jotai atom).
+        // Use it directly; the user's chosen model is the authoritative default.
+        // The flag override still wins if set.
+        const modelOverride = flagModel.length > 0 ? flagModel : legacy.model;
+        const result = await tryViaSdk(legacy.opts, modelOverride);
+        if (result) {
+          console.log(`[aux-ai] generateChatTitle: SDK success (legacy customConfig) → "${result}"`);
+          return result;
+        }
+        console.warn("[aux-ai] generateChatTitle: legacy customConfig SDK returned empty text; falling back");
       } else {
         console.log(`[aux-ai] generateChatTitle: no SDK route for mode=${modeKind}, trying Ollama`);
       }
     } catch (err) {
       console.error(
-        `[aux-ai] generateChatTitle SDK call failed (mode=${modeKind}):`,
+        `[aux-ai] generateChatTitle SDK call failed (mode=${modeKind}, legacy=${!!legacy}):`,
         err instanceof Error ? `${err.name}: ${err.message}` : err,
       );
     }
 
     // subscription-direct, null mode, or SDK failure → Ollama fallback.
     try {
-      const ollamaResult = await deps.generateOllamaName(userMessage, ollamaModel);
+      const ollamaResult = await deps.generateOllamaName(userMessage, opts.ollamaModel);
       if (ollamaResult) {
         console.log(`[aux-ai] generateChatTitle: Ollama success → "${ollamaResult}"`);
         return ollamaResult;
@@ -299,6 +375,7 @@ export function makeGenerateCommitMessage(deps: AuxAiDeps) {
   return async function generateCommitMessage(
     context: string,
     fallback: string,
+    opts: GenerateCommitMessageOpts = {},
   ): Promise<string> {
     if (!deps.getFlag("auxAiEnabled")) {
       console.log("[aux-ai] generateCommitMessage: auxAiEnabled=false, returning fallback");
@@ -309,15 +386,20 @@ export function makeGenerateCommitMessage(deps: AuxAiDeps) {
     const flagModel = deps.getFlag("auxAiModel");
     const timeoutMs = deps.getFlag("auxAiTimeoutMs");
     const modeKind = mode?.kind ?? "null";
+    const legacy = legacyCustomConfigSdkOpts(opts.customConfig);
     console.log(
-      `[aux-ai] generateCommitMessage: mode=${modeKind} flagModel=${flagModel || "(unset)"} timeout=${timeoutMs}ms`,
+      `[aux-ai] generateCommitMessage: mode=${modeKind} flagModel=${flagModel || "(unset)"} timeout=${timeoutMs}ms hasLegacyConfig=${!!legacy}`,
     );
 
     const tryViaSdk = async (
       sdkOpts: CreateAnthropicOpts,
+      modelOverride?: string,
     ): Promise<string | null> => {
       const client = deps.createAnthropic(sdkOpts);
-      const model = resolveModel(mode, flagModel);
+      const model =
+        modelOverride && modelOverride.length > 0
+          ? modelOverride
+          : resolveModel(mode, flagModel);
       console.log(
         `[aux-ai] SDK call: model=${model} baseURL=${sdkOpts.baseURL ?? "(Anthropic default)"} hasAuthToken=${!!sdkOpts.authToken} hasApiKey=${!!sdkOpts.apiKey}`,
       );
@@ -352,12 +434,19 @@ export function makeGenerateCommitMessage(deps: AuxAiDeps) {
           console.log(`[aux-ai] generateCommitMessage: SDK success (${mode.kind})`);
           return result;
         }
+      } else if (legacy) {
+        const modelOverride = flagModel.length > 0 ? flagModel : legacy.model;
+        const result = await tryViaSdk(legacy.opts, modelOverride);
+        if (result) {
+          console.log(`[aux-ai] generateCommitMessage: SDK success (legacy customConfig)`);
+          return result;
+        }
       } else {
         console.log(`[aux-ai] generateCommitMessage: no SDK route for mode=${modeKind}, returning heuristic fallback`);
       }
     } catch (err) {
       console.error(
-        `[aux-ai] generateCommitMessage SDK call failed (mode=${modeKind}):`,
+        `[aux-ai] generateCommitMessage SDK call failed (mode=${modeKind}, legacy=${!!legacy}):`,
         err instanceof Error ? `${err.name}: ${err.message}` : err,
       );
     }

@@ -1310,6 +1310,14 @@ export const chatsRouter = router({
         chatId: z.string(),
         filePaths: z.array(z.string()).optional(),
         ollamaModel: z.string().nullish(), // Optional model for offline mode
+        // Legacy Custom Model config (see generateSubChatName for rationale).
+        customConfig: z
+          .object({
+            model: z.string(),
+            token: z.string(),
+            baseUrl: z.string(),
+          })
+          .nullish(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -1400,6 +1408,7 @@ export const chatsRouter = router({
           const message = await generateCommitMessageViaAuxAi(
             auxContext,
             heuristicFallback,
+            { customConfig: input.customConfig ?? null },
           );
           if (message && message !== heuristicFallback) {
             return { message };
@@ -1430,17 +1439,30 @@ export const chatsRouter = router({
       z.object({
         userMessage: z.string(),
         ollamaModel: z.string().nullish(), // Optional model for offline mode
+        // Legacy Custom Model onboarding config — when the user onboarded
+        // via "Custom Model" rather than Claude Pro/Max, their creds live
+        // in the renderer's customClaudeConfigAtom (localStorage), not in
+        // anthropicAccounts. Passing them through lets aux-ai synthesize a
+        // LiteLLM-style SDK call instead of falling back to truncated.
+        customConfig: z
+          .object({
+            model: z.string(),
+            token: z.string(),
+            baseUrl: z.string(),
+          })
+          .nullish(),
       }),
     )
     .mutation(async ({ input }) => {
       // Delegate to the provider-aware aux-AI module. It dispatches to
-      // the active ProviderMode (byok-direct, *-litellm) and falls back
-      // to Ollama → truncated for subscription-direct or null mode.
+      // the active ProviderMode (byok-direct, *-litellm), then falls
+      // through to the legacy customConfig path (if provided), then
+      // Ollama → truncated for subscription-direct or fully-null state.
       try {
-        const name = await generateChatTitle(
-          input.userMessage,
-          input.ollamaModel,
-        );
+        const name = await generateChatTitle(input.userMessage, {
+          ollamaModel: input.ollamaModel,
+          customConfig: input.customConfig ?? null,
+        });
         console.log("[generateSubChatName] Generated name:", name);
         return { name };
       } catch (error) {

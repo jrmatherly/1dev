@@ -3,7 +3,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
-import { selectedOllamaModelAtom } from "../../../../lib/atoms";
+import {
+  customClaudeConfigAtom,
+  selectedOllamaModelAtom,
+} from "../../../../lib/atoms";
 
 interface CommitActionInput {
   message?: string;
@@ -28,6 +31,7 @@ export function useCommitActions({
   const [isGenerating, setIsGenerating] = useState(false);
   const queryClient = useQueryClient();
   const selectedOllamaModel = useAtomValue(selectedOllamaModelAtom);
+  const customClaudeConfig = useAtomValue(customClaudeConfigAtom);
 
   const handleSuccess = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: [["changes", "getStatus"]] });
@@ -74,6 +78,11 @@ export function useCommitActions({
             chatId,
             filePaths,
             ollamaModel: selectedOllamaModel,
+            // Legacy Custom Model config — forwarded to aux-ai so Custom
+            // Model onboarded users get AI commit messages too.
+            customConfig: customClaudeConfig?.token
+              ? customClaudeConfig
+              : null,
           });
           console.log("[CommitActions] AI generated message:", result.message);
           commitMessage = result.message;
@@ -117,6 +126,7 @@ export function useCommitActions({
       chatId,
       generateCommitMutation,
       selectedOllamaModel,
+      customClaudeConfig,
       onMessageGenerated,
       atomicCommitMutation,
       commitMutation,
