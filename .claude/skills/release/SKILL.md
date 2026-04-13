@@ -18,10 +18,22 @@ Read `package.json` to confirm the new version number.
 ```bash
 git add package.json bun.lock
 git commit -m "chore: bump version to v0.0.XX"
-git tag v0.0.XX
-git push origin main --follow-tags
+git tag -a v0.0.XX -m "v0.0.XX"          # annotated tag (required for --follow-tags)
+git push origin main v0.0.XX             # push branch AND tag explicitly
 ```
 The `push: tags: ['v*']` trigger in `.github/workflows/release.yml` fires automatically.
+
+**Gotcha — lightweight tags vs `--follow-tags`:** `git tag v0.0.XX` (no `-a`) creates a **lightweight** tag. `git push --follow-tags` only pushes **annotated** tags, so lightweight tags get left behind locally — the commit hits `main`, but the workflow never fires because the tag isn't on the remote. Two safe patterns:
+- Use `git tag -a v0.0.XX -m "v0.0.XX"` to create an annotated tag, OR
+- Push the tag explicitly by name: `git push origin main v0.0.XX`
+
+If you accidentally run `git push --follow-tags` with a lightweight tag, fix it with `git push origin v0.0.XX` — the workflow picks it up as soon as the tag lands on the remote.
+
+**Verify the tag hit the remote before assuming CI fired:**
+```bash
+git ls-remote --tags origin v0.0.XX      # should print the SHA + refs/tags/v0.0.XX
+gh run list --workflow=release.yml --limit 1    # should show the queued run
+```
 
 ### 3. Monitor CI
 ```bash

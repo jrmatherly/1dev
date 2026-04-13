@@ -32,8 +32,22 @@ Once the draft Release is published, `electron-updater` in installed apps polls 
 npm version patch --no-git-tag-version   # e.g. 0.0.72 → 0.0.73
 git add package.json bun.lock
 git commit -m "chore: bump version to 0.0.73"
-git tag v0.0.73
-git push origin main --follow-tags
+git tag -a v0.0.73 -m "v0.0.73"          # annotated tag (required for --follow-tags)
+git push origin main v0.0.73             # push branch AND tag in one operation
+```
+
+**Gotcha — lightweight tags vs `--follow-tags`:** `git tag v0.0.73` (no `-a`) creates a **lightweight** tag. `git push --follow-tags` only pushes **annotated** tags, so lightweight tags get left behind on your machine — the commit hits `main` fine, but the release workflow never fires because the tag isn't on the remote. Two safe patterns work:
+
+- Create an annotated tag: `git tag -a v0.0.73 -m "v0.0.73"`, then `git push origin main --follow-tags`.
+- Push the branch and tag explicitly in one command: `git push origin main v0.0.73`.
+
+If you accidentally push with a lightweight tag and nothing triggers, recover with `git push origin v0.0.73` — the workflow picks it up the moment the tag lands on the remote.
+
+**Verify the tag actually reached the remote before assuming CI fired:**
+
+```bash
+git ls-remote --tags origin v0.0.73      # should print the SHA + refs/tags/v0.0.73
+gh run list --workflow=release.yml --limit 1    # should show the queued run
 ```
 
 The `push: tags: ['v*']` trigger in `.github/workflows/release.yml` fires automatically. The `release` job creates a **draft** GitHub Release — review the artifacts, then publish it via the GitHub UI or `gh release edit v0.0.73 --draft=false`.
