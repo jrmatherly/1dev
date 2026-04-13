@@ -32,6 +32,7 @@ import {
 } from "./lib/auto-updater";
 import { logCredentialTier } from "./lib/credential-store";
 import { closeDatabase, initDatabase } from "./lib/db";
+import { runStartupPreflight } from "./lib/startup-preflight";
 import {
   isCliInstalled,
   installCli,
@@ -1006,6 +1007,10 @@ if (gotTheLock) {
     } catch (error) {
       console.error("[App] Failed to initialize database:", error);
     }
+
+    // Advisory preflight: surface account misconfigurations at startup
+    // rather than at chat-send time. Never blocks launch.
+    runStartupPreflight();
 
     // Create main window
     createMainWindow();

@@ -113,6 +113,22 @@ function getClaudeCodeToken(): string | null {
         .where(eq(anthropicAccounts.id, settings.activeAccountId))
         .get();
 
+      // When the active account is BYOK, return null immediately — do NOT
+      // fall through to the legacy `claudeCodeCredentials` table. The legacy
+      // table may still hold an encrypted OAuth token from a prior
+      // subscription flow, which would leak into the BYOK spawn and mix
+      // two distinct auth contexts. This is the exact bug class
+      // add-dual-mode-llm-routing exists to prevent.
+      //
+      // See openspec/specs/claude-code-auth-import/spec.md — "Requirement:
+      // getClaudeCodeToken returns null when active account is BYOK".
+      if (account && account.accountType === "byok") {
+        console.log(
+          "[claude-auth] Active account is BYOK — returning null without legacy fallback",
+        );
+        return null;
+      }
+
       if (account?.oauthToken) {
         console.log(
           "[claude-auth] Using multi-account system, activeAccountId:",

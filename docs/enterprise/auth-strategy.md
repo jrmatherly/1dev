@@ -521,6 +521,8 @@ Both browser-flow and CLI-flow tokens, when targeting the web API app, will carr
 2. **If env-var injection is the only option** for a given binary version, document an upper bound on token lifetime in the env: max 15 minutes via PTY signal-driven refresh that kills+restarts the child if refresh fails.
 3. **Document this in the user-facing security model** so 1Code users on shared workstations / VDI / corporate desktops understand the risk.
 
+**Post-decoupling update (2026-04-13):** The `add-dual-mode-llm-routing` change removed Entra-token-into-`ANTHROPIC_AUTH_TOKEN` injection entirely. Entra identity now flows to LiteLLM through the `x-litellm-customer-id` header (audit-only); the actual bearer in `ANTHROPIC_AUTH_TOKEN` is the LiteLLM virtual key when the active mode is `*-litellm`. `applyEnterpriseAuth()` is now `Promise<void>` — side-effect-only MSAL cache warming. Enforcement lives in `.claude/rules/auth-env-vars.md` and `tests/regression/no-entra-in-anthropic-auth-token.test.ts`. The co-resident-process exposure of env vars (1-3 above) still applies to the virtual key, but the blast radius is narrower (revocable at LiteLLM proxy, narrower scope than Entra JWT).
+
 ### 4.10 Concurrent OIDC Browser Tabs Can Race the State Cookie
 
 **Issue:** Envoy Gateway's OIDC state cookie is per-host, not per-tab. If a user opens `https://llms.<domain>` in two browser tabs simultaneously and both initiate OIDC, the second redirect overwrites the first's state cookie. One of the two callbacks fails CSRF validation. In some Envoy versions ([envoyproxy/gateway#8649](https://github.com/envoyproxy/gateway/issues/8649)), the failing tab gets stuck in a redirect loop.

@@ -76,6 +76,32 @@ When a CVE has no remediation path in the base image yet (e.g., `CVE-2026-28390`
 
 The `aquasecurity/trivy-action` step wires this via `trivyignores: ".trivyignore"` input. Keep entries auditable — never add a CVE without the 5-line comment block explaining why.
 
+### 7. Startup preflight: `MAIN_VITE_LITELLM_BASE_URL` misconfiguration warning
+
+Since `remediate-dev-server-findings` (2026-04-13), `src/main/lib/startup-preflight.ts` runs after `initDatabase()` and scans `anthropic_accounts` for any row with `routing_mode='litellm'`. If the environment variable `MAIN_VITE_LITELLM_BASE_URL` is unset or empty, the preflight logs a loud multi-line warning per account:
+
+```
+[startup-preflight] ==========================================
+[startup-preflight] ACCOUNT MISCONFIGURED: <displayName or id>
+[startup-preflight]   id=<id> type=<accountType>
+[startup-preflight]   routing_mode='litellm' but MAIN_VITE_LITELLM_BASE_URL is unset.
+[startup-preflight]   Chat send will fail when this account is active.
+...
+```
+
+**Remediation paths (in order of preference):**
+
+1. Set `MAIN_VITE_LITELLM_BASE_URL` in `.env` (or the packaged app's runtime env) and restart.
+   Example: `MAIN_VITE_LITELLM_BASE_URL=https://llms.example.com`.
+2. Switch the account to direct mode via **Settings → Models → Edit Account → Routing Mode**.
+3. Delete and re-add the account if it was misconfigured during onboarding.
+
+**What the preflight does NOT do:**
+
+- It does **not** block app startup — the warning is advisory only. Users with misconfigured LiteLLM accounts can still launch the app, switch to a different account, or fix the config via Settings.
+- It does **not** validate that `MAIN_VITE_LITELLM_BASE_URL` is reachable — only that it's set to a non-empty string. A reachable-but-incorrect URL will still fail at chat-send time.
+- It does **not** run per-account; it runs once at app start.
+
 ## Legacy TODO (migrate from CLAUDE.md as needed)
 
 - macOS base64url JWT decoding workaround

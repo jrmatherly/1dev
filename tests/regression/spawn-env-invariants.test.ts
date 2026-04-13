@@ -29,18 +29,43 @@ function credentialVarCount(env: Record<string, string>): number {
   return CREDENTIAL_VARS.filter((v) => v in env).length;
 }
 
-describe("deriveClaudeSpawnEnv — mutual exclusivity", () => {
-  test("no ProviderMode kind ever sets more than one credential env var", () => {
-    const modes: ProviderMode[] = [
-      { kind: "subscription-direct", oauthToken: "sk-ant-oat01-abc" },
-      {
+describe("deriveClaudeSpawnEnv — per-kind expected-key-set matrix", () => {
+  // Per-kind expected credential-key set. The matrix replaces a loose
+  // `credentialVarCount <= 1` assertion with explicit key-set enumeration
+  // so any future drift (credential leaked into the wrong slot, extra
+  // key produced, expected key dropped) fails loudly. See
+  // remediate-dev-server-findings design.md Decision 9 and
+  // openspec/specs/enterprise-auth/spec.md.
+  type Expectation = {
+    kind: ProviderMode["kind"];
+    mode: ProviderMode;
+    expectedCredentialKeys: ReadonlyArray<(typeof CREDENTIAL_VARS)[number]>;
+  };
+
+  const cases: Expectation[] = [
+    {
+      kind: "subscription-direct",
+      mode: { kind: "subscription-direct", oauthToken: "sk-ant-oat01-abc" },
+      expectedCredentialKeys: ["CLAUDE_CODE_OAUTH_TOKEN"],
+    },
+    {
+      kind: "subscription-litellm",
+      mode: {
         kind: "subscription-litellm",
         oauthToken: "sk-ant-oat01-abc",
         virtualKey: "sk-litellm-xyz",
         customerId: "oid-123",
       },
-      { kind: "byok-direct", apiKey: "sk-ant-api03-def" },
-      {
+      expectedCredentialKeys: ["CLAUDE_CODE_OAUTH_TOKEN"],
+    },
+    {
+      kind: "byok-direct",
+      mode: { kind: "byok-direct", apiKey: "sk-ant-api03-def" },
+      expectedCredentialKeys: ["ANTHROPIC_API_KEY"],
+    },
+    {
+      kind: "byok-litellm",
+      mode: {
         kind: "byok-litellm",
         virtualKey: "sk-litellm-xyz",
         customerId: "oid-123",
@@ -50,12 +75,41 @@ describe("deriveClaudeSpawnEnv — mutual exclusivity", () => {
           opus: "claude-opus-4",
         },
       },
-    ];
+      expectedCredentialKeys: ["ANTHROPIC_AUTH_TOKEN"],
+    },
+  ];
 
-    for (const mode of modes) {
+  for (const { kind, mode, expectedCredentialKeys } of cases) {
+    test(`${kind} produces exactly the expected credential key set`, () => {
       const env = deriveClaudeSpawnEnv(mode, LITELLM_URL);
-      expect(credentialVarCount(env)).toBeLessThanOrEqual(1);
-    }
+      const actualKeys = CREDENTIAL_VARS.filter((v) => v in env).sort();
+      const expectedSorted = [...expectedCredentialKeys].sort();
+      expect(actualKeys).toEqual(expectedSorted);
+    });
+  }
+
+  test("byok-litellm ANTHROPIC_AUTH_TOKEN carries a LiteLLM virtual key, NOT an Anthropic OAuth/API token", () => {
+    // Semantic guard (review finding A-I5): in byok-litellm mode the
+    // ANTHROPIC_AUTH_TOKEN slot legitimately carries a value (the
+    // LiteLLM virtual key acting as bearer). A count-based check
+    // cannot distinguish that from an Anthropic token leak. This
+    // assertion flags any sk-ant-* prefix — the value should look
+    // like a LiteLLM virtual key (`sk-*` but NOT `sk-ant-*`).
+    const env = deriveClaudeSpawnEnv(
+      {
+        kind: "byok-litellm",
+        virtualKey: "sk-litellm-abc123",
+        customerId: "oid-123",
+        modelMap: {
+          sonnet: "claude-sonnet-4",
+          haiku: "claude-haiku-4",
+          opus: "claude-opus-4",
+        },
+      },
+      LITELLM_URL,
+    );
+    expect(env.ANTHROPIC_AUTH_TOKEN).toBeDefined();
+    expect(env.ANTHROPIC_AUTH_TOKEN).not.toMatch(/^sk-ant-(oat01|api03)-/);
   });
 });
 

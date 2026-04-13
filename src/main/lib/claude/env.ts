@@ -217,15 +217,29 @@ export function getClaudeShellEnvironment(): Record<string, string> {
  */
 export async function applyEnterpriseAuth(
   env: Record<string, string>,
-): Promise<Record<string, string>> {
-  if (!getFlag("enterpriseAuthEnabled")) return env;
+): Promise<void> {
+  // Return type is Promise<void>, not Promise<Record<string, string>>, to
+  // make the side-effect-only contract explicit. A future mutation that
+  // expected the caller to consume a returned env would be a compile-time
+  // error. See remediate-dev-server-findings design.md Decision 8 and
+  // openspec/specs/enterprise-auth/spec.md (Requirement: applyEnterpriseAuth
+  // signature is Promise<void>).
+  //
+  // The `env` parameter is retained so the function's invocation contract
+  // matches the shape callers already have at hand and so future
+  // additions — e.g., an MSAL-derived x-litellm-customer-id that belongs
+  // in ANTHROPIC_CUSTOM_HEADERS — have a named mutation target without
+  // reshaping the call site.
+  void env; // reserved for future MSAL-derived header mutation
+
+  if (!getFlag("enterpriseAuthEnabled")) return;
 
   const authManager = getAuthManager();
   if (!authManager) {
     console.warn(
       "[claude-env] Enterprise auth enabled but AuthManager not initialized",
     );
-    return env;
+    return;
   }
 
   // Entra token acquisition is performed here for its side effect only:
@@ -240,13 +254,12 @@ export async function applyEnterpriseAuth(
     console.warn(
       "[claude-env] Enterprise auth enabled but no valid token available",
     );
-    return env;
+    return;
   }
 
   console.log(
     "[claude-env] Enterprise auth active (token acquired; not injected into spawn env)",
   );
-  return env;
 }
 
 /**

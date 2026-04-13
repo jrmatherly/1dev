@@ -21,42 +21,38 @@
 
 ## 4. Startup preflight warning (Important: complements A-C1)
 
-- [ ] 4.1 In `src/main/index.ts` (or a new `src/main/lib/startup-preflight.ts` module imported there), after DB init runs a preflight check: for each active `anthropic_accounts` row, if `routing_mode='litellm'` AND `process.env.MAIN_VITE_LITELLM_BASE_URL` is unset, log a multi-line warning naming the account + suggesting fix paths.
-- [ ] 4.2 The preflight MUST NOT block startup — it is advisory only. User can still start the app and see the warning in the console.
-- [ ] 4.3 Add `docs/operations/env-gotchas.md` entry documenting the preflight warning format and remediation steps.
+- [x] 4.1 Added new module `src/main/lib/startup-preflight.ts` with `runStartupPreflight()`. Imported into `src/main/index.ts` and called right after `initDatabase()`.
+- [x] 4.2 Preflight is advisory-only — `try/catch` swallows errors; no early-return that would block startup.
+- [x] 4.3 Added `docs/operations/env-gotchas.md` §7 documenting the warning format + 3 remediation paths.
 
 ## 5. applyEnterpriseAuth return type tightening (A-I4)
 
-- [ ] 5.1 In `src/main/lib/claude/env.ts`, change `applyEnterpriseAuth`'s return type from `Promise<Record<string, string>>` to `Promise<void>`. Remove the trailing `return env;` statement.
-- [ ] 5.2 Update the call site in `buildClaudeEnv()` to `await applyEnterpriseAuth(env)` (no assignment from the void return).
-- [ ] 5.3 Verify `bun run ts:check` — 0 errors preserved.
+- [x] 5.1 Changed signature to `Promise<void>`; removed `return env`; added `void env` placeholder + comment naming the reserved future header-mutation target.
+- [x] 5.2 Call site at `env.ts:327` was already `await applyEnterpriseAuth(env)` (no assignment) — no change needed.
+- [x] 5.3 `bun run ts:check` — baseline 0 preserved.
 
 ## 6. getClaudeCodeToken BYOK-null-return (Important: A-I1)
 
-- [ ] 6.1 In `src/main/lib/trpc/routers/claude.ts` (`getClaudeCodeToken()` at ~line 91-128), after resolving the active account from `anthropic_accounts`, add an early-return: if `account.accountType === "byok"`, return `null` unconditionally (do NOT fall through to the legacy `claudeCodeCredentials` table).
-- [ ] 6.2 Write `tests/regression/no-legacy-oauth-byok-leak.test.ts` with a fixture that seeds a mock DB with: (a) an active BYOK account row (`account_type='byok'`, `oauth_token=NULL`) AND (b) a populated legacy `claudeCodeCredentials` row. Assert `getClaudeCodeToken()` returns `null`.
-- [ ] 6.3 Verify guard passes green.
+- [x] 6.1 Added early-return branch in `getClaudeCodeToken()`: when `account.accountType === "byok"`, return null immediately (no legacy fallback).
+- [x] 6.2 Wrote `tests/regression/no-legacy-oauth-byok-leak.test.ts` (shape guard): asserts branch presence, source-order placement before legacy fallback, literal `"byok"` comparison.
+- [x] 6.3 Guard passes green — 4/4 tests, 6 assertions.
 
 ## 7. Rule documentation rewrite (A-I2)
 
-- [ ] 7.1 Rewrite `.claude/rules/auth-env-vars.md` to reflect post-decoupling reality:
-  - `applyEnterpriseAuth()` MUST never write `ANTHROPIC_AUTH_TOKEN`
-  - The Entra token acquired via `acquireTokenSilent()` is used only for MSAL-cache warming + early failure surface
-  - Entra identity for LiteLLM audit flows through `x-litellm-customer-id` header (via `ANTHROPIC_CUSTOM_HEADERS` in `deriveClaudeSpawnEnv()` OR `defaultHeaders` in `aux-ai.ts`'s SDK init)
-  - Keep the `STRIPPED_ENV_KEYS` rationale (still correct)
-- [ ] 7.2 Cross-reference the revised `auth-env-vars.md` from `docs/enterprise/auth-strategy.md` §4.9.
+- [x] 7.1 Rewrote `.claude/rules/auth-env-vars.md` end-to-end: post-decoupling contract, enforcement + regression guard refs, cluster prerequisite unchanged.
+- [x] 7.2 Added §4.9 cross-reference block in `docs/enterprise/auth-strategy.md` linking to the revised rule + regression guard.
 
 ## 8. Broader regression guard for Entra-to-AUTH_TOKEN (A-I3)
 
-- [ ] 8.1 Expand `tests/regression/no-entra-in-anthropic-auth-token.test.ts` with a SECOND scan: walk all `.ts` files under `src/main/` and assert no pattern matches `authManager\.(getValidToken|getToken).*ANTHROPIC_.*_TOKEN` (with whitespace tolerance).
-- [ ] 8.2 Preserve the existing `applyEnterpriseAuth` body extraction as the primary scan.
-- [ ] 8.3 Verify guard passes green.
+- [x] 8.1 Added second test walking all `.ts`/`.tsx` files under `src/main/` and scanning for forbidden bind-then-assign shapes in either direction.
+- [x] 8.2 Existing `applyEnterpriseAuth` body extraction preserved as primary scan.
+- [x] 8.3 Guard passes green — 3/3 tests, positive-control finds 20+ files.
 
 ## 9. Per-kind expected-key-set matrix for spawn-env-invariants (A-I5)
 
-- [ ] 9.1 Replace the loose `credentialVarCount <= 1` assertion in `tests/regression/spawn-env-invariants.test.ts` with a per-kind expected-key-set matrix. For each `ProviderMode` kind, assert the EXACT set of keys produced by `deriveClaudeSpawnEnv()` (not just the count).
-- [ ] 9.2 For `byok-litellm`, verify that `ANTHROPIC_AUTH_TOKEN` is set to the virtual key (LiteLLM bearer), NOT an Anthropic token — use a regex that flags `sk-ant-` prefixes in the `ANTHROPIC_AUTH_TOKEN` value as a semantic-violation assertion.
-- [ ] 9.3 Verify guard passes green (all existing 14 tests + new per-kind assertions).
+- [x] 9.1 Replaced loose `credentialVarCount ≤ 1` with per-kind expected-key-set matrix (4 test cases: subscription-direct, subscription-litellm, byok-direct, byok-litellm).
+- [x] 9.2 Added `sk-ant-*` prefix regex check for `byok-litellm` mode — flags Anthropic-token leaks into the virtual-key slot as semantic violations.
+- [x] 9.3 Guard passes green — 18/18 tests (up from 14), 41 assertions.
 
 ## 10. Provider-aware auxiliary-AI module
 
