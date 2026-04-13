@@ -10,8 +10,8 @@ This document describes the end-to-end release pipeline for 1Code Enterprise For
 ## Architecture
 
 ```
-git tag v0.0.73
-  ↓ (push origin v0.0.73)
+git tag -a v0.0.73 -m "v0.0.73" && git push origin main v0.0.73
+  ↓
 .github/workflows/release.yml
   ├─ matrix-build (parallel, 3 runners)
   │   ├─ macos-15    → release/*.dmg, *.zip, latest-mac.yml, latest-mac-x64.yml
@@ -178,15 +178,16 @@ gh release edit v0.0.73 --draft=false
 GitHub does not allow overwriting a tag's release assets. To re-release:
 
 ```bash
-gh release delete v0.0.73 --cleanup-tag --yes
-git tag -d v0.0.73
-git push origin :refs/tags/v0.0.73
-# ... fix the issue ...
-git tag v0.0.73
-git push origin v0.0.73
+gh release delete v0.0.73 --cleanup-tag --yes    # removes draft + remote tag
+git tag -d v0.0.73                                # remove local tag if present
+# ... fix the issue, commit, push to main ...
+git tag -a v0.0.73 -m "v0.0.73"                   # annotated tag
+git push origin v0.0.73                           # explicit push — tag-only is fine here
 ```
 
 The `push:tag` trigger will fire again and create a fresh Release.
+
+For a cleaner recovery path when the fix is already on `main`, cut a **new** version instead of re-tagging the old one — `npm version patch --no-git-tag-version` → commit → `git tag -a` → `git push origin main <tag>`. The v0.0.83 → v0.0.84 clean-cut on 2026-04-13 used this pattern successfully.
 
 ## Related Documentation
 

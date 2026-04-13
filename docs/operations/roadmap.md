@@ -179,6 +179,14 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Prereqs:** `upgrade-electron-41` complete (✅ landed 2026-04-09)
 **Canonical reference:** `openspec/changes/upgrade-electron-41/proposal.md` (Prepare-now section)
 
+### [Cleanup] Refresh distroless base image pin to clear CVE-2026-28390
+
+**Added:** 2026-04-13 (during v0.0.84 container-build Trivy gate activation)
+**Scope:** `services/1code-api/Dockerfile` pins `gcr.io/distroless/nodejs24-debian12@sha256:61f4f4341db8...`. The Debian bookworm base of this image carries `libssl3 3.0.18-1~deb12u2` which is vulnerable to CVE-2026-28390 (OpenSSL CMS NULL deref → DoS, DSA-6201-1). The fix (`3.0.19-1~deb12u2`) landed in bookworm-security on 2026-04-07 but upstream distroless hasn't rebuilt yet. Current state: `:latest` tag = same digest we pin (`61f4f4341db8...`). Mitigation in place: `.trivyignore` exempts CVE-2026-28390 with non-exploitability analysis (our service does not process CMS/S/MIME data). Action: monitor the distroless `:latest` digest — once it changes, bump `services/1code-api/Dockerfile`, re-run container-build, verify Trivy passes clean, remove the `.trivyignore` entry.
+**Effort:** Trivial (single-line digest change + workflow re-run + remove exemption)
+**Prereqs:** Wait for upstream distroless rebuild (typically <1 week after DSA)
+**Canonical reference:** `.trivyignore` (exemption block with full justification)
+
 ### [Cleanup] Dependabot comment refresh
 
 **Added:** 2026-04-09

@@ -82,6 +82,10 @@ jobs:
           exit-code: "1"
           severity: "CRITICAL,HIGH"
           ignore-unfixed: true
+          # Repo-root .trivyignore holds CVE exemptions with justification +
+          # expiry notes. Review quarterly; remove entries as base-image
+          # rebuilds pull upstream fixes. See .trivyignore for current exemptions.
+          trivyignores: ".trivyignore"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3

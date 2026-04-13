@@ -221,7 +221,7 @@ Self-hosted replacement for the upstream `1code.dev` SaaS backend. Fastify + tRP
 ### Build Pipeline
 ```
 bun run release =
-  git tag v0.0.XX && git push --follow-tags →
+  git tag -a v0.0.XX -m "v0.0.XX" && git push origin main v0.0.XX →
   .github/workflows/release.yml triggers →
   matrix-build (macos-15, ubuntu, windows) →
     bun install → claude:download → codex:download → build → package:{mac,linux,win} →

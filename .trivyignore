@@ -1,0 +1,37 @@
+# Trivy vulnerability exemptions — scoped to the 1code-api container image scan
+# in .github/workflows/container-build.yml.
+#
+# FORMAT: `CVE-ID  # justification + expiry date`
+# Review quarterly; remove entries as base-image rebuilds pull upstream fixes.
+#
+# CANONICAL REFERENCES:
+# - docs/operations/roadmap.md "[Cleanup] Trivy exemption review" for expiry tracking
+# - .github/workflows/container-build.yml line ~72 (Trivy step)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CVE-2026-28390  OpenSSL libssl3 CMS_decrypt NULL pointer dereference (DoS)
+# ─────────────────────────────────────────────────────────────────────────────
+# First flagged: 2026-04-13 (v0.0.84 container build run 24326594244)
+#
+# Affected: openssl 3.0.18-1~deb12u2 (Debian bookworm stock) via
+#          gcr.io/distroless/nodejs24-debian12 base image
+# Fixed in: 3.0.19-1~deb12u2 (DSA-6201-1, bookworm-security)
+# Source:   https://security-tracker.debian.org/tracker/CVE-2026-28390
+#
+# Non-exploitability analysis for services/1code-api:
+# - CVE affects CMS_decrypt() on attacker-controlled CMS EnvelopedData
+#   (S/MIME / CMS-based protocols)
+# - 1code-api does NOT process CMS or S/MIME data — it is a tRPC+Fastify HTTP
+#   API for LiteLLM user/team/key provisioning (see services/1code-api/README.md)
+# - libssl3 is transitively pulled in via Node.js TLS for outbound HTTPS to
+#   Microsoft Graph + LiteLLM admin API; no CMS codepath reachable
+# - FIPS modules are unaffected per upstream advisory
+#
+# Remediation plan:
+# - Upstream distroless image rebuilds automatically when Debian security
+#   updates land (typically within ~1 week of DSA publication)
+# - Monitor gcr.io/distroless/nodejs24-debian12 digest; once the manifest
+#   digest changes, bump services/1code-api/Dockerfile pin and remove this
+#   exemption
+# - Tracked: docs/operations/roadmap.md P2 "Refresh distroless base image pin"
+CVE-2026-28390
