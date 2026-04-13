@@ -66,8 +66,8 @@
 
 ## 7. Phase C — Code Quality: claude.ts Decomposition
 
-- [ ] 7.1 Identify extraction boundaries in `src/main/lib/trpc/routers/claude.ts` (3,298 lines) — map the ~2,000-line chat handler, prompt parsing, session management, MCP resolution, and tool execution segments
-- [ ] 7.2 Extract prompt-parser module from claude.ts
+- [x] 7.1 Identify extraction boundaries in `src/main/lib/trpc/routers/claude.ts` (3,298 lines) — map the ~2,000-line chat handler, prompt parsing, session management, MCP resolution, and tool execution segments *(mapped: prompt-parser 60-159, session-manager 249-264+326-346, mcp-resolver 267-324+368-808, tool-executor inside 2019-line chat subscription, clearClaudeCaches cross-cutting → facade pattern)*
+- [x] 7.2 Extract prompt-parser module from claude.ts *(moved `parseMentions` to `src/main/lib/claude/prompt-parser.ts`; claude.ts 3309 → 3212)*
 - [ ] 7.3 Extract session-manager module from claude.ts
 - [ ] 7.4 Extract mcp-resolver module from claude.ts
 - [ ] 7.5 Extract tool-executor module from claude.ts
