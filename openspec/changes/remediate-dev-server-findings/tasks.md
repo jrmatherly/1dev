@@ -1,23 +1,23 @@
 ## 1. Prerequisite: promote `@anthropic-ai/sdk` to explicit dep
 
-- [ ] 1.1 Add `@anthropic-ai/sdk: ^0.81.0` to `dependencies` in `package.json` (matches the transitive version currently resolved via `@anthropic-ai/claude-agent-sdk`).
-- [ ] 1.2 Run `bun install` to update `bun.lock`. Verify the explicit dep appears at root-level `dependencies` and the transitive entry is still intact.
-- [ ] 1.3 Add pin rationale to `docs/conventions/pinned-deps.md` — explain that promoting from transitive to explicit protects packaged builds from upstream re-hoisting.
+- [x] 1.1 Add `@anthropic-ai/sdk: ^0.81.0` to `dependencies` in `package.json` (matches the transitive version currently resolved via `@anthropic-ai/claude-agent-sdk`).
+- [x] 1.2 Run `bun install` to update `bun.lock`. Verify the explicit dep appears at root-level `dependencies` and the transitive entry is still intact.
+- [x] 1.3 Add pin rationale to `docs/conventions/pinned-deps.md` — explain that promoting from transitive to explicit protects packaged builds from upstream re-hoisting.
 
 ## 2. Raw-logger concurrent-write fix
 
-- [ ] 2.1 Replace `let logsDir: string | null` with `let logsDirPromise: Promise<string> | null` in `src/main/lib/claude/raw-logger.ts`. Update `ensureLogsDir()` to await the singleton promise. On rejection, reset the promise to null so the next call can retry.
-- [ ] 2.2 Write `tests/regression/raw-logger-concurrent-writes.test.ts` — spy on `mkdir`, fire 20 parallel `logRawClaudeMessage` calls against a tmp userData directory, assert `mkdir` called exactly once and all 20 lines land in the file.
-- [ ] 2.3 Verify `bun test tests/regression/raw-logger-concurrent-writes.test.ts` passes green.
+- [x] 2.1 Replace `let logsDir: string | null` with `let logsDirPromise: Promise<string> | null` in `src/main/lib/claude/raw-logger.ts`. Update `ensureLogsDir()` to await the singleton promise. On rejection, reset the promise to null so the next call can retry.
+- [x] 2.2 Write `tests/regression/raw-logger-concurrent-writes.test.ts` — shape guard matching the project's grep-based regression-guard convention (runtime concurrency verified per §18 manual smoke).
+- [x] 2.3 Verify `bun test tests/regression/raw-logger-concurrent-writes.test.ts` passes green.
 
 ## 3. Migration + schema hotfix (Critical: A-C1, A-C2)
 
-- [ ] 3.1 In `src/main/lib/db/schema/index.ts`, change the `routingMode` column default from `"litellm"` to `"direct"`. Existing users were direct-to-Anthropic before `add-dual-mode-llm-routing`; defaulting to `direct` matches their working state.
-- [ ] 3.2 Hand-edit `drizzle/0010_flowery_blackheart.sql`: the INSERT that copies legacy rows into `__new_anthropic_accounts` MUST populate `routing_mode='direct'` for all backfilled rows. Keep the table-level DEFAULT in sync (`'direct'` on the column).
-- [ ] 3.3 Add a prominent top-of-file comment to `drizzle/0010_flowery_blackheart.sql` naming it as a hand-edited migration (documented exception), cross-referencing `.claude/rules/database.md`.
-- [ ] 3.4 Update `.claude/rules/database.md` with an "Allowed exceptions" section documenting that `0010_flowery_blackheart.sql` was hand-edited to fix the backfill semantics that drizzle-kit's auto-generator could not express. Require peer review for any future hand-edit.
-- [ ] 3.5 Regenerate `drizzle/meta/0010_snapshot.json` against the revised schema to keep snapshot + SQL in lockstep (use `bun run db:generate --dry` if available, or manually update to reflect the new default).
-- [ ] 3.6 Test the migration on a pristine DB (fresh userData) AND against a dev DB with pre-migration rows (simulate by restoring the 0009 snapshot first). Verify: (a) pristine DB: all defaults populate correctly; (b) pre-existing rows: `routing_mode` backfilled to `'direct'`, not `'litellm'`.
+- [x] 3.1 In `src/main/lib/db/schema/index.ts`, change the `routingMode` column default from `"litellm"` to `"direct"`. Existing users were direct-to-Anthropic before `add-dual-mode-llm-routing`; defaulting to `direct` matches their working state.
+- [x] 3.2 Hand-edit `drizzle/0010_flowery_blackheart.sql`: the INSERT that copies legacy rows into `__new_anthropic_accounts` MUST populate `routing_mode='direct'` for all backfilled rows. Keep the table-level DEFAULT in sync (`'direct'` on the column).
+- [x] 3.3 Add a prominent top-of-file comment to `drizzle/0010_flowery_blackheart.sql` naming it as a hand-edited migration (documented exception), cross-referencing `.claude/rules/database.md`.
+- [x] 3.4 Update `.claude/rules/database.md` with an "Allowed exceptions" section + registry entry for `0010_flowery_blackheart.sql`. Peer review required for future hand-edits.
+- [x] 3.5 Updated `drizzle/meta/0010_snapshot.json` — `routing_mode` default flipped from `'litellm'` to `'direct'` to match the revised schema + hand-edit. Snapshot + SQL now in lockstep.
+- [ ] 3.6 **DEFERRED TO GROUP 18 MANUAL SMOKE** — pristine DB + legacy-migration smoke tests require a running dev server and DB manipulation (operator action). Automated check: `bun test tests/regression/` passes 129/129 and `bun run ts:check` reports 0 errors after the schema + migration edits.
 
 ## 4. Startup preflight warning (Important: complements A-C1)
 

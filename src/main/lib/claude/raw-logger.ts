@@ -14,16 +14,26 @@ function isEnabled(): boolean {
 const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB per file
 const LOG_RETENTION_DAYS = 7; // Keep logs for 7 days
 
-let logsDir: string | null = null;
+let logsDirPromise: Promise<string> | null = null;
 let currentLogFile: string | null = null;
 let currentSessionId: string | null = null;
 
+// Singleton-promise pattern: concurrent first-burst callers share the pending
+// mkdir() promise. On rejection, the stored promise is reset to null so a
+// later call can retry. mkdir({recursive:true}) is itself idempotent, so
+// incidental concurrent retries after rejection are safe.
 async function ensureLogsDir(): Promise<string> {
-  if (!logsDir) {
-    logsDir = join(app.getPath("userData"), "logs", "claude");
-    await mkdir(logsDir, { recursive: true });
+  if (!logsDirPromise) {
+    logsDirPromise = (async () => {
+      const dir = join(app.getPath("userData"), "logs", "claude");
+      await mkdir(dir, { recursive: true });
+      return dir;
+    })().catch((err) => {
+      logsDirPromise = null;
+      throw err;
+    });
   }
-  return logsDir;
+  return logsDirPromise;
 }
 
 /**

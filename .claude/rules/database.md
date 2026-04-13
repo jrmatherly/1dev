@@ -16,11 +16,27 @@ The database layer uses **Drizzle ORM** against a **SQLite** database stored at 
 
 ## Rules
 
-1. **Never edit `drizzle/*.sql` files by hand.** Run `bun run db:generate` to regenerate after a schema change.
+1. **Never edit `drizzle/*.sql` files by hand.** Run `bun run db:generate` to regenerate after a schema change. See "Allowed exceptions" below for the narrow set of cases where hand-editing is permitted.
 2. **Never call `bun run db:push` in production paths.** It's dev-only and can corrupt migration state.
 3. **Never edit `drizzle/meta/_journal.json` by hand.** It must stay in lockstep with the `.sql` files.
 4. **Auto-migration runs on startup** via `initDatabase()` in `src/main/lib/db/index.ts`. If ground truth has new tables but no corresponding migration, the app will fail to start in dev mode.
 5. **After adding or removing a table**, run the `db-schema-auditor` agent to detect drift in documentation surfaces (CLAUDE.md, PROJECT_INDEX.md, `docs/architecture/database.md`).
+
+## Allowed exceptions (hand-edits to `drizzle/*.sql`)
+
+Hand-editing a generated migration is permitted **only** when drizzle-kit's auto-generated output cannot express the required semantic — typically because the value that needs to be written into an existing row is not derivable from the column DEFAULT alone. Every such hand-edit MUST:
+
+- Carry a prominent **top-of-file comment** in the `.sql` file naming the exception and cross-referencing the OpenSpec change that authorized it.
+- Be listed in the registry below with the migration file name, the reason, and the ratifying change.
+- Receive peer-review approval before merge (no solo hand-edits).
+
+If `bun run db:generate` later re-writes the file and strips the hand-edit, the re-apply is a blocking follow-up — never accept the regenerated SQL until the hand-edit has been restored.
+
+### Registry
+
+| Migration | Reason | Authorized by |
+|---|---|---|
+| `drizzle/0010_flowery_blackheart.sql` | Legacy rows (pre-`add-dual-mode-llm-routing` schema) were working direct-to-Anthropic before the `routing_mode` column existed. The default-backfill + hand-written `INSERT` ensure they land as `routing_mode='direct'`, preserving chat behavior through upgrade. The schema default was also revised to `'direct'` so future regenerations match the hand-edit. | `remediate-dev-server-findings` (design.md Decision 7) |
 
 ## Query patterns
 

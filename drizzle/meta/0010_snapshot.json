@@ -28,7 +28,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'litellm'"
+          "default": "'direct'"
         },
         "email": {
           "name": "email",

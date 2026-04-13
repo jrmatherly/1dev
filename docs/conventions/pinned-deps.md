@@ -18,6 +18,7 @@ icon: pin
 | Codex CLI binary | 0.118.0 | `@zed-industries/codex-acp` bridge tested at this version |
 | `@azure/msal-node` | ^5.1.2 | Upgraded from 3.8.x — `@azure/msal-node-extensions` is a separate package |
 | `@xyd-js/cli` | `0.0.0-build-1202121-20260121231224` | Docs site generator; empirically validated 2026-04-09 |
+| `@anthropic-ai/sdk` | ^0.81.0 | Promoted from transitive (was pulled in only via `@anthropic-ai/claude-agent-sdk@0.2.104`) to an explicit top-level dependency on 2026-04-13 by `remediate-dev-server-findings`. The `aux-ai.ts` dispatcher imports `Anthropic` directly from this SDK for provider-aware title / commit-message generation. Transitive reliance would break packaged builds if a future `claude-agent-sdk` bump re-hoisted or dropped the package. `^0.81.0` matches the version currently resolved via the agent SDK, so no install-tree delta — just a pin that protects us from upstream re-hoisting. |
 
 Use the `verify-pin` skill before bumping any of these.
 

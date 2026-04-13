@@ -128,12 +128,16 @@ export const anthropicAccounts = sqliteTable("anthropic_accounts", {
   })
     .notNull()
     .default("claude-subscription"),
-  // Routing mode — default litellm so enterprise deployments are safe by default
+  // Routing mode — default 'direct' so legacy rows (pre-dual-mode schema)
+  // retain their pre-existing direct-to-Anthropic behavior after the migration
+  // backfill. Operators who want LiteLLM routing set this explicitly at
+  // account creation or via Settings → Models. See
+  // openspec/changes/remediate-dev-server-findings/design.md Decision 7.
   routingMode: text("routing_mode", {
     enum: ["direct", "litellm"],
   })
     .notNull()
-    .default("litellm"),
+    .default("direct"),
   email: text("email"), // User's email from OAuth (if available)
   displayName: text("display_name"), // User-editable label
   // Credentials — exactly one populated per row based on accountType + routingMode
