@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir, access } from "node:fs/promises";
 import { join, dirname, isAbsolute } from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { getShellEnvironment } from "./shell-env";
 
 const execAsync = promisify(exec);
 
@@ -208,6 +209,11 @@ export async function executeWorktreeSetup(
     `[worktree-setup] Running ${commandList.length} setup commands in ${worktreePath}`,
   );
 
+  // Resolve the user's full shell environment (includes ~/.bun/bin,
+  // homebrew, nvm, etc.) so setup commands like "bun install" work in
+  // packaged builds where process.env.PATH is minimal.
+  const shellEnv = await getShellEnvironment();
+
   // Execute each command
   for (const cmd of commandList) {
     if (!cmd.trim()) continue;
@@ -218,7 +224,7 @@ export async function executeWorktreeSetup(
       const { stdout, stderr } = await execAsync(cmd, {
         cwd: worktreePath,
         env: {
-          ...process.env,
+          ...shellEnv,
           ROOT_WORKTREE_PATH: mainRepoPath,
         },
         timeout: 300_000, // 5 minutes per command

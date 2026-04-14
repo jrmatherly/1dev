@@ -484,7 +484,27 @@ export function AgentsPreferencesTab() {
                   <span>{app.label}</span>
                 </DropdownMenuItem>
               ))}
-              {filteredVscode.length > 0 && (
+              {/* VS Code: flat items when only 1 variant detected, submenu when 2+ */}
+              {filteredVscode.length === 1 ? (
+                filteredVscode.map((app) => (
+                  <DropdownMenuItem
+                    key={app.id}
+                    onClick={() => setPreferredEditor(app.id)}
+                    className="flex items-center gap-2"
+                  >
+                    {EDITOR_ICONS[app.id] ? (
+                      <img
+                        src={EDITOR_ICONS[app.id]}
+                        alt=""
+                        className="h-4 w-4 shrink-0 object-contain"
+                      />
+                    ) : (
+                      <div className="h-4 w-4 shrink-0" />
+                    )}
+                    <span>{app.label}</span>
+                  </DropdownMenuItem>
+                ))
+              ) : filteredVscode.length > 1 ? (
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2">
                   <img
@@ -519,8 +539,28 @@ export function AgentsPreferencesTab() {
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
-              )}
-              {filteredJetbrains.length > 0 && (
+              ) : null}
+              {/* JetBrains: flat items when only 1 IDE detected, submenu when 2+ */}
+              {filteredJetbrains.length === 1 ? (
+                filteredJetbrains.map((app) => (
+                  <DropdownMenuItem
+                    key={app.id}
+                    onClick={() => setPreferredEditor(app.id)}
+                    className="flex items-center gap-2"
+                  >
+                    {EDITOR_ICONS[app.id] ? (
+                      <img
+                        src={EDITOR_ICONS[app.id]}
+                        alt=""
+                        className="h-4 w-4 shrink-0 object-contain"
+                      />
+                    ) : (
+                      <div className="h-4 w-4 shrink-0" />
+                    )}
+                    <span>{app.label}</span>
+                  </DropdownMenuItem>
+                ))
+              ) : filteredJetbrains.length > 1 ? (
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-2">
                   <img
@@ -555,7 +595,7 @@ export function AgentsPreferencesTab() {
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
-              )}
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
