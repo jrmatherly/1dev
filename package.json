@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@ai-sdk/react": "3.0.161",
-    "@anthropic-ai/claude-agent-sdk": "0.2.105",
+    "@anthropic-ai/claude-agent-sdk": "0.2.107",
     "@anthropic-ai/sdk": "^0.88.0",
     "@azure/msal-node": "^5.1.2",
     "@azure/msal-node-extensions": "^5.1.2",
@@ -95,7 +95,7 @@
     "next-themes": "^0.4.6",
     "node-pty": "^1.1.0",
     "pidtree": "^0.6.0",
-    "posthog-js": "1.368.0",
+    "posthog-js": "1.368.2",
     "posthog-node": "5.29.2",
     "react": "19.2.5",
     "react-dom": "19.2.5",
