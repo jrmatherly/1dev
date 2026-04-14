@@ -198,7 +198,11 @@ export function getClaudeShellEnvironment(): Record<string, string> {
       env: {
         // Prevent Oh My Zsh from blocking with auto-update prompts
         DISABLE_AUTO_UPDATE: "true",
-        // Minimal env to bootstrap the shell
+        // Bootstrap env must include system PATH so the shell can find
+        // builtins and profile scripts. Without /usr/bin:/bin, the shell
+        // can't run commands like `env`, and the child process inherits
+        // an empty PATH that causes posix_spawn ENOENT for /bin/sh, rg, etc.
+        PATH: `/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/opt/homebrew/sbin:${os.homedir()}/.local/bin:${os.homedir()}/.bun/bin:${os.homedir()}/.local/share/mise/shims:${os.homedir()}/.cargo/bin:${os.homedir()}/.nvm/current/bin`,
         HOME: os.homedir(),
         USER: os.userInfo().username,
         SHELL: shell,
@@ -347,6 +351,34 @@ export async function buildClaudeEnv(options?: {
       }
     }
   }
+
+  // 4b. Ensure PATH includes system directories. In packaged Electron apps
+  // launched from Finder, the shell env may fail entirely, leaving PATH
+  // without /usr/bin or /bin. The Claude CLI internally spawns rg, /bin/sh,
+  // and other system tools — all fail with posix_spawn ENOENT without these.
+  const home = os.homedir();
+  const systemDirs = [
+    "/usr/local/bin",
+    "/usr/bin",
+    "/bin",
+    "/usr/sbin",
+    "/sbin",
+    "/opt/homebrew/bin",
+    "/opt/homebrew/sbin",
+    path.join(home, ".local/bin"),
+    path.join(home, ".local/share/mise/shims"),
+    path.join(home, ".bun/bin"),
+    path.join(home, ".cargo/bin"),
+    path.join(home, ".nvm/current/bin"),
+  ];
+  const currentPath = env.PATH || "";
+  const pathParts = new Set(currentPath.split(":").filter(Boolean));
+  for (const dir of systemDirs) {
+    if (!pathParts.has(dir)) {
+      pathParts.add(dir);
+    }
+  }
+  env.PATH = [...pathParts].join(":");
 
   // 5. Mark as SDK entry
   env.CLAUDE_CODE_ENTRYPOINT = "sdk-ts";

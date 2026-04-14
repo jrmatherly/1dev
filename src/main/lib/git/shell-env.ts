@@ -24,6 +24,7 @@ function augmentPathWithCommonDirs(env: Record<string, string>): void {
   if (process.platform === "win32") return;
   const home = env.HOME || os.homedir();
   const candidates = [
+    path.join(home, ".local/share/mise/shims"),
     path.join(home, ".bun/bin"),
     "/opt/homebrew/bin",
     "/opt/homebrew/sbin",
