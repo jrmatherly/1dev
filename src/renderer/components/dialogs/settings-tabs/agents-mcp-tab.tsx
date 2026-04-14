@@ -890,6 +890,18 @@ export function AgentsMcpTab() {
     item.provider === "claude-code" &&
     !item.groupName.toLowerCase().includes("plugin");
 
+  // Full-tab loading state for initial MCP server discovery
+  if (isLoadingConfig) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+        <p className="text-sm text-muted-foreground">
+          Loading MCP servers...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full overflow-hidden">
       {/* Left sidebar - server list */}
