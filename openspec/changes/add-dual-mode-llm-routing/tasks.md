@@ -88,10 +88,10 @@
 
 ## 12. Quality gates
 
-- [ ] 12.1 Run all 5 quality gates locally: `bun run ts:check && bun run build && bun test && bun audit && cd docs && bun run build`.
-- [ ] 12.2 Verify `.claude/.tscheck-baseline` count does not increase.
-- [ ] 12.3 Push branch, let CI run all 5 gates — confirm green before opening PR.
-- [ ] 12.4 Run the `docs-drift-check` skill to catch any documentation surface drift (CLAUDE.md, README, memories, PROJECT_INDEX).
+- [x] 12.1 Run all 5 quality gates locally: `bun run ts:check && bun run build && bun test && bun audit && cd docs && bun run build`.
+- [x] 12.2 Verify `.claude/.tscheck-baseline` count does not increase.
+- [x] 12.3 Push branch, let CI run all 5 gates — confirm green before opening PR.
+- [x] 12.4 Run the `docs-drift-check` skill to catch any documentation surface drift (CLAUDE.md, README, memories, PROJECT_INDEX).
 
 ## 13. Archive
 
