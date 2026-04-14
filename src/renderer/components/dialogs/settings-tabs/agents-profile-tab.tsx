@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
+import { AvatarWithInitials } from "../../ui/avatar-with-initials";
 import { IconSpinner } from "../../../icons";
-import { toast } from "sonner";
+import { trpc } from "../../../lib/trpc";
 
 // Hook to detect narrow screen
 function useIsNarrowScreen(): boolean {
@@ -31,10 +32,17 @@ interface DesktopUser {
 
 export function AgentsProfileTab() {
   const [user, setUser] = useState<DesktopUser | null>(null);
-  const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const isNarrowScreen = useIsNarrowScreen();
-  const savedNameRef = useRef("");
+
+  // Microsoft Graph /me profile + avatar (enterprise mode only). Returns null
+  // when enterprise auth is off, consent is missing, or the call fails — the
+  // fallback is the existing `user` fields from desktopApi.getUser() plus
+  // the `<AvatarWithInitials>` initials-only bubble.
+  const graphProfile = trpc.enterpriseAuth.getGraphProfile.useQuery(undefined, {
+    staleTime: 1000 * 60 * 60, // 1h — photo and department don't change often
+    retry: false, // the procedure returns null on error, so retries are noise
+  });
 
   // Fetch real user data from desktop API
   useEffect(() => {
@@ -42,35 +50,11 @@ export function AgentsProfileTab() {
       if (window.desktopApi?.getUser) {
         const userData = await window.desktopApi.getUser();
         setUser(userData);
-        setFullName(userData?.name || "");
-        savedNameRef.current = userData?.name || "";
       }
       setIsLoading(false);
     }
     fetchUser();
   }, []);
-
-  const handleBlurSave = useCallback(async () => {
-    const trimmed = fullName.trim();
-    if (trimmed === savedNameRef.current) return;
-    try {
-      if (window.desktopApi?.updateUser) {
-        const updatedUser = await window.desktopApi.updateUser({
-          name: trimmed,
-        });
-        if (updatedUser) {
-          setUser(updatedUser);
-          savedNameRef.current = updatedUser.name || "";
-          setFullName(updatedUser.name || "");
-        }
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update profile",
-      );
-    }
-  }, [fullName]);
 
   if (isLoading) {
     return (
@@ -91,22 +75,21 @@ export function AgentsProfileTab() {
           </div>
         )}
         <div className="bg-background rounded-lg border border-border overflow-hidden">
-          {/* Full Name Field */}
-          <div className="flex items-center justify-between p-4">
-            <div className="flex-1">
-              <Label className="text-sm font-medium">Full Name</Label>
-              <p className="text-sm text-muted-foreground">
-                This is your display name
+          {/* Identity header — Graph photo (or initials fallback) + display name */}
+          <div className="flex items-center gap-4 p-4">
+            <AvatarWithInitials
+              avatarDataUrl={graphProfile.data?.avatarDataUrl ?? null}
+              displayName={
+                graphProfile.data?.displayName || user?.name || ""
+              }
+              email={user?.email ?? null}
+              oid={user?.id ?? ""}
+              size="lg"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-semibold text-foreground truncate">
+                {graphProfile.data?.displayName || user?.name || ""}
               </p>
-            </div>
-            <div className="shrink-0 w-80">
-              <Input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                onBlur={handleBlurSave}
-                className="w-full"
-                placeholder="Enter your name"
-              />
             </div>
           </div>
 
@@ -126,6 +109,62 @@ export function AgentsProfileTab() {
               />
             </div>
           </div>
+
+          {/* Graph profile fields — hidden when the field is empty to avoid
+              rendering "(empty)" rows for users without these attributes. */}
+          {graphProfile.data?.jobTitle && (
+            <div className="flex items-center justify-between p-4 border-t border-border">
+              <div className="flex-1">
+                <Label className="text-sm font-medium">Job Title</Label>
+                <p className="text-sm text-muted-foreground">
+                  From your Microsoft 365 profile
+                </p>
+              </div>
+              <div className="shrink-0 w-80">
+                <Input
+                  value={graphProfile.data.jobTitle}
+                  disabled
+                  className="w-full opacity-60"
+                />
+              </div>
+            </div>
+          )}
+
+          {graphProfile.data?.department && (
+            <div className="flex items-center justify-between p-4 border-t border-border">
+              <div className="flex-1">
+                <Label className="text-sm font-medium">Department</Label>
+                <p className="text-sm text-muted-foreground">
+                  From your Microsoft 365 profile
+                </p>
+              </div>
+              <div className="shrink-0 w-80">
+                <Input
+                  value={graphProfile.data.department}
+                  disabled
+                  className="w-full opacity-60"
+                />
+              </div>
+            </div>
+          )}
+
+          {graphProfile.data?.officeLocation && (
+            <div className="flex items-center justify-between p-4 border-t border-border">
+              <div className="flex-1">
+                <Label className="text-sm font-medium">Office Location</Label>
+                <p className="text-sm text-muted-foreground">
+                  From your Microsoft 365 profile
+                </p>
+              </div>
+              <div className="shrink-0 w-80">
+                <Input
+                  value={graphProfile.data.officeLocation}
+                  disabled
+                  className="w-full opacity-60"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -137,21 +137,59 @@ Paste it into your password manager or straight into the SOPS-encrypted secret f
 
 ## Step 5 — Configure API permissions and scopes
 
-The desktop client (via MSAL Node in `src/main/lib/enterprise-auth.ts:38`) requests these scopes by default:
+The desktop client (via MSAL Node in `src/main/lib/enterprise-auth.ts`) requests these scopes by default:
 
 ```
-openid profile email offline_access
+openid profile email offline_access User.Read
 ```
 
-All four are **standard OIDC/OAuth2 scopes** — none are custom. You do NOT need to expose an API or add `api://...` scopes for the current Phase 1 implementation.
+The first four are **standard OIDC/OAuth2 scopes** — none are custom. `User.Read` is a **delegated Microsoft Graph scope** used by `acquireTokenForGraph()` to read the signed-in user's `/me` profile and `/me/photo/$value` avatar. You do NOT need to expose an API or add `api://...` scopes for the current Phase 1 implementation.
 
-### 5a. Granted permissions (confirm they are pre-granted)
+### 5a. Delegated Graph permissions for the desktop client
 
-1. Navigate to **Manage → API permissions**.
-2. You should see `User.Read` already listed (Microsoft Graph, delegated). This is auto-added for every new app registration.
-3. That's sufficient. The OIDC scopes (`openid`, `profile`, `email`, `offline_access`) are always consentable without explicit API permissions — they are part of the OpenID Connect protocol.
+The `User.Read` scope is auto-listed on every new app registration, but **admin consent is required** before users can silently acquire Graph-scoped tokens. Without admin consent, the first interactive sign-in after `add-entra-graph-profile` ships prompts each user with a per-account consent dialog.
 
-### 5b. (Optional) Expose an API for future Phase 2 work
+**Pre-consent via Azure portal (recommended for enterprise deployments):**
+
+1. Navigate to **Manage → API permissions** on the desktop app registration.
+2. Confirm `Microsoft Graph → User.Read (Delegated)` is listed. If it is not, select **Add a permission** → **Microsoft Graph** → **Delegated permissions** → check `User.Read` → **Add permissions**.
+3. Click **Grant admin consent for `<tenant>`** at the top of the permissions grid, then **Yes** to confirm.
+4. The **Status** column for `User.Read` should show a green checkmark: `Granted for <tenant>`.
+
+**Equivalent Azure CLI path:**
+
+```bash
+# User.Read delegated permission ID on Microsoft Graph (constant across all tenants)
+USER_READ_ID="e1fe6dd8-ba31-4d61-89e7-88639da4683d"
+GRAPH_APP_ID="00000003-0000-0000-c000-000000000000"
+
+# Add the permission (idempotent — skip if already listed)
+az ad app permission add \
+  --id "<desktop-client-id>" \
+  --api "$GRAPH_APP_ID" \
+  --api-permissions "${USER_READ_ID}=Scope"
+
+# Grant admin consent on behalf of the tenant
+az ad app permission admin-consent --id "<desktop-client-id>"
+
+# Verify
+az ad app permission list --id "<desktop-client-id>"
+```
+
+**On-first-sign-in consent (fallback for dev / trial):** If you skip admin consent, each user sees a one-time Microsoft consent dialog on their next interactive sign-in after this change ships. The dialog lists `User.Read` ("Sign you in and read your profile"). Individual users can click **Accept** to self-consent. Existing refresh tokens remain valid for their original scopes — this is incremental consent, not a full re-authentication.
+
+### 5b. Two app registrations, two consent surfaces
+
+The `User.Read` delegated grant described above applies to the **desktop app registration** (the one used by `src/main/lib/enterprise-auth.ts` via MSAL Node's `PublicClientApplication`). This is distinct from the **server-side Graph confidential client** covered in [Step 5c / §"Server-side Graph client app registration"](#server-side-graph-client-app-registration-for-litellm-provisioning) below, which uses `.default` application permissions for the 1code-api's group enumeration in `services/1code-api/src/lib/graph-client.ts`.
+
+| Registration | Scope kind | Consent surface | Used by |
+|---|---|---|---|
+| Desktop app (primary `ENTRA_CLIENT_ID`) | Delegated `User.Read` | Per-user (or admin-granted once) | `src/main/lib/enterprise-auth.ts` → `acquireTokenForGraph()` → `/me`, `/me/photo/$value` |
+| Graph confidential client (`AZURE_GRAPH_CLIENT_ID`) | Application `.default` | Admin-granted only | `services/1code-api/src/lib/graph-client.ts` → `/users/{id}/memberOf` |
+
+Granting or revoking consent on one registration has no effect on the other — they are two independent identities with independent permission grants.
+
+### 5c. (Optional) Expose an API for future Phase 2 work
 
 If you later want to issue narrower access tokens with custom scopes (`1code.read`, `1code.admin`, etc.) instead of relying purely on OIDC:
 

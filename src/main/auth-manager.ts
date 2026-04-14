@@ -260,6 +260,27 @@ export class AuthManager {
   }
 
   /**
+   * Acquire a Microsoft Graph-scoped access token for /me profile reads.
+   *
+   * Enterprise-only. Throws when enterprise auth is disabled or uninitialized,
+   * or when MSAL reports `InteractionRequiredAuthError`. The caller (the
+   * `enterpriseAuth.getGraphProfile` tRPC procedure) translates these errors
+   * into a null response so the renderer hides the Graph UI and falls back
+   * to `desktopApi.getUser()`.
+   */
+  async getGraphToken(): Promise<string> {
+    if (!this.isEnterprise) {
+      throw new Error(
+        "getGraphToken() requires enterpriseAuthEnabled=true",
+      );
+    }
+    if (!this.enterpriseAuth) {
+      throw new Error("EnterpriseAuth not initialized");
+    }
+    return this.enterpriseAuth.acquireTokenForGraph();
+  }
+
+  /**
    * Refresh the current session
    */
   async refresh(): Promise<boolean> {

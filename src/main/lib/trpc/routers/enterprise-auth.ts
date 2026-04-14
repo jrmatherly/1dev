@@ -13,6 +13,12 @@ import { router, publicProcedure, authedProcedure } from "../index";
 import { TRPCError } from "@trpc/server";
 import { getFlag } from "../../feature-flags";
 import { getAuthManager } from "../../../auth-manager";
+import {
+  fetchGraphProfile,
+  GraphProfileError,
+  type GraphProfile,
+} from "../../graph-profile";
+import { InteractionRequiredAuthError } from "@azure/msal-node";
 
 function assertEnterprise(): void {
   if (!getFlag("enterpriseAuthEnabled")) {
@@ -80,6 +86,49 @@ export const enterpriseAuthRouter = router({
       user: authManager.getUser(),
     };
   }),
+
+  /**
+   * Fetch the signed-in user's Microsoft Graph profile (/me + /me/photo).
+   *
+   * Returns `null` when enterprise auth is off, when no account is cached,
+   * when MSAL reports `InteractionRequiredAuthError` (user needs to re-
+   * consent for `User.Read`), or when the Graph /me call itself fails.
+   * The renderer hides the Graph UI when the value is null and falls back
+   * to `desktopApi.getUser()` for the baseline profile fields.
+   *
+   * Photo-endpoint failures do NOT null this whole response — they degrade
+   * only the `avatarDataUrl` field; see `fetchGraphProfile` for details.
+   */
+  getGraphProfile: authedProcedure.query(
+    async (): Promise<GraphProfile | null> => {
+      if (!getFlag("enterpriseAuthEnabled")) return null;
+      const authManager = getAuthManager();
+      if (!authManager) return null;
+
+      try {
+        const token = await authManager.getGraphToken();
+        return await fetchGraphProfile(token);
+      } catch (err) {
+        if (err instanceof InteractionRequiredAuthError) {
+          console.warn(
+            "[enterpriseAuth.getGraphProfile] Interaction required — user must re-consent for User.Read",
+          );
+          return null;
+        }
+        if (err instanceof GraphProfileError) {
+          console.warn(
+            `[enterpriseAuth.getGraphProfile] Graph /me failed with status ${err.status}`,
+          );
+          return null;
+        }
+        console.warn(
+          "[enterpriseAuth.getGraphProfile] Unexpected error:",
+          err,
+        );
+        return null;
+      }
+    },
+  ),
 
   /**
    * Refresh the enterprise auth token silently.

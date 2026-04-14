@@ -35,7 +35,17 @@ import type {
 
 // Default scopes for the LiteLLM / Envoy Gateway audience.
 // The `.default` scope requests all statically-configured permissions.
-const DEFAULT_SCOPES = ["openid", "profile", "email", "offline_access"];
+// `User.Read` is the delegated Microsoft Graph scope required by
+// `acquireTokenForGraph()` to read the signed-in user's /me profile and
+// /me/photo/$value avatar. Admin consent on the desktop app registration
+// is a one-time tenant operation documented in docs/enterprise/entra-id-setup.md.
+const DEFAULT_SCOPES = [
+  "openid",
+  "profile",
+  "email",
+  "offline_access",
+  "User.Read",
+];
 
 /**
  * Extract EnterpriseUser from an MSAL AccountInfo using jose for
@@ -170,6 +180,38 @@ export class EnterpriseAuth {
     const result = await this.pca.acquireTokenSilent(request);
     this.cachedAccount = result.account;
     return toAuthResult(result);
+  }
+
+  /**
+   * Acquire a Microsoft Graph access token for /me profile reads.
+   *
+   * Returns a short-lived bearer token scoped to `User.Read`. The token is
+   * returned to the caller in-memory only — it MUST NOT be persisted through
+   * `credential-store.ts` (Graph access tokens rotate on the MSAL refresh
+   * cycle; the MSAL cache plugin already handles renewal). See the spec
+   * scenario "Graph access token does not flow through credential-store.ts"
+   * in openspec/specs/enterprise-auth/spec.md.
+   *
+   * On a missing account or MSAL `InteractionRequiredAuthError`, the error
+   * propagates — the caller (usually the `enterpriseAuth.getGraphProfile`
+   * tRPC procedure) decides whether to suppress the error (return null to
+   * the renderer) or surface an interactive sign-in prompt.
+   */
+  async acquireTokenForGraph(): Promise<string> {
+    const account = await this.getActiveAccount();
+    if (!account) {
+      throw new Error(
+        "No cached account — call acquireTokenInteractive() first",
+      );
+    }
+
+    const result = await this.pca.acquireTokenSilent({
+      scopes: ["User.Read"],
+      account,
+    });
+
+    this.cachedAccount = result.account;
+    return result.accessToken;
   }
 
   /**
