@@ -37,6 +37,8 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 - `lib/trpc/index.ts` — `authedProcedure` middleware
 - `lib/trpc/routers/index.ts` — **23 routers in `createAppRouter`** (22 feature + createGitRouter()). New 2026-04-13: `litellmModels` for BYOK-LiteLLM wizard.
 - `lib/trpc/routers/litellm-models.ts` — **NEW Group 8 of add-dual-mode-llm-routing** — proxies LiteLLM `/v1/models` with virtual-key Bearer auth. Structured error mapping: INTERNAL_SERVER_ERROR (env unset), UNAUTHORIZED (401/403), BAD_GATEWAY (network/non-ok), UNPROCESSABLE_CONTENT (malformed body). Projects to minimal `{id}` shape.
+- `lib/trpc/routers/anthropic-accounts.ts` — **Group 9 of add-dual-mode-llm-routing (2026-04-13)**: `getActive` returns `accountType` + `routingMode` (both live + legacy-fallback branches); `attachVirtualKey` mutation stitches LiteLLM virtual keys onto post-OAuth rows for the subscription+litellm wizard path.
+- `lib/trpc/routers/enterprise-auth.ts` — **Group 9 addition**: `isEnabled` public query (non-throwing flag probe) — renderer gates consume this without catching PRECONDITION_FAILED on every load.
 - `lib/trpc/routers/chats.ts` — Delegates sub-chat name + commit message generation to `aux-ai.ts`. tRPC inputs accept optional `customConfig: {model, token, baseUrl}` for legacy Custom Model onboarding.
 - `lib/feature-flags.ts` — **9 flags**: `enterpriseAuthEnabled`, `voiceViaLiteLLM`, `changelogSelfHosted`, `automationsSelfHosted`, `credentialStorageRequireEncryption`, `auxAiEnabled`, `auxAiModel`, `auxAiTimeoutMs`, `auxAiOrigin`.
 - `electron.vite.config.ts` — Uses `build.externalizeDeps` (electron-vite 5.0 API).
@@ -48,6 +50,9 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 - `lib/remote-trpc.ts` — Upstream tRPC client (F-entry boundary)
 - `lib/atoms/index.ts` — `customClaudeConfigAtom` (`{model, token, baseUrl}`) backs Custom Model onboarding. Consumed by `active-chat.tsx` + `use-commit-actions.ts` and forwarded to aux-AI tRPC procedures.
 - `features/onboarding/api-key-onboarding-page.tsx` — "Configure Custom Model" form. Writes to `customClaudeConfigAtom` (localStorage), NOT `anthropicAccounts`.
+- `components/dialogs/add-anthropic-account-wizard.tsx` — **NEW Group 9 of add-dual-mode-llm-routing (2026-04-13)** — 4-step wizard: account-type chooser → routing-mode (gated by `MAIN_VITE_ALLOW_DIRECT_ANTHROPIC`) → credentials (BYOK or subscription+virtualKey) → BYOK-LiteLLM model-slot mapper via `trpcUtils.litellmModels.listUserModels.fetch`. Subscription path delegates OAuth to existing Claude login modal via new `onTokenStored` atom hook; virtual key is attached post-OAuth via `attachVirtualKey` mutation.
+- `components/dialogs/claude-login-modal.tsx` — **Group 9 extension**: reads `claudeLoginModalConfigAtom`; fires `onTokenStored()` after the invalidation fan-out so post-OAuth wizard actions see the freshly-created account via `getActive`.
+- `features/agents/main/new-chat-form.tsx` — **Group 9 §9.9 gate**: `canAddModels = !(accountType === "claude-subscription" && enterpriseAuthEnabled)` withholds `onOpenModelsSettings` from `<AgentModelSelector>`, hiding the "Add Models" footer for managed-subscription enterprise sessions. Guarded by `tests/regression/subscription-lock-model-picker.test.ts`.
 - `features/agents/main/active-chat.tsx` — Phase C §8.7 complete. Forwards legacy config to `generateSubChatNameMutation`.
 - `features/changes/components/commit-input/use-commit-actions.ts` — Forwards legacy config to `generateCommitMutation`.
 

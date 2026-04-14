@@ -63,7 +63,7 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 3. `/opsx:verify <name>` — verify implementation matches artifacts
 4. `/opsx:archive <name>` — archive and promote capability specs
 - **16 capability specs (116 requirements)** in `openspec/specs/`
-- **Active changes (4)**: `add-dual-mode-llm-routing` (36/55 — Groups 1-8 + 10 landed; Group 9 UI wizard + 11 smoke + 12 gates + 13 archive pending) · `improve-dev-launch-keychain-ux` (0/23) · `wire-login-button-to-msal` (45/57) · `upgrade-vite-8-build-stack` (15/50)
+- **Active changes (6)**: `add-dual-mode-llm-routing` (46/59 — Groups 1-9 §9.1-§9.10 + 10 landed at commit `336a0ac`; remaining: Group 9.11 manual smoke + 11 live smokes + 12 CI gates + 13 archive) · `fix-preferred-editor-detection` (0/31) · `add-entra-graph-profile` (0/45) · `improve-dev-launch-keychain-ux` (0/23) · `wire-login-button-to-msal` (45/57) · `upgrade-vite-8-build-stack` (15/50)
 
 ## Phase 0 Status (15 of 15 complete ✅)
 

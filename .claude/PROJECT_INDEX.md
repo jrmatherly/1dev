@@ -64,11 +64,11 @@ New as of 2026-04-08 (Phase 0 hard gate #12). Type-safe flag API backed by `feat
 | `claude.ts` | `claude` | Claude SDK streaming, message subscriptions |
 | `claude-code.ts` | `claudeCode` | Claude Code binary management, OAuth (uses upstream sandbox redirect — P0 hidden upstream dep) |
 | `claude-settings.ts` | `claudeSettings` | Claude configuration, model preferences |
-| `anthropic-accounts.ts` | `anthropicAccounts` | Multi-account Anthropic auth, safeStorage |
+| `anthropic-accounts.ts` | `anthropicAccounts` | Multi-account Anthropic auth, safeStorage; `getActive` returns `accountType` + `routingMode`; `attachVirtualKey` stitches LiteLLM virtual keys onto post-OAuth rows (Group 9 of `add-dual-mode-llm-routing`) |
 | `ollama.ts` | `ollama` | Ollama local model support, offline mode |
 | `codex.ts` | `codex` | OpenAI Codex via `@zed-industries/codex-acp` |
 | `terminal.ts` | `terminal` | PTY sessions, terminal I/O |
-| `enterprise-auth.ts` | `enterpriseAuth` | Enterprise Entra ID auth (signIn/signOut/getStatus/refreshToken) |
+| `enterprise-auth.ts` | `enterpriseAuth` | Enterprise Entra ID auth (signIn/signOut/getStatus/refreshToken/isEnabled — `isEnabled` added Group 9 as non-throwing flag probe for renderer gates) |
 | `litellm-models.ts` | `litellmModels` | Query LiteLLM proxy `/v1/models` with a virtual key (BYOK-LiteLLM wizard auto-populate; Group 8 of `add-dual-mode-llm-routing`) |
 | `external.ts` | `external` | Clipboard, shell, OS utilities + remote backend bridges |
 | `files.ts` | `files` | File read/write, directory listing |
