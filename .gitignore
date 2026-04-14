@@ -6,6 +6,7 @@ dist/
 /release/
 release-*/
 !.claude/skills/release-smoke/
+!.claude/skills/release-and-publish/
 out/
 
 # IDE

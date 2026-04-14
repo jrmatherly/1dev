@@ -19,6 +19,15 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; CONTENT=\"$TOOL_INPUT_NEW_STRING$TOOL_INPUT_content\"; case \"$FILEPATH\" in */src/main/lib/git/worktree-config.ts|*/src/main/lib/git/shell-env.ts|*/src/main/lib/git/worktree.ts) case \"$CONTENT\" in *'...process.env'*) echo '⚠️  WARNING: Spreading process.env into child process exec options. In packaged Electron builds, process.env.PATH is minimal (/usr/bin:/bin only). Use getShellEnvironment() from shell-env.ts instead to capture the user full PATH (homebrew, nvm, bun, etc). See commit faf70bd for the worktree-config.ts fix.' >&2;; esac;; esac"
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -51,6 +60,10 @@
           {
             "type": "command",
             "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in */openspec/changes/*/tasks.md|*/openspec/changes/*/proposal.md|*/openspec/changes/*/design.md|*/openspec/changes/*/specs/*.md|*/openspec/changes/*/specs/*/*.md|*/openspec/specs/*/spec.md) cd /Users/jason/dev/ai-stack/ai-coding-cli && echo '📋 OpenSpec artifact edit detected — running validate --all --strict --no-interactive (~2s)...' >&2 && if bunx @fission-ai/openspec@1.2.0 validate --all --strict --no-interactive >/tmp/openspec-validate.log 2>&1; then echo '✅ OpenSpec validate: all changes + baselines pass --strict' >&2; else echo '❌ OpenSpec validate FAILED — delta spec or tasks format diverges from schema. Common causes: ## MODIFIED Requirements against a non-archived baseline (rule: .claude/rules/openspec.md), tasks.md missing checkbox format, spec missing H1/Purpose/Requirements scaffold.' >&2; tail -20 /tmp/openspec-validate.log >&2; fi;; esac"
+          },
+          {
+            "type": "command",
+            "command": "FILEPATH=\"$TOOL_INPUT_FILE_PATH$TOOL_INPUT_file_path\"; case \"$FILEPATH\" in *.ts|*.tsx) cd /Users/jason/dev/ai-stack/ai-coding-cli && npx eslint --fix \"$FILEPATH\" >/dev/null 2>&1; exit 0;; esac; exit 0"
           }
         ]
       }
