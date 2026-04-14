@@ -5,11 +5,11 @@
 src/           — Application source code
 docs/          — Canonical xyd-js documentation site (Operations tab has roadmap)
 deploy/        — K8s Flux v2 manifests: 1code-api, envoy-auth-policy
-openspec/      — OpenSpec change proposals + 17 capability specs (124 requirements)
+openspec/      — OpenSpec change proposals + 17 capability specs (136 requirements)
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — 20 workflow skills incl. `project-orchestrator`, `release-smoke`, `cluster-handoff`
 .claude/agents/ — 9 subagents (db-schema-auditor, trpc-router-auditor, upstream-dependency-auditor, security-reviewer, ui-reviewer, test-coverage-auditor, openspec-task-progress-auditor, regression-guard-catalog-auditor, litellm-oss-boundary-auditor)
-tests/regression/ — **32 bun:test files** (31 regression guards + 1 frontmatter shim unit test; 191 tests / 441 expect() / ~6s)
+tests/regression/ — **35 bun:test files** (34 regression guards + 1 frontmatter shim unit test; 339 tests / 712 expect() / ~6s)
 tests/fixtures/   — Test fixtures
 drizzle/       — Database migration files (0010_flowery_blackheart.sql is hand-edited exception)
 services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 20 test files.
@@ -57,7 +57,8 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 - `features/changes/components/commit-input/use-commit-actions.ts` — Forwards legacy config to `generateCommitMutation`.
 
 ## Documentation Site (`docs/`)
-- `docs.json` — xyd-js config (5 tabs, operations tab includes roadmap)
+- `docs.json` — xyd-js config (6 tabs: Architecture, Enterprise, Conventions, Operations, Code Graph, API Reference)
+- `code-graph/` — Tree-sitter + Leiden community detection analysis (6 pages: overview, architecture-diagrams, critical-flows, community-coupling, key-subsystems, community-catalog)
 - `operations/roadmap.md` — Single source of truth
 - `conventions/feature-flags.md` — 9-flag table
 - `enterprise/upstream-features.md` — F11/F12 RESOLVED 3/4 modes (aux-ai)
@@ -66,7 +67,7 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 - `architecture/trpc-routers.md` — 23 routers (post-Group 8 of archived add-dual-mode-llm-routing, 2026-04-14)
 - Build: `cd docs && bun run build` (~20s)
 
-## OpenSpec Specs (17 capabilities, 124 requirements as of 2026-04-14)
+## OpenSpec Specs (17 capabilities, 136 requirements as of 2026-04-14)
 `1code-api-litellm-provisioning` (19), `brand-identity` (11), `claude-code-auth-import` (3), `credential-storage` (8), `documentation-site` (9), `electron-runtime` (4), `electron-security-hardening` (4), `enterprise-auth` (5), `enterprise-auth-wiring` (4), `feature-flags` (7), `frontmatter-parsing` (6), `observability-logging` (1), `renderer-data-access` (9), `self-hosted-api` (17), `shiki-highlighter` (6), `sqlite-performance` (3).
 
 ## Active OpenSpec Changes (4 as of 2026-04-13)
@@ -85,10 +86,10 @@ services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 2
 ## IDE Configuration
 `.vscode/settings.json` — tracked in git. tsgo native preview flag + SonarLint rule suppressions.
 
-## Regression Tests (30 guards + 1 unit test = 31 files in tests/regression/)
+## Regression Tests (34 guards + 1 unit test = 35 files in tests/regression/)
 auth-get-token-deleted, token-leak-logs-removed, credential-manager-deleted, gpg-verification-present, feature-flags-shape, brand-sweep-complete, no-upstream-sandbox-oauth, no-scratchpad-references, mock-api-no-snake-timestamps, credential-storage-tier, enterprise-auth-module, enterprise-auth-wiring, electron-version-pin, mock-api-consumer-migration, 1code-api-single-replica, no-gray-matter, open-external-scheme, signed-fetch-allowlist, mcp-url-ssrf-prevention, spawn-env-invariants, no-entra-in-anthropic-auth-token, no-legacy-litellm-proxy-url, no-migrate-legacy, login-flow-uses-msal, raw-logger-concurrent-writes, no-legacy-oauth-byok-leak, aux-ai-provider-dispatch, no-apollosai-aux-ai-fetch, signed-fetch-cache, **litellm-models-router** (2026-04-13), + unit test frontmatter-shim-shape.
 
-Combined `bun test` total: **186 regression tests / 435 expect() calls** + 232 service tests (10 skipped integration).
+Combined `bun test` total: **339 tests / 712 expect() calls across 55 files** (incl. service tests; 10 skipped integration).
 
 ## TypeScript type safety (2026-04-12)
 **`as any` casts in src/: 96 → 3 (97% elimination)** via Phase C §8.7.

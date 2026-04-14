@@ -39,6 +39,12 @@
                 "href": "operations/release"
             },
             {
+                "title": "Code Graph",
+                "icon": "chart-network",
+                "page": "code-graph",
+                "href": "code-graph/overview"
+            },
+            {
                 "title": "API Reference",
                 "page": "api-reference"
             }
@@ -102,6 +108,18 @@
                     "operations/debugging-first-install",
                     "operations/env-gotchas",
                     "operations/cluster-access"
+                ]
+            },
+            {
+                "group": "Code Graph",
+                "icon": "chart-network",
+                "pages": [
+                    "code-graph/overview",
+                    "code-graph/architecture-diagrams",
+                    "code-graph/critical-flows",
+                    "code-graph/community-coupling",
+                    "code-graph/key-subsystems",
+                    "code-graph/community-catalog"
                 ]
             }
         ]

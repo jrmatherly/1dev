@@ -4,7 +4,7 @@
 1. `bun run ts:check` — **baseline 0 errors** (`.claude/.tscheck-baseline`). CI fails on ANY new TS error.
 2. `bun run lint` — ESLint + eslint-plugin-sonarjs (~8s) — local-only advisory.
 3. `bun run build` — electron-vite build (clean).
-4. `bun test` — **32 regression files** (31 guards + 1 unit test; **191 tests / 441 expect() / ~6s**) + 20 1code-api test files (242 tests, 232 pass + 10 skipped integration). Total: ~433 tests across ~73 files.
+4. `bun test` — **35 regression files** (34 guards + 1 unit test; **339 tests / 712 expect() / ~6s**) across 55 total files (incl. service tests; 10 skipped integration).
 5. `bun audit` — focus on NEW advisories only (55 baseline as of 2026-04-13).
 6. CI also runs `cd docs && bun run build` (~20s).
 
@@ -25,7 +25,7 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 - Use `new-regression-guard` skill to scaffold
 - Update [`docs/conventions/regression-guards.md`](../../docs/conventions/regression-guards.md)
 - Update any other surface that cites a guard count
-- Current count: **30 guards + 1 unit test = 31 files**
+- Current count: **34 guards + 1 unit test = 35 files**
 - File-level allowlists, structured error messages, runs in <200ms
 
 ## If New Feature Flag Added

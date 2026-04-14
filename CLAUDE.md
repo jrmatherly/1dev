@@ -88,7 +88,7 @@ Three-layer Electron app: **main** process (Node.js + tRPC routers), **preload**
 
 ## Working directories
 
-- **`docs/`** — Canonical xyd-js documentation site. Build: `cd docs && bun run build`. Dev: `bunx xyd` (port 5175). CI runs `docs-build` as a quality gate.
+- **`docs/`** — Canonical xyd-js documentation site (6 tabs: Architecture, Enterprise, Conventions, Operations, Code Graph, API Reference). Build: `cd docs && bun run build`. Dev: `bunx xyd` (port 5175). CI runs `docs-build` as a quality gate. The Code Graph tab (`docs/code-graph/`) contains Tree-sitter + Leiden community detection analysis of the codebase (3,797 nodes / 29,438 edges / 406 communities).
 - **`.claude/rules/`** — Claude Code behavioral rules (path-scoped). See [`.claude/rules/README.md`](.claude/rules/README.md).
 - **`.claude/skills/`** — Claude Code workflow skills (on-demand). Start with **`project-orchestrator`** for ambiguous/multi-step tasks — it runs a hard-rule gate (auth-env-vars, credential-storage, TS baseline, OpenSpec Phase 0 scope, LiteLLM OSS, scratchpad, roadmap, upstream-boundary, database, vite-config) before routing work to the right skill/subagent/MCP.
 - **`.claude/agents/`** — Claude Code subagents (task-specific: `db-schema-auditor`, `trpc-router-auditor`, `upstream-dependency-auditor`, `security-reviewer`, `ui-reviewer`, `test-coverage-auditor`, `openspec-task-progress-auditor`, `regression-guard-catalog-auditor`, `litellm-oss-boundary-auditor`).

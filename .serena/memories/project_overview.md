@@ -44,7 +44,8 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 
 ## Architecture (3-tier)
 - CLAUDE.md is a ~135-line thin index
-- `docs/` is the canonical source of truth
+- `docs/` is the canonical source of truth (6 tabs: Architecture, Enterprise, Conventions, Operations, Code Graph, API Reference)
+- `docs/code-graph/` — Tree-sitter + Leiden community detection analysis (3,797 nodes / 29,438 edges / 406 communities / 50+ execution flows). 6 pages: overview, architecture-diagrams, critical-flows, community-coupling, key-subsystems, community-catalog.
 - `.claude/rules/` has 9 behavioral rules (2 global + 7 path-scoped)
 - `openspec/specs/` has **17 capability specs (124 requirements)** as of 2026-04-14
 - Skills/agents read from canonical docs
