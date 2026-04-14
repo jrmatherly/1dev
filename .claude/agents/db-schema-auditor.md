@@ -79,7 +79,29 @@ grep -nE "Tables \([0-9]+\)|[0-9]+ tables" .claude/PROJECT_INDEX.md
 
 Should match Step 1's count.
 
-### Step 7 — Report
+### Step 7 — Hand-edited migration drift check (added 2026-04-13)
+
+Some migrations are **documented hand-edit exceptions** registered under `.claude/rules/database.md` "Allowed exceptions" section. As of 2026-04-13 the registry contains:
+- `drizzle/0010_flowery_blackheart.sql` — hand-edited to backfill `routing_mode='direct'` for legacy `anthropic_accounts` rows during the `add-dual-mode-llm-routing` cutover. Prominent top-of-file comment identifies it.
+
+For each registered hand-edit, verify the SQL + snapshot stay in lockstep:
+
+```bash
+# Confirm hand-edit comment is still present (file hasn't been silently regenerated)
+head -5 drizzle/0010_flowery_blackheart.sql | grep -E "HAND-EDITED|peer review|exception"
+
+# Check the paired snapshot file exists and references the same table shape
+test -f drizzle/meta/0010_snapshot.json && jq '.tables | keys' drizzle/meta/0010_snapshot.json
+```
+
+**Drift signals** (any one is a critical finding):
+- Hand-edit marker comment missing → someone re-ran `drizzle-kit generate` and overwrote the hand edits
+- Snapshot JSON default diverges from schema declaration (e.g., schema says `default("direct")` but snapshot says `default("litellm")`) → out of lockstep; repeat of the original drift the hand-edit was meant to fix
+- `.claude/rules/database.md` "Allowed exceptions" table no longer contains the entry → governance rule broken
+
+For each hand-edited migration, also cross-check against the P3 roadmap item "Runtime drift detection for landed migrations" in `docs/operations/roadmap.md` — this subagent partially implements that roadmap item. Report whether further automation (e.g., a regression guard that diffs regenerated-snapshot-vs-committed-snapshot) is still outstanding.
+
+### Step 8 — Report
 
 Produce a structured report with this exact format:
 
@@ -104,6 +126,10 @@ Tables (N):
 - CLAUDE.md summary count: "X tables" (line N) — [MATCH / DRIFT: expected N, found X / NOT CITED (links only)]
 - PROJECT_INDEX.md main-process section: "X tables" (line N) — [MATCH / DRIFT]
 
+### Hand-edited migration drift
+- `drizzle/0010_flowery_blackheart.sql`: hand-edit marker present [Yes/No]; snapshot default matches schema [Yes/No]; governance registry entry present in `.claude/rules/database.md` [Yes/No]
+- Roadmap item "Runtime drift detection for landed migrations" — [OUTSTANDING / partially covered by this auditor / closed]
+
 ### Verdict
 [CLEAN / DRIFT DETECTED]
 
@@ -112,6 +138,7 @@ Tables (N):
 2. `CLAUDE.md` line N (if a count is cited): change "X tables" to "N tables"
 3. `.claude/PROJECT_INDEX.md` line P: update count
 4. `bun run db:generate` if ground truth has a table not yet in the latest snapshot
+5. If a hand-edited migration's SQL default diverges from its snapshot default (e.g., both should say `'direct'` post-remediate-dev-server-findings), edit the snapshot to match — DO NOT regenerate from schema (that would overwrite the hand edits)
 ```
 
 ## What NOT to do
