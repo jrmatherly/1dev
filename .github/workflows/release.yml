@@ -50,8 +50,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
+  group: release
+  cancel-in-progress: true
 
 jobs:
   matrix-build:
