@@ -7,8 +7,8 @@ docs/          — Canonical xyd-js documentation site (Operations tab has roadm
 deploy/        — K8s Flux v2 manifests: 1code-api, envoy-auth-policy
 openspec/      — OpenSpec change proposals + 16 capability specs (116 requirements)
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
-.claude/skills/ — 17 workflow skills incl. `project-orchestrator`
-.claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
+.claude/skills/ — 20 workflow skills incl. `project-orchestrator`, `release-smoke`, `cluster-handoff`
+.claude/agents/ — 9 subagents (db-schema-auditor, trpc-router-auditor, upstream-dependency-auditor, security-reviewer, ui-reviewer, test-coverage-auditor, openspec-task-progress-auditor, regression-guard-catalog-auditor, litellm-oss-boundary-auditor)
 tests/regression/ — **32 bun:test files** (31 regression guards + 1 frontmatter shim unit test; 191 tests / 441 expect() / ~6s)
 tests/fixtures/   — Test fixtures
 drizzle/       — Database migration files (0010_flowery_blackheart.sql is hand-edited exception)
