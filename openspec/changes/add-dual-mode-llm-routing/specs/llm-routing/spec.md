@@ -108,6 +108,46 @@ The system SHALL provide a tRPC procedure `litellmModels.listUserModels` that ac
 - **AND** the wizard exposes three plain text inputs for Sonnet/Haiku/Opus values
 - **AND** the user can complete account creation by typing model names manually
 
+### Requirement: Subscription-aware model picker access control
+
+When an end user is signed in with enterprise auth (`enterpriseAuthEnabled === true`) AND their currently active `anthropic_accounts` row has `accountType === "claude-subscription"`, the renderer SHALL NOT expose the "Add Models" footer affordance of the agent model selector. The affordance re-appears when the active account is `byok` or when enterprise auth is not enabled.
+
+This requirement exists because enterprise deployments manage provider credentials centrally (LiteLLM virtual keys provisioned via `1code-api`); end users on a managed Claude subscription have no need to add their own provider credentials from within the app, and doing so would bypass the central audit, rate-limiting, and team-allowlist enforcement point.
+
+The rule SHALL be enforced at the renderer via a boolean gate `canAddModels = !(activeAccount.accountType === "claude-subscription" && enterpriseAuthEnabled)` computed from the `trpc.anthropicAccounts.getActive` query. `getActive` MUST return `accountType` as part of its select shape to enable this check; the legacy-credential fallback branch MUST return `accountType: "claude-subscription"` so the gate resolves uniformly.
+
+Other picker behavior — Codex model visibility, Ollama offline fallback, thinking toggles, `litellmModels` wizard, cross-provider confirmation dialog — SHALL remain unchanged by this rule.
+
+#### Scenario: End user on Claude-subscription sees no Add Models footer
+
+- **GIVEN** the app is running with `enterpriseAuthEnabled === true`
+- **AND** the active `anthropic_accounts` row has `accountType === "claude-subscription"`
+- **WHEN** the user opens the agent model selector dropdown in the chat composer
+- **THEN** the dropdown renders Claude models plus (optionally) Codex models
+- **AND** the "Add Models" footer button is NOT rendered
+
+#### Scenario: End user on BYOK sees the Add Models footer
+
+- **GIVEN** the app is running with `enterpriseAuthEnabled === true`
+- **AND** the active `anthropic_accounts` row has `accountType === "byok"`
+- **WHEN** the user opens the agent model selector dropdown
+- **THEN** the "Add Models" footer button IS rendered
+- **AND** clicking it opens the Settings → Models tab
+
+#### Scenario: Dev-bypass session sees Add Models footer unchanged
+
+- **GIVEN** the app is running with `MAIN_VITE_DEV_BYPASS_AUTH=true` so the renderer resolves `enterpriseAuthEnabled === false`
+- **AND** any `anthropic_accounts` row is active
+- **WHEN** the user opens the agent model selector dropdown
+- **THEN** the "Add Models" footer button IS rendered (the rule gates only enterprise-auth sessions)
+
+#### Scenario: Active-account query returns accountType
+
+- **WHEN** `trpc.anthropicAccounts.getActive` is called
+- **THEN** the returned shape includes `accountType: "claude-subscription" | "byok"`
+- **AND** includes `routingMode: "direct" | "litellm"`
+- **AND** the legacy-credential fallback branch returns `accountType: "claude-subscription"` and `routingMode: "direct"` (the only historically valid combination for pre-migration data)
+
 ### Requirement: Regression guards for spawn-env invariants
 
 The repository SHALL include three bun:test regression guards enforcing the invariants:

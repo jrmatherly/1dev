@@ -14,6 +14,7 @@ Sending a chat in the app fails with `API Error: 401 "Azure authentication requi
 - Add three regression guards: (1) `ANTHROPIC_AUTH_TOKEN` is never set to a value starting with `eyJ` (Entra JWT prefix); (2) `CLAUDE_CODE_OAUTH_TOKEN` and `ANTHROPIC_AUTH_TOKEN` are never both set in the same spawn env; (3) `applyEnterpriseAuth()` body contains no assignment to `env.ANTHROPIC_AUTH_TOKEN`.
 - Rename `LITELLM_PROXY_URL` env var to `MAIN_VITE_LITELLM_BASE_URL` to match the desktop-Electron prefix convention.
 - Add `ENABLE_TOOL_SEARCH=true` to the spawn env for all LiteLLM modes (required because `ANTHROPIC_BASE_URL` is non-first-party — per Claude CLI docs, MCP tool search is disabled by default when base URL is overridden).
+- **Subscription-aware model-picker gating (scope extension 2026-04-13):** extend `trpc.anthropicAccounts.getActive` to return `accountType` and `routingMode` (schema columns, not credentials — no encryption involved), and add a renderer-side gate in `new-chat-form.tsx` so the agent model selector hides its "Add Models" footer affordance when the active account is `claude-subscription` + `enterpriseAuthEnabled`. End users on a managed subscription have no need to add their own provider credentials; keeping the affordance visible would bypass LiteLLM's centralized audit, rate-limiting, and team-allowlist enforcement. Tracked as tasks §9.8–§9.11 and as an ADDED Requirement in the `llm-routing` delta.
 
 ## Capabilities
 
