@@ -36,9 +36,9 @@ The renderer SHALL use `trpc.claudeCode.importSystemToken` as the sole Claude Co
 
 *Rationale:* Both `src/renderer/features/onboarding/anthropic-onboarding-page.tsx` and `src/renderer/components/dialogs/claude-login-modal.tsx` are covered by this requirement. Users run `claude /login` externally in a terminal to have the Claude CLI refresh a token into `~/.claude/.credentials.json` (or the platform keychain on macOS), after which the desktop app reads that source via `getExistingClaudeToken()` (through the existing `importSystemToken` tRPC procedure) and persists the token into the multi-account system via `storeOAuthToken(...)`.
 
-**Updated persistence contract (add-dual-mode-llm-routing + this change):** `storeOAuthToken(token)` writes a single row into `anthropicAccounts` with `accountType="claude-subscription"`, `routingMode` set from `MAIN_VITE_ALLOW_DIRECT_ANTHROPIC` (true → `"direct"`, false/unset → `"direct"` — the default was revised from `"litellm"` to `"direct"` by the migration hotfix in this change), the safeStorage-encrypted token in `oauthToken`, and NULL for `apiKey`, `virtualKey`, and the three `modelSonnet`/`modelHaiku`/`modelOpus` columns. The `anthropicSettings.singleton.activeAccountId` row is upserted to point at the new row. The legacy `claudeCodeCredentials` mirror write is REMOVED.
+**Updated persistence contract (add-dual-mode-llm-routing):** `storeOAuthToken(token)` writes a single row into `anthropicAccounts` with `accountType="claude-subscription"`, `routingMode` set from `MAIN_VITE_ALLOW_DIRECT_ANTHROPIC` (true → `"direct"`, false/unset → `"litellm"`), the safeStorage-encrypted token in `oauthToken`, and NULL for `apiKey`, `virtualKey`, and the three `modelSonnet` / `modelHaiku` / `modelOpus` columns. It upserts `anthropicSettings.singleton.activeAccountId` to point at the new row. The mirror write into the legacy `claudeCodeCredentials` table is REMOVED — the legacy migration path is deleted by this change, and the legacy table is retained only for schema compatibility (no new writes).
 
-The BYOK (paste an Anthropic API key) path remains handled by the existing `api-key-onboarding-page.tsx`, which now writes to `anthropicAccounts` with `accountType="byok"` instead of the legacy `customClaudeConfigAtom` Jotai storage. The Jotai atom remains for in-flight migration only and SHALL be removed in a follow-up change after users have been migrated.
+The BYOK (paste an Anthropic API key) path remains handled by the existing `api-key-onboarding-page.tsx`, which now writes to `anthropicAccounts` with `accountType="byok"` instead of the legacy `customClaudeConfigAtom` Jotai storage. When `routingMode="direct"`, the pasted key populates `apiKey`; when `routingMode="litellm"`, it populates `virtualKey`. The Jotai atom remains for in-flight migration only and SHALL be removed in a follow-up change after users have been migrated.
 
 **Removed behavior:** The renderer SHALL NOT invoke the `migrateLegacy` tRPC mutation, and the `useEffect` in `src/renderer/components/dialogs/settings-tabs/agents-models-tab.tsx` that triggered it is REMOVED.
 
@@ -47,18 +47,38 @@ The BYOK (paste an Anthropic API key) path remains handled by the existing `api-
 - **AND** has already run `claude /login` in their terminal
 - **AND** clicks the action that triggers the existing `handleUseExistingToken` handler
 - **THEN** the renderer calls `importSystemTokenMutation.mutateAsync()`
-- **AND** the main process reads the user's Claude CLI credential source via `getExistingClaudeToken()`
-- **AND** `storeOAuthToken(token)` inserts a new row into `anthropicAccounts` with `accountType="claude-subscription"` and `routingMode="direct"` (the revised default)
+- **AND** the main process reads the user's Claude CLI credential source (platform keychain first, then `~/.claude/.credentials.json`) via `getExistingClaudeToken()`
+- **AND** `storeOAuthToken(token)` inserts a new row into `anthropicAccounts` with `accountType="claude-subscription"` and `routingMode` derived from the `MAIN_VITE_ALLOW_DIRECT_ANTHROPIC` env var
 - **AND** `anthropicSettings.singleton.activeAccountId` is upserted to the new row id
 - **AND** no write to `claudeCodeCredentials` occurs
 - **AND** the UI transitions to the authenticated state via `setAnthropicOnboardingCompleted(true)`
 
-#### Scenario: Existing user upgrades to the schema change without breakage
+#### Scenario: Happy path from the Claude login modal after the user ran `claude /login`
+- **WHEN** a user opens the `claude-login-modal.tsx` modal
+- **AND** has already run `claude /login` in their terminal
+- **AND** clicks the "Use existing Claude CLI login" button
+- **THEN** the renderer calls `importSystemTokenMutation.mutateAsync()`
+- **AND** the main process performs the same single-row `anthropicAccounts` persistence described above
+- **AND** the modal closes and transitions to the authenticated state
 
-- **WHEN** a user on a pre-`add-dual-mode-llm-routing` database upgrades to the revised migration
-- **AND** the migration backfills existing `anthropic_accounts` rows with `routing_mode='direct'`
-- **THEN** the next chat attempt uses `getActiveProviderMode()` → `{ kind: "subscription-direct", oauthToken }`
-- **AND** chat works without requiring the user to set `MAIN_VITE_LITELLM_BASE_URL`
+#### Scenario: User has not run `claude /login` yet
+- **WHEN** a user in either the onboarding page or the login modal clicks the existing-CLI-login action
+- **AND** `~/.claude/.credentials.json` does not exist and the platform keychain returns no entry
+- **THEN** the `importSystemToken` procedure throws the string `"No existing Claude token found"`
+- **AND** the renderer handler logs only `error instanceof Error ? error.message : String(error)` (never the raw error object) to preclude any future mutation change from leaking token-shaped fields
+- **AND** the UI surfaces the error with recovery copy telling the user to run `claude /login` in their terminal and try again
+
+#### Scenario: No renderer file contains calls to the deleted OAuth mutations
+- **WHEN** every file under `src/renderer/` is scanned
+- **THEN** no file contains the substrings `trpc.claudeCode.startAuth`, `trpc.claudeCode.submitCode`, or `trpc.claudeCode.pollStatus`
+- **AND** no file contains a direct `fetch` call whose URL combines `/api/auth/` with `claude-code` (the direct-fetch bypass path)
+
+#### Scenario: migrateLegacy is removed from the codebase
+
+- **WHEN** `src/main/lib/trpc/routers/anthropic-accounts.ts` is scanned
+- **THEN** no procedure named `migrateLegacy` is defined
+- **AND** `src/renderer/components/dialogs/settings-tabs/agents-models-tab.tsx` contains no `useEffect` that calls `migrateLegacy.mutate` or similar
+- **AND** `trpc.anthropicAccounts.migrateLegacy` is not referenced anywhere in `src/renderer/`
 
 ### Requirement: getClaudeCodeToken returns null when active account is BYOK
 

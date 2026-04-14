@@ -40,9 +40,7 @@ The MSAL configuration SHALL include:
 - Loopback redirect URI: `http://localhost` (MSAL auto-selects an available port)
 - `clientCapabilities` SHALL NOT include `"CP1"` — LiteLLM is not a CAE-enabled resource; CP1 would cause Entra to issue 28-hour tokens without revocation capability, degrading security posture versus the default 1-hour lifetime
 
-**Decoupling constraint (add-dual-mode-llm-routing + this change):** The Entra access token obtained by `acquireTokenSilent()` or `acquireTokenInteractive()` SHALL NOT be written into `ANTHROPIC_AUTH_TOKEN` or any other Claude CLI environment variable. The token is used only for (a) identifying the app session in the renderer, and (b) extracting the `oid` claim for use as the `x-litellm-customer-id` audit header passed into `@anthropic-ai/sdk`'s `defaultHeaders` via the `aux-ai.ts` dispatcher or `deriveClaudeSpawnEnv()` via `ANTHROPIC_CUSTOM_HEADERS`.
-
-**Return type tightening (this change):** `applyEnterpriseAuth()` in `src/main/lib/claude/env.ts` SHALL have return type `Promise<void>` (not `Promise<Record<string, string>>`). The function performs only a side-effect (MSAL cache warming + early failure surface); returning a record invites future contributors to add a mutation and expect the caller to consume the return. Tightening to `void` eliminates the landmine.
+**New constraint (add-dual-mode-llm-routing):** The Entra access token obtained by `acquireTokenSilent()` or `acquireTokenInteractive()` SHALL NOT be written into `ANTHROPIC_AUTH_TOKEN` or any other Claude CLI environment variable. The token is used only for (a) identifying the app session in the renderer, and (b) extracting the `oid` claim for use as the `x-litellm-customer-id` audit header via `ANTHROPIC_CUSTOM_HEADERS`. The `applyEnterpriseAuth()` function in `src/main/lib/claude/env.ts` SHALL NOT contain any assignment to `env.ANTHROPIC_AUTH_TOKEN`.
 
 #### Scenario: Creating an enterprise auth instance with valid config
 
@@ -77,18 +75,6 @@ The MSAL configuration SHALL include:
 - **AND** the body of `applyEnterpriseAuth` is extracted
 - **THEN** no line in that body matches `env.ANTHROPIC_AUTH_TOKEN =` or equivalent assignment syntax
 - **AND** the regression guard `tests/regression/no-entra-in-anthropic-auth-token.test.ts` passes
-
-#### Scenario: applyEnterpriseAuth signature is Promise<void>
-
-- **WHEN** TypeScript code calls `await applyEnterpriseAuth(env)`
-- **THEN** the return value is `void` (not a record)
-- **AND** assigning the return to a variable requires an explicit `as unknown` cast (discouraged)
-
-#### Scenario: Broader scan catches Entra-to-ANTHROPIC_AUTH_TOKEN in any main-process file
-
-- **WHEN** `tests/regression/no-entra-in-anthropic-auth-token.test.ts` runs
-- **THEN** the test also scans all of `src/main/` for any pattern matching `authManager\.(getValidToken|getToken).*ANTHROPIC_.*_TOKEN` or `getValidToken.*ANTHROPIC_AUTH_TOKEN\s*=`
-- **AND** reports zero matches outside `tests/regression/` itself
 
 ### Requirement: Enterprise auth types
 

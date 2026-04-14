@@ -62,8 +62,8 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 2. `/opsx:apply <name>` — implement tasks
 3. `/opsx:verify <name>` — verify implementation matches artifacts
 4. `/opsx:archive <name>` — archive and promote capability specs
-- **16 capability specs (116 requirements)** in `openspec/specs/`
-- **Active changes (6)**: `add-dual-mode-llm-routing` (50/59 — Groups 1-10 + 12 landed; commit `336a0ac` shipped the wizard + gate + regression guard, `9938a9a` closed Group 12 CI-gate validation; remaining: §9.11 wizard smoke + Group 11 live smokes + Group 13 archive) · `fix-preferred-editor-detection` (0/31) · `add-entra-graph-profile` (0/45) · `improve-dev-launch-keychain-ux` (0/23) · `wire-login-button-to-msal` (45/57) · `upgrade-vite-8-build-stack` (15/50)
+- **17 capability specs (124 requirements)** in `openspec/specs/`
+- **Active changes (5)**: `fix-preferred-editor-detection` (active mid-implementation) · `add-entra-graph-profile` (active mid-implementation) · `improve-dev-launch-keychain-ux` (0/23) · `wire-login-button-to-msal` (45/57) · `upgrade-vite-8-build-stack` (15/50). Recently archived: `add-dual-mode-llm-routing` 2026-04-14 at 50/59 (9 live-cluster smokes deferred to `docs/operations/roadmap.md`; new baseline `llm-routing` (7 reqs) promoted).
 
 ## Phase 0 Status (15 of 15 complete ✅)
 

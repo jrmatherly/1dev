@@ -64,12 +64,12 @@ New as of 2026-04-08 (Phase 0 hard gate #12). Type-safe flag API backed by `feat
 | `claude.ts` | `claude` | Claude SDK streaming, message subscriptions |
 | `claude-code.ts` | `claudeCode` | Claude Code binary management, OAuth (uses upstream sandbox redirect — P0 hidden upstream dep) |
 | `claude-settings.ts` | `claudeSettings` | Claude configuration, model preferences |
-| `anthropic-accounts.ts` | `anthropicAccounts` | Multi-account Anthropic auth, safeStorage; `getActive` returns `accountType` + `routingMode`; `attachVirtualKey` stitches LiteLLM virtual keys onto post-OAuth rows (Group 9 of `add-dual-mode-llm-routing`) |
+| `anthropic-accounts.ts` | `anthropicAccounts` | Multi-account Anthropic auth, safeStorage; `getActive` returns `accountType` + `routingMode`; `attachVirtualKey` stitches LiteLLM virtual keys onto post-OAuth rows (Group 9 of archived `add-dual-mode-llm-routing`, 2026-04-14) |
 | `ollama.ts` | `ollama` | Ollama local model support, offline mode |
 | `codex.ts` | `codex` | OpenAI Codex via `@zed-industries/codex-acp` |
 | `terminal.ts` | `terminal` | PTY sessions, terminal I/O |
 | `enterprise-auth.ts` | `enterpriseAuth` | Enterprise Entra ID auth (signIn/signOut/getStatus/refreshToken/isEnabled — `isEnabled` added Group 9 as non-throwing flag probe for renderer gates) |
-| `litellm-models.ts` | `litellmModels` | Query LiteLLM proxy `/v1/models` with a virtual key (BYOK-LiteLLM wizard auto-populate; Group 8 of `add-dual-mode-llm-routing`) |
+| `litellm-models.ts` | `litellmModels` | Query LiteLLM proxy `/v1/models` with a virtual key (BYOK-LiteLLM wizard auto-populate; Group 8 of archived `add-dual-mode-llm-routing`, 2026-04-14) |
 | `external.ts` | `external` | Clipboard, shell, OS utilities + remote backend bridges |
 | `files.ts` | `files` | File read/write, directory listing |
 | `debug.ts` | `debug` | Debug data export, DB inspection |
@@ -237,7 +237,7 @@ bun run release =
 
 Regression guards (no Jest/Vitest/Playwright). Run with `bun test` from the repo root to execute the full suite across the main app and the `1code-api` service.
 
-- **32 test files in `tests/regression/`** (31 regression guards + 1 frontmatter shim unit test; **191 tests / 441 expect() / ~6s**): authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Recent additions 2026-04-13/14 (active `add-dual-mode-llm-routing`): `litellm-models-router` (Group 8), `subscription-lock-model-picker` (Group 9.10). From archived `remediate-dev-server-findings`: `aux-ai-provider-dispatch`, `no-apollosai-aux-ai-fetch`, `signed-fetch-cache`, `raw-logger-concurrent-writes`, `no-legacy-oauth-byok-leak`, `login-flow-uses-msal`, `spawn-env-invariants`, `no-entra-in-anthropic-auth-token`, `no-legacy-litellm-proxy-url`, `no-migrate-legacy`.
+- **32 test files in `tests/regression/`** (31 regression guards + 1 frontmatter shim unit test; **191 tests / 441 expect() / ~6s**): authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Recent additions 2026-04-13/14 (archived `add-dual-mode-llm-routing` 2026-04-14): `litellm-models-router` (Group 8), `subscription-lock-model-picker` (Group 9.10). From archived `remediate-dev-server-findings`: `aux-ai-provider-dispatch`, `no-apollosai-aux-ai-fetch`, `signed-fetch-cache`, `raw-logger-concurrent-writes`, `no-legacy-oauth-byok-leak`, `login-flow-uses-msal`, `spawn-env-invariants`, `no-entra-in-anthropic-auth-token`, `no-legacy-litellm-proxy-url`, `no-migrate-legacy`.
 - **20 service test files** under `services/1code-api/tests/` covering unit tests (`tests/lib/`, `tests/services/`, `tests/routes/`) and 3 docker-compose integration tests (`tests/integration/`) that skip without the harness.
 - **Combined total: 207 tests across 37 files** (197 pass + 10 skipped integration, 0 fail) as of 2026-04-12 post-`replace-gray-matter-with-front-matter` archive.
 
