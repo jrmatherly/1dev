@@ -19,7 +19,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **`src/main/lib/trpc/routers/litellm-models.ts` (2026-04-13, Group 8 of archived add-dual-mode-llm-routing, archived 2026-04-14)** — proxies LiteLLM `/v1/models` with virtual-key Bearer auth. Structured error mapping (INTERNAL_SERVER_ERROR / UNAUTHORIZED / BAD_GATEWAY / UNPROCESSABLE_CONTENT). Consumed by the Group 9 onboarding wizard's "Fetch Models" button.
 - **`docs/enterprise/llm-routing-patterns.md` (2026-04-13, Group 10 of archived add-dual-mode-llm-routing, archived 2026-04-14)** — canonical four-pattern matrix (`subscription-direct`, `subscription-litellm`, `byok-direct`, `byok-litellm`) with exact spawn-env recipes, `MAIN_VITE_ALLOW_DIRECT_ANTHROPIC` gate semantics, `x-litellm-customer-id` attribution, Entra-vs-Anthropic-token anti-pattern section.
 - **signed-fetch hardening:** `checkUpstreamGate()` + undici-aware `recordUnreachable` + 60s negative cache.
-- **Feature flags:** 9 total — `enterpriseAuthEnabled`, `voiceViaLiteLLM`, `changelogSelfHosted`, `automationsSelfHosted`, `credentialStorageRequireEncryption`, `auxAiEnabled`, `auxAiModel`, `auxAiTimeoutMs`, `auxAiOrigin`.
+- **Feature flags:** 9 total — `enterpriseAuthEnabled` (build-time env override, no longer gated by `!app.isPackaged`), `voiceViaLiteLLM`, `changelogSelfHosted`, `automationsSelfHosted`, `credentialStorageRequireEncryption`, `auxAiEnabled`, `auxAiModel`, `auxAiTimeoutMs`, `auxAiOrigin`.
 - **`getActiveProviderMode()` exported** from `src/main/lib/trpc/routers/claude.ts`.
 - **Tailwind 4.2.2, Vite 7.3.2 (Phase A), TypeScript 6.0.2, Electron 41.2.0** — upgrades complete; Vite 8 Phase B blocked.
 - **sandbox: true** — empirically validated.
@@ -28,7 +28,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Project-orchestrator skill** — routing-layer skill with Step-0 hard-rule gate.
 - **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
 - **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth.
-- **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix. Current: **v0.0.85** (2026-04-13).
+- **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix with shared concurrency group (`cancel-in-progress: true`). Current: **v0.0.90** (2026-04-14). Entra auth credentials injected from GitHub secrets at build time.
 - **Active OpenSpec changes (6 as of 2026-04-13 late):**
   - `add-dual-mode-llm-routing` ARCHIVED 2026-04-14 at 50/59 (Groups 1-10 + 12 landed: Entra decoupling + dual-mode routing at `51318e1` + `8befc62` + `0f43165`; litellmModels router at `6354ea6`; llm-routing-patterns doc at `5948383`; Settings UI wizard + subscription-lock model-picker gate at `336a0ac`; Group 12 CI-gate validation at `9938a9a`. New baseline `llm-routing` (7 reqs) + modified `claude-code-auth-import`/`credential-storage`/`enterprise-auth`. 9 deferred live-cluster smokes tracked in `docs/operations/roadmap.md`.)
   - `fix-preferred-editor-detection` (0/31, scaffolded 2026-04-13 commit `3def1a8` — npm `which`-based PATH detection porting the ShipIT pattern + OS-default derivation + `preferredEditorAtom` default null-ification)

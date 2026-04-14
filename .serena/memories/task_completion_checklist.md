@@ -74,6 +74,7 @@ Canonical reference: [`docs/conventions/quality-gates.md`](../../docs/convention
 - Claude CLI 2.1.96 does NOT support `ANTHROPIC_AUTH_TOKEN_FILE`
 - `applyEnterpriseAuth()` returns `Promise<void>` (2026-04-13)
 - BYOK accounts skip the legacy OAuth token fallback — regression guard `no-legacy-oauth-byok-leak.test.ts`
+- `enterpriseAuthEnabled` flag: env override via `import.meta.env.MAIN_VITE_ENTERPRISE_AUTH_ENABLED` is a **build-time constant** (Vite-substituted). No `!app.isPackaged` guard — works in both dev and packaged builds. CI release.yml injects from GitHub secrets (`ENTRA_CLIENT_ID`, `ENTRA_TENANT_ID`).
 
 ## If Editing Aux-AI Module (aux-ai.ts or chats.ts delegation)
 - DI factory pattern — new provider modes slot into the dispatch switch

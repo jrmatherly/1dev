@@ -11,7 +11,7 @@
 - `bun run ts:check` — tsgo (**baseline: 0 errors** in `.claude/.tscheck-baseline`, reduced from 32 → 0 on 2026-04-11 commit `e1efae2` via full 10-bucket sweep from `.scratchpad/code-problems/002-analysis.md`). **CI now fails on ANY new TS error.**
 - `bun run lint` — ESLint + eslint-plugin-sonarjs project-wide scan (~8s)
 - `bun run build` — electron-vite 5 build. **Clean** as of 2026-04-12 — the gray-matter Rollup eval warning was eliminated via PR #14 swap to `front-matter@4.0.2` behind a canonical shim at `src/main/lib/frontmatter.ts`.
-- `bun test` — 19 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **211 tests across 39 files** (201 pass + 10 skipped integration tests needing docker-compose, 0 fail), ~6-7s
+- `bun test` — 34 regression guards + 1 frontmatter shim unit test + 20 1code-api test files = **339 tests / 711 expect() across 55 files** (339 pass + 10 skipped integration, 0 fail), ~6-7s
 - **Phase B performance improvements (2026-04-12 PR #18):** AuthStore in-memory token cache (eliminates sync disk I/O in legacy auth), feature flag in-memory cache (eliminates SQLite query per getFlag()), FK indexes on chats.projectId + subChats.chatId (migration 0009), SQLite pragmas (busy_timeout=5000, synchronous=NORMAL, cache_size=8MB). WebkitAppRegion .d.ts augmentation eliminated 41 @ts-expect-error suppressions. Dead loggedProcedure removed from tRPC. @prisma/client removed from vite externals. readOnlyRootFilesystem=true in k8s. SOPS .gitignore guards added.
 - `bun audit` — pre-existing transitive advisories (58+, all dev deps)
 - `cd docs && bun run build` — xyd docs site
@@ -65,7 +65,7 @@
 - Serena requires `activate_project` before `read_memory`
 - `bun audit` exits non-zero (normal — pre-existing advisories)
 - `gh auth switch --user jrmatherly` needed for repo admin operations (branch protection, alert dismissal)
-- **Release workflow:** `.github/workflows/release.yml` — tag-push + workflow_dispatch. 3-OS matrix → draft GitHub Release. SHA-pinned `softprops/action-gh-release@153bb8e # v2.6.1`. Bun pinned to 1.3.11. macOS runner pinned to macos-15. Unsigned first iteration.
+- **Release workflow:** `.github/workflows/release.yml` — tag-push + workflow_dispatch. 3-OS matrix → draft GitHub Release. SHA-pinned `softprops/action-gh-release@153bb8e # v2.6.1`. Bun pinned to 1.3.11. macOS runner pinned to macos-15. Unsigned first iteration. Shared concurrency group (`cancel-in-progress: true`) — new tag cancels in-progress older build. Build step injects `ENTRA_CLIENT_ID`/`ENTRA_TENANT_ID` from GitHub secrets + `MAIN_VITE_ENTERPRISE_AUTH_ENABLED=true`.
 - **Dependabot labels:** all 4 expected labels exist in the repo.
 - **Release build CI gotchas (resolved v0.0.79, 2026-04-10):**
   - **Windows GPG path mixing (RESOLVED):** MSYS2-compiled GPG mangles Windows paths. Fix: `toGpgPath()` in `download-claude-binary.mjs` converts `C:\Users\...` → `/c/Users/...`.
