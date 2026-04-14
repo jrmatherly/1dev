@@ -99,7 +99,8 @@ const ALL_APP_OPTIONS = [
   ...JETBRAINS_OPTIONS,
 ];
 
-export function getAppOption(id: ExternalApp): AppOption {
+export function getAppOption(id: ExternalApp | null): AppOption {
+  if (id === null) return APP_OPTIONS[1];
   return ALL_APP_OPTIONS.find((app) => app.id === id) ?? APP_OPTIONS[1];
 }
 
@@ -132,7 +133,7 @@ export function OpenInButton({ path, label }: Readonly<OpenInButtonProps>) {
   }, [path, copyPathMutation]);
 
   const handleOpenLastUsed = useCallback(() => {
-    if (!path) return;
+    if (!path || lastUsedApp === null) return;
     openInAppMutation.mutate({ path, app: lastUsedApp });
   }, [path, lastUsedApp, openInAppMutation]);
 

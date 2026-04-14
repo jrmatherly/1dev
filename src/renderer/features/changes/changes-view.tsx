@@ -352,9 +352,12 @@ export function ChangesView({
   const openInFinderMutation = trpc.external.openInFinder.useMutation();
   const openInAppMutation = trpc.external.openInApp.useMutation();
 
-  // Preferred editor
+  // Preferred editor — null when not yet selected; fall back to VS Code
+  // display for labels; skip the open-in-editor mutation when null.
   const preferredEditor = useAtomValue(preferredEditorAtom);
-  const editorMeta = APP_META[preferredEditor];
+  const editorMeta = preferredEditor
+    ? APP_META[preferredEditor]
+    : APP_META.vscode;
 
   // File viewer (file preview sidebar)
   const fileViewerAtom = useMemo(
@@ -940,6 +943,7 @@ export function ChangesView({
   };
 
   const handleOpenInPreferredEditor = (filePath: string) => {
+    if (preferredEditor === null) return;
     const absolutePath = `${worktreePath}/${filePath}`;
     openInAppMutation.mutate({ path: absolutePath, app: preferredEditor });
   };

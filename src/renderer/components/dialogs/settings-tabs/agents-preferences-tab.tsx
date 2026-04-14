@@ -161,23 +161,57 @@ export function AgentsPreferencesTab() {
   const [preferredEditor, setPreferredEditor] = useAtom(preferredEditorAtom);
   const isNarrowScreen = useIsNarrowScreen();
 
-  // Dynamic editor detection — filter lists to show only installed apps
+  // Dynamic editor detection — filter lists to show only installed apps.
+  // Fail-closed: while the query is in flight (or errored), render an empty
+  // list and a "Detecting editors…" placeholder rather than the full set.
+  // Showing all editors unfiltered was the upstream fail-open bug that
+  // caused uninstalled editors (Cursor) to appear selectable.
   const { data: installedEditors } =
     trpc.external.getInstalledEditors.useQuery(undefined, {
       staleTime: 5 * 60 * 1000, // 5 minutes — app installs don't change often
     });
+  const isDetecting = installedEditors === undefined;
   const filteredEditors = installedEditors
     ? EDITORS.filter((e) => installedEditors.includes(e.id))
-    : EDITORS;
+    : [];
   const filteredTerminals = installedEditors
     ? TERMINALS.filter((e) => installedEditors.includes(e.id))
-    : TERMINALS;
+    : [];
   const filteredVscode = installedEditors
     ? VSCODE.filter((e) => installedEditors.includes(e.id))
-    : VSCODE;
+    : [];
   const filteredJetbrains = installedEditors
     ? JETBRAINS.filter((e) => installedEditors.includes(e.id))
-    : JETBRAINS;
+    : [];
+
+  // OS defaults (read $VISUAL/$EDITOR/$TERM_PROGRAM/$SHELL once) and a
+  // first-paint hook that resolves a null preferredEditor to the OS default
+  // if it's in the installed set, else the first installed editor.
+  const { data: osDefaults } = trpc.external.getOsDefaults.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  });
+  useEffect(() => {
+    if (preferredEditor !== null) return;
+    if (installedEditors === undefined || osDefaults === undefined) return;
+    const osDefault = osDefaults.editor;
+    const resolved: ExternalApp | null =
+      osDefault && installedEditors.includes(osDefault)
+        ? osDefault
+        : (installedEditors.find((id) => id !== "finder" && id !== "terminal") ??
+          null);
+    if (resolved !== null) setPreferredEditor(resolved);
+  }, [preferredEditor, installedEditors, osDefaults, setPreferredEditor]);
+
+  // Is the stored preferredEditor still valid (present in one of the
+  // filtered lists)? If not, the trigger button shows a placeholder.
+  const allFilteredIds = new Set<ExternalApp>([
+    ...filteredEditors.map((e) => e.id),
+    ...filteredTerminals.map((e) => e.id),
+    ...filteredVscode.map((e) => e.id),
+    ...filteredJetbrains.map((e) => e.id),
+  ]);
+  const isStoredValid =
+    preferredEditor !== null && allFilteredIds.has(preferredEditor);
 
   // Co-authored-by setting from Claude settings.json
   const { data: includeCoAuthoredBy, refetch: refetchCoAuthoredBy } =
@@ -388,20 +422,27 @@ export function AgentsPreferencesTab() {
             </span>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild disabled={isDetecting}>
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                disabled={isDetecting}
+                className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-60"
               >
-                {EDITOR_ICONS[preferredEditor] && (
-                  <img
-                    src={EDITOR_ICONS[preferredEditor]}
-                    alt=""
-                    className="h-4 w-4 shrink-0"
-                  />
-                )}
+                {isStoredValid &&
+                  preferredEditor &&
+                  EDITOR_ICONS[preferredEditor] && (
+                    <img
+                      src={EDITOR_ICONS[preferredEditor]}
+                      alt=""
+                      className="h-4 w-4 shrink-0"
+                    />
+                  )}
                 <span className="truncate">
-                  {APP_META[preferredEditor].label}
+                  {isDetecting
+                    ? "Detecting editors…"
+                    : isStoredValid && preferredEditor
+                      ? APP_META[preferredEditor].label
+                      : "No editor selected"}
                 </span>
                 <ChevronDown className="h-3 w-3 opacity-50" />
               </button>

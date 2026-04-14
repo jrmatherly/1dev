@@ -549,10 +549,12 @@ export const FilesTab = memo(
           }
 
           case "open-editor":
-            openInAppMutation.mutate({
-              path: absolutePath,
-              app: preferredEditor,
-            });
+            if (preferredEditor !== null) {
+              openInAppMutation.mutate({
+                path: absolutePath,
+                app: preferredEditor,
+              });
+            }
             break;
 
           case "reveal-finder":

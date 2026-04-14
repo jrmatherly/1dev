@@ -128,9 +128,12 @@ export const InfoSection = memo(function InfoSection({
   // Extract folder name from path
   const folderName = worktreePath?.split("/").pop() || "Unknown";
 
-  // Preferred editor from settings
+  // Preferred editor from settings — null when not yet selected; fall back to
+  // VS Code display for labels; skip the open-in-editor mutation when null.
   const preferredEditor = useAtomValue(preferredEditorAtom);
-  const editorMeta = APP_META[preferredEditor];
+  const editorMeta = preferredEditor
+    ? APP_META[preferredEditor]
+    : APP_META.vscode;
 
   // Mutations
   const openInFinderMutation = trpc.external.openInFinder.useMutation();
@@ -178,7 +181,7 @@ export const InfoSection = memo(function InfoSection({
   const openInEditorHotkey = useResolvedHotkeyDisplay("open-in-editor");
 
   const handleOpenInEditor = useCallback(() => {
-    if (worktreePath) {
+    if (worktreePath && preferredEditor !== null) {
       openInAppMutation.mutate({ path: worktreePath, app: preferredEditor });
     }
   }, [worktreePath, preferredEditor, openInAppMutation]);
@@ -306,7 +309,7 @@ export const InfoSection = memo(function InfoSection({
                   onClick={handleOpenInEditor}
                   className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer rounded px-1.5 py-0.5 -ml-1.5 hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
-                  {EDITOR_ICONS[preferredEditor] && (
+                  {preferredEditor && EDITOR_ICONS[preferredEditor] && (
                     <img
                       src={EDITOR_ICONS[preferredEditor]}
                       alt=""

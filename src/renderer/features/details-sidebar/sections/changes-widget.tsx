@@ -136,9 +136,13 @@ export const ChangesWidget = memo(function ChangesWidget({
     syncActionKind !== "pull" &&
     syncActionKind !== "loading";
 
-  // Preferred editor
+  // Preferred editor — null when the user has no editor selected yet.
+  // Fall back to VS Code display for labels; skip the open-in-editor
+  // mutation when null.
   const preferredEditor = useAtomValue(preferredEditorAtom);
-  const editorMeta = APP_META[preferredEditor];
+  const editorMeta = preferredEditor
+    ? APP_META[preferredEditor]
+    : APP_META.vscode;
   // File viewer (file preview sidebar)
   const fileViewerAtom = useMemo(
     () => fileViewerOpenAtomFamily(chatId),
@@ -404,7 +408,7 @@ export const ChangesWidget = memo(function ChangesWidget({
                         : undefined
                     }
                     onOpenInEditor={
-                      absolutePath
+                      absolutePath && preferredEditor
                         ? () => {
                             openInAppMutation.mutate({
                               path: absolutePath,

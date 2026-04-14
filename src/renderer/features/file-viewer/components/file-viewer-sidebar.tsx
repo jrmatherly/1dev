@@ -206,13 +206,15 @@ function CodeViewerHeader({
   const [lineNumbers, setLineNumbers] = useAtom(fileViewerLineNumbersAtom);
   const [displayMode, setDisplayMode] = useAtom(fileViewerDisplayModeAtom);
   const preferredEditor = useAtomValue(preferredEditorAtom);
-  const editorMeta = APP_META[preferredEditor];
+  const editorMeta = preferredEditor
+    ? APP_META[preferredEditor]
+    : APP_META.vscode;
   const openInAppMutation = trpc.external.openInApp.useMutation();
   const openInEditorHotkey = useResolvedHotkeyDisplay("open-file-in-editor");
 
   const handleOpenInEditor = useCallback(() => {
     const absolutePath = filePath.startsWith("/") ? filePath : undefined;
-    if (absolutePath) {
+    if (absolutePath && preferredEditor !== null) {
       openInAppMutation.mutate({ path: absolutePath, app: preferredEditor });
     }
   }, [filePath, preferredEditor, openInAppMutation]);
@@ -255,7 +257,7 @@ function CodeViewerHeader({
               className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer rounded-md px-1.5 py-1 hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <span className="hidden @[400px]:inline">Open in</span>
-              {EDITOR_ICONS[preferredEditor] && (
+              {preferredEditor && EDITOR_ICONS[preferredEditor] && (
                 <img
                   src={EDITOR_ICONS[preferredEditor]}
                   alt=""
@@ -539,7 +541,7 @@ function CodeViewer({
   useEffect(() => {
     const handler = () => {
       const absolutePath = filePath.startsWith("/") ? filePath : undefined;
-      if (absolutePath) {
+      if (absolutePath && preferredEditor !== null) {
         openInAppMutation.mutate({ path: absolutePath, app: preferredEditor });
       }
     };

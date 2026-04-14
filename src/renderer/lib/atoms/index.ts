@@ -934,9 +934,9 @@ export const devToolsUnlockedAtom = atom<boolean>(false);
 
 import type { ExternalApp } from "../../../shared/external-apps";
 
-export const preferredEditorAtom = atomWithStorage<ExternalApp>(
+export const preferredEditorAtom = atomWithStorage<ExternalApp | null>(
   "preferences:preferred-editor",
-  "cursor",
+  null,
   undefined,
   { getOnInit: true },
 );
