@@ -65,11 +65,11 @@
 
 ## 10. Documentation
 
-- [ ] 10.1 Create `docs/enterprise/llm-routing-patterns.md` with the four-pattern matrix, spawn-env recipes, and UI screenshots-placeholder section. Reference from the `docs` nav.
-- [ ] 10.2 Update `docs/enterprise/auth-strategy.md` to cross-reference the new page and clarify that Entra access tokens never flow into Anthropic bearer headers.
-- [ ] 10.3 Update `CLAUDE.md` "Dev environment quick reference" with the new `MAIN_VITE_ALLOW_DIRECT_ANTHROPIC` and `MAIN_VITE_LITELLM_BASE_URL` vars.
-- [ ] 10.4 Add a roadmap entry to `docs/operations/roadmap.md` — "1code-api LiteLLM virtual-key auto-provisioning" with prereq = this change archived, effort = M, reference = design.md §Decision 4.
-- [ ] 10.5 Update `.claude/PROJECT_INDEX.md` and `.serena/memories/codebase_structure.md` for new files + router count.
+- [x] 10.1 Created `docs/enterprise/llm-routing-patterns.md` with the four-pattern matrix, per-mode spawn-env recipes (`subscription-direct`, `subscription-litellm`, `byok-direct`, `byok-litellm`), `MAIN_VITE_ALLOW_DIRECT_ANTHROPIC` gate semantics, `x-litellm-customer-id` attribution explanation, and the Entra-vs-Anthropic-token anti-pattern section. Added to `docs/docs.json` sidebar under Enterprise.
+- [x] 10.2 Updated `docs/enterprise/auth-strategy.md` §4.9 with a "See also" block cross-referencing `llm-routing-patterns.md` and naming the three enforcement layers (ProviderMode type, `applyEnterpriseAuth()` `Promise<void>` contract, project-wide regression guard).
+- [x] 10.3 Updated `CLAUDE.md` "Dev environment quick reference" with `MAIN_VITE_LITELLM_BASE_URL` (proxy URL, required for litellm-routed accounts) + `MAIN_VITE_ALLOW_DIRECT_ANTHROPIC` (opt-in for direct-to-Anthropic routing; unset silently locks wizard to LiteLLM).
+- [x] 10.4 Roadmap entry "1code-api LiteLLM virtual-key auto-provisioning" already existed at `docs/operations/roadmap.md` line 70 (added 2026-04-13 during the OpenSpec proposal phase). Extended the canonical reference line to cross-ref `llm-routing-patterns.md` alongside the existing `design.md §Decision 4` citation.
+- [x] 10.5 Updated `.claude/PROJECT_INDEX.md` (22 → 23 routers, added `litellm-models.ts` table row) and `.serena/memories/codebase_structure.md` (router count, aux-ai.ts + litellm-models.ts entries, new `llm-routing-patterns.md` doc entry, new `litellm-models-router.test.ts` regression guard, 186 test total).
 
 ## 11. Manual smoke test
 

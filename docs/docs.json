@@ -71,6 +71,7 @@
                     "enterprise/upstream-features",
                     "enterprise/auth-strategy",
                     "enterprise/auth-fallback",
+                    "enterprise/llm-routing-patterns",
                     "enterprise/entra-app-registration-1code-api",
                     "enterprise/1code-api-provisioning",
                     "enterprise/apollos-decommission-runbook",

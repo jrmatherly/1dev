@@ -72,7 +72,7 @@ A `.claude/skills/roadmap-tracker/SKILL.md` skill provides `/roadmap` operations
 **Scope:** Replace the manual "paste your LiteLLM virtual key" UX step (add-dual-mode-llm-routing Group 9 wizard) with automatic provisioning. On Entra sign-in, Electron calls `1code-api` which provisions (or fetches existing) virtual keys per user via the LiteLLM `/key/generate` endpoint; the key is encrypted via `credential-store.ts` and stored on the `anthropicAccounts` row. Unblocks BYOK-via-LiteLLM and subscription-via-LiteLLM accounts in one click.
 **Effort:** Medium
 **Prereqs:** `add-dual-mode-llm-routing` archived; `1code-api` deployed with `PROVISIONING_ENABLED=true`
-**Canonical reference:** [`openspec/changes/add-dual-mode-llm-routing/design.md`](../../openspec/changes/add-dual-mode-llm-routing/design.md) §Decision 4
+**Canonical reference:** [`openspec/changes/add-dual-mode-llm-routing/design.md`](../../openspec/changes/add-dual-mode-llm-routing/design.md) §Decision 4 · [`docs/enterprise/llm-routing-patterns.md`](../enterprise/llm-routing-patterns.md) (four-pattern matrix + `x-litellm-customer-id` attribution)
 
 ### [Ready] Migrate Ollama + legacy Jotai BYOK into deriveClaudeSpawnEnv
 **Added:** 2026-04-13

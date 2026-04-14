@@ -53,9 +53,9 @@
 
 New as of 2026-04-08 (Phase 0 hard gate #12). Type-safe flag API backed by `feature_flag_overrides` table. Initial flags wired for the auth migration. Tests in `tests/regression/feature-flags-shape.test.ts`. Spec lives in `openspec/changes/add-feature-flag-infrastructure/`.
 
-### tRPC Routers (`src/main/lib/trpc/routers/`) — 22 routers in `createAppRouter`
+### tRPC Routers (`src/main/lib/trpc/routers/`) — 23 routers in `createAppRouter`
 
-21 feature routers imported from `routers/` + 1 git router from `../../git` mounted as `changes`. The file `agent-utils.ts` in `routers/` is a **helper module, not a router**.
+22 feature routers imported from `routers/` + 1 git router from `../../git` mounted as `changes`. The file `agent-utils.ts` in `routers/` is a **helper module, not a router**.
 
 | Router file | Mounted as | Purpose |
 |-------------|------------|---------|
@@ -69,6 +69,7 @@ New as of 2026-04-08 (Phase 0 hard gate #12). Type-safe flag API backed by `feat
 | `codex.ts` | `codex` | OpenAI Codex via `@zed-industries/codex-acp` |
 | `terminal.ts` | `terminal` | PTY sessions, terminal I/O |
 | `enterprise-auth.ts` | `enterpriseAuth` | Enterprise Entra ID auth (signIn/signOut/getStatus/refreshToken) |
+| `litellm-models.ts` | `litellmModels` | Query LiteLLM proxy `/v1/models` with a virtual key (BYOK-LiteLLM wizard auto-populate; Group 8 of `add-dual-mode-llm-routing`) |
 | `external.ts` | `external` | Clipboard, shell, OS utilities + remote backend bridges |
 | `files.ts` | `files` | File read/write, directory listing |
 | `debug.ts` | `debug` | Debug data export, DB inspection |
