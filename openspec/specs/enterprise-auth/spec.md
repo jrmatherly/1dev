@@ -3,9 +3,7 @@
 ## Purpose
 
 MSAL Node enterprise authentication module for Entra ID token acquisition, with tier-aware cache persistence.
-
 ## Requirements
-
 ### Requirement: MSAL Node dependencies installed and configured for Electron rebuild
 
 The project SHALL include `@azure/msal-node` (v5.x), `@azure/msal-node-extensions` (latest compatible with msal-node v5), and `jose` (v5.x) as production dependencies in `package.json`. The `postinstall` script SHALL include `@azure/msal-node-extensions` in the `electron-rebuild` target list alongside `better-sqlite3` and `node-pty`.
@@ -42,6 +40,10 @@ The MSAL configuration SHALL include:
 - Loopback redirect URI: `http://localhost` (MSAL auto-selects an available port)
 - `clientCapabilities` SHALL NOT include `"CP1"` — LiteLLM is not a CAE-enabled resource; CP1 would cause Entra to issue 28-hour tokens without revocation capability, degrading security posture versus the default 1-hour lifetime
 
+**Decoupling constraint (add-dual-mode-llm-routing + this change):** The Entra access token obtained by `acquireTokenSilent()` or `acquireTokenInteractive()` SHALL NOT be written into `ANTHROPIC_AUTH_TOKEN` or any other Claude CLI environment variable. The token is used only for (a) identifying the app session in the renderer, and (b) extracting the `oid` claim for use as the `x-litellm-customer-id` audit header passed into `@anthropic-ai/sdk`'s `defaultHeaders` via the `aux-ai.ts` dispatcher or `deriveClaudeSpawnEnv()` via `ANTHROPIC_CUSTOM_HEADERS`.
+
+**Return type tightening (this change):** `applyEnterpriseAuth()` in `src/main/lib/claude/env.ts` SHALL have return type `Promise<void>` (not `Promise<Record<string, string>>`). The function performs only a side-effect (MSAL cache warming + early failure surface); returning a record invites future contributors to add a mutation and expect the caller to consume the return. Tightening to `void` eliminates the landmine.
+
 #### Scenario: Creating an enterprise auth instance with valid config
 
 - **WHEN** `createEnterpriseAuth({ clientId: "abc", tenantId: "xyz" })` is called
@@ -68,6 +70,25 @@ The MSAL configuration SHALL include:
 - **WHEN** `src/main/auth-manager.ts` is scanned
 - **THEN** it imports from `./lib/enterprise-auth`
 - **AND** all public methods branch on `enterpriseAuthEnabled` feature flag
+
+#### Scenario: applyEnterpriseAuth never writes ANTHROPIC_AUTH_TOKEN
+
+- **WHEN** `src/main/lib/claude/env.ts` is scanned
+- **AND** the body of `applyEnterpriseAuth` is extracted
+- **THEN** no line in that body matches `env.ANTHROPIC_AUTH_TOKEN =` or equivalent assignment syntax
+- **AND** the regression guard `tests/regression/no-entra-in-anthropic-auth-token.test.ts` passes
+
+#### Scenario: applyEnterpriseAuth signature is Promise<void>
+
+- **WHEN** TypeScript code calls `await applyEnterpriseAuth(env)`
+- **THEN** the return value is `void` (not a record)
+- **AND** assigning the return to a variable requires an explicit `as unknown` cast (discouraged)
+
+#### Scenario: Broader scan catches Entra-to-ANTHROPIC_AUTH_TOKEN in any main-process file
+
+- **WHEN** `tests/regression/no-entra-in-anthropic-auth-token.test.ts` runs
+- **THEN** the test also scans all of `src/main/` for any pattern matching `authManager\.(getValidToken|getToken).*ANTHROPIC_.*_TOKEN` or `getValidToken.*ANTHROPIC_AUTH_TOKEN\s*=`
+- **AND** reports zero matches outside `tests/regression/` itself
 
 ### Requirement: Enterprise auth types
 
@@ -136,3 +157,4 @@ Note: The isolation boundary assertion (auth-manager does NOT import enterprise-
 
 - **WHEN** `bun test tests/regression/enterprise-auth-wiring.test.ts` runs
 - **THEN** all wiring assertions pass
+
