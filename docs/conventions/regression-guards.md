@@ -7,7 +7,7 @@ icon: shield
 
 The fork maintains structural regression guards that protect invariants established by Phase 0 hard gates, the brand taxonomy, and the documentation-site capability. Each guard is a single-file `bun:test` test that walks the codebase and fails if a protected invariant is violated.
 
-## Current Inventory (29 guards + 1 unit test = 30 files) {#current-inventory}
+## Current Inventory (34 guards + 1 unit test = 35 files) {#current-inventory}
 
 | File | Protects | Motivated by |
 |------|----------|-------------|
@@ -42,6 +42,9 @@ The fork maintains structural regression guards that protect invariants establis
 | `signed-fetch-cache.test.ts` | `checkUpstreamGate` + `isUpstreamDisabled` helpers exist, silent `\|\| "https://apollosai.dev"` fallback removed, `unreachableCache` Map with 60s TTL, `recordUnreachable` called on ECONNREFUSED/ENOTFOUND in both handlers | remediate-dev-server-findings Group 15 |
 | `litellm-models-router.test.ts` | `litellmModelsRouter` shape: env-var read (not hardcoded URL), Bearer auth, 401/403 → UNAUTHORIZED, network failure → BAD_GATEWAY, malformed body → UNPROCESSABLE_CONTENT, `{ id }` projection, createAppRouter mount | add-dual-mode-llm-routing Group 8 |
 | `subscription-lock-model-picker.test.ts` | `new-chat-form.tsx` declares `canAddModels` gate referencing both `accountType === "claude-subscription"` and `enterpriseAuthEnabled`; `onOpenModelsSettings` prop conditionally withheld via `canAddModels`; `activeAccount` fed by `trpc.anthropicAccounts.getActive.useQuery` | add-dual-mode-llm-routing Group 9 |
+| `preferred-editor-reflects-installed.test.ts` | `preferredEditorAtom` default is `null` (not hardcoded `"cursor"`), `findInstalledEditors` uses `which`-based PATH detection, `getOsDefaults` tRPC procedure exists, fail-closed filter prevents uninstalled editors from appearing | fix-preferred-editor-detection |
+| `graph-profile-404-fallback.test.ts` | `graph-profile.ts` shape: `/me/photo/$value` endpoint URL, 404 + 403 → null (no throw), `fetchAvatarDataUrl` never throws on any status, `Promise.all` parallel dispatch, `GraphProfileError` for `/me` failures only | add-entra-graph-profile |
+| `graph-avatar-data-url-shape.test.ts` | `graph-profile.ts` base64 data-URL construction (`Buffer.from(arrayBuffer).toString("base64")` + `data:${contentType};base64,${base64}`), `content-type → image/jpeg` fallback, `AvatarWithInitials` component FNV-1a determinism (2166136261 offset + 16777619 prime, no `Math.random`), initials fallback chain (displayName → email local-part → "?") | add-entra-graph-profile |
 | `frontmatter-shim-shape.test.ts` (unit test, not a guard) | Round-trip behavior of the canonical frontmatter shim across standard YAML, empty frontmatter, empty string, BOM-prefixed input, and a sample agent fixture | replace-gray-matter-with-front-matter |
 
 ## Adding a New Guard
