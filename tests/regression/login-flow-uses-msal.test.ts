@@ -6,16 +6,16 @@
  *     be reintroduced.
  *   - `startAuthFlow()` throws (typed AuthError) instead of opening the
  *     legacy URL when the flag is off or MSAL init failed.
- *   - The dev-only `ENTERPRISE_AUTH_ENABLED` env override is statically
- *     scoped inside the `!app.isPackaged` gate.
+ *   - The `ENTERPRISE_AUTH_ENABLED` env override is a build-time constant
+ *     (Vite-substituted) gated on the key name `"enterpriseAuthEnabled"`.
  *   - `auth:start-flow` IPC handler validates sender AND emits the
  *     `auth:error` event to the validated sender, not as a broadcast.
  *   - `.env.example` documents `ENTRA_CLIENT_ID`/`ENTRA_TENANT_ID`/
  *     `ENTERPRISE_AUTH_ENABLED` in a coherent block.
- *   - `login.html` uses the canonical 1Code SVG (viewBox 0 0 400 400,
- *     path "M358.333…") with `aria-label="1Code logo"` + `class="logo-path"`,
- *     hosts the DOM-resident accessible toast, and uses safe text-only
- *     DOM mutation (no HTML-parsing assignment) for the message body.
+ *   - `login.html` uses the 1Code circuit-board logo (base64 PNG img tag)
+ *     with `aria-label="1Code logo"`, hosts the DOM-resident accessible
+ *     toast, and uses safe text-only DOM mutation (no HTML-parsing
+ *     assignment) for the message body.
  *   - The preload bridge exposes `onAuthError` AND the `AuthError` typed
  *     discriminated union is declared in either preload/index.d.ts or
  *     the shared types file.
@@ -156,17 +156,17 @@ describe("login-flow-uses-msal", () => {
     expect(body).not.toContain("safeOpenExternal(");
   });
 
-  test("feature-flags.getFlag references Vite env override AND app.isPackaged", () => {
+  test("feature-flags.getFlag references Vite env override for enterpriseAuthEnabled", () => {
     const content = readFileSync(FEATURE_FLAGS, "utf-8");
     const body = getFnBody(content, "getFlag");
     // Must read from import.meta.env.MAIN_VITE_* (Vite-bundled) rather than
     // process.env.* — electron-vite only propagates MAIN_VITE_-prefixed env
-    // vars to the main process at dev time.
+    // vars to the main process at dev time. Values are baked in at build time
+    // so both dev and packaged builds get the literal string.
     expect(body).toContain("import.meta.env.MAIN_VITE_ENTERPRISE_AUTH_ENABLED");
-    expect(body).toContain("app.isPackaged");
-    // Env read must be inside the !app.isPackaged conditional gate.
+    // The env override must be gated on the key name (not app.isPackaged).
     const gatePattern =
-      /if\s*\(\s*!\s*app\.isPackaged[\s\S]*?import\.meta\.env\.MAIN_VITE_ENTERPRISE_AUTH_ENABLED/;
+      /if\s*\(\s*key\s*===\s*"enterpriseAuthEnabled"[\s\S]*?import\.meta\.env\.MAIN_VITE_ENTERPRISE_AUTH_ENABLED/;
     expect(gatePattern.test(body)).toBe(true);
   });
 
@@ -236,13 +236,13 @@ describe("login-flow-uses-msal", () => {
     expect(span).toBeLessThanOrEqual(10);
   });
 
-  test("login.html uses canonical 1Code SVG + accessible toast + safe text DOM", () => {
+  test("login.html uses 1Code logo img + accessible toast + safe text DOM", () => {
     const content = readFileSync(LOGIN_HTML, "utf-8");
-    // Canonical 1Code logo
-    expect(content).toContain('viewBox="0 0 400 400"');
-    expect(content).toContain('d="M358.333');
+    // 1Code circuit-board logo (base64 PNG img tag)
+    expect(content).toContain('alt="1Code logo"');
     expect(content).toContain('aria-label="1Code logo"');
-    expect(content).toContain('class="logo-path"');
+    expect(content).toContain('class="logo"');
+    expect(content).toContain("data:image/png;base64,");
     // DOM-resident toast
     expect(content).toContain('id="authError"');
     expect(content).toContain('role="alert"');

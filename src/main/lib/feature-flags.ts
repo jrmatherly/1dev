@@ -184,17 +184,18 @@ function loadFlagCache(): Map<string, string> {
 export function getFlag<K extends FeatureFlagKey>(key: K): FeatureFlagValue<K> {
   const defaultValue = FLAG_DEFAULTS[key];
 
-  // Dev-only environment-variable override for `enterpriseAuthEnabled`.
-  // Gated by `!app.isPackaged` so packaged builds never consult the env.
+  // Build-time environment-variable override for `enterpriseAuthEnabled`.
+  // Values are substituted by Vite at build time via `import.meta.env`, so
+  // packaged builds contain the literal string baked in during `bun run build`.
   // Hardcoded to one flag — generalize only if a second flag adopts the
   // same pattern (see openspec/specs/feature-flags/spec.md).
   //
   // Reads from `import.meta.env.MAIN_VITE_*` (Vite-bundled at dev time) rather
   // than `process.env.*` because electron-vite loads `.env` through Vite's env
   // system, which exposes values via `import.meta.env` only. Values are
-  // substituted at build time; packaged builds have `undefined` here and fall
-  // through. Matches the existing `MAIN_VITE_DEV_BYPASS_AUTH` pattern.
-  if (!app.isPackaged && key === "enterpriseAuthEnabled") {
+  // substituted at build time — both dev and packaged builds get the literal
+  // string baked in. Matches the existing `MAIN_VITE_DEV_BYPASS_AUTH` pattern.
+  if (key === "enterpriseAuthEnabled") {
     const envVal = import.meta.env.MAIN_VITE_ENTERPRISE_AUTH_ENABLED;
     if (envVal === "true") return true as FeatureFlagValue<K>;
     if (envVal === "false") return false as FeatureFlagValue<K>;
@@ -238,7 +239,7 @@ export function getFlag<K extends FeatureFlagKey>(key: K): FeatureFlagValue<K> {
 export function getFlagWithSource<K extends FeatureFlagKey>(
   key: K,
 ): { value: FeatureFlagValue<K>; source: "env" | "db" | "default" } {
-  if (!app.isPackaged && key === "enterpriseAuthEnabled") {
+  if (key === "enterpriseAuthEnabled") {
     const envVal = import.meta.env.MAIN_VITE_ENTERPRISE_AUTH_ENABLED;
     if (envVal === "true") {
       return { value: true as FeatureFlagValue<K>, source: "env" };

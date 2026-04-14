@@ -30,7 +30,7 @@ These are the rules most likely to cause incidents if violated. Detailed rules l
 
 Canonical status: [`docs/enterprise/phase-0-gates.md`](docs/enterprise/phase-0-gates.md).
 
-Phase 1 enterprise auth wiring is complete and the login flow is fully wired (see [`docs/enterprise/auth-login-button-wire-msal.md`](docs/enterprise/auth-login-button-wire-msal.md)): `auth-manager.ts` uses a Strangler Fig adapter gated by `enterpriseAuthEnabled` flag (with a dev-only `MAIN_VITE_ENTERPRISE_AUTH_ENABLED` env override), `applyEnterpriseAuth()` injects tokens into the Claude spawn env, the `enterpriseAuth` tRPC router exposes sign-in/out to the renderer, and clicking **Sign in** invokes MSAL `acquireTokenInteractive()` end-to-end. Cluster config is deployed (`onecode_api_enabled: true` in `cluster.yaml`); Settings UI for runtime flag toggles (change #3) is deferred to a future OpenSpec proposal.
+Phase 1 enterprise auth wiring is complete and the login flow is fully wired (see [`docs/enterprise/auth-login-button-wire-msal.md`](docs/enterprise/auth-login-button-wire-msal.md)): `auth-manager.ts` uses a Strangler Fig adapter gated by `enterpriseAuthEnabled` flag (with a build-time `MAIN_VITE_ENTERPRISE_AUTH_ENABLED` env override), `applyEnterpriseAuth()` injects tokens into the Claude spawn env, the `enterpriseAuth` tRPC router exposes sign-in/out to the renderer, and clicking **Sign in** invokes MSAL `acquireTokenInteractive()` end-to-end. Cluster config is deployed (`onecode_api_enabled: true` in `cluster.yaml`); Settings UI for runtime flag toggles (change #3) is deferred to a future OpenSpec proposal.
 
 ## Commands
 

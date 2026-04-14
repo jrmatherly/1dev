@@ -155,6 +155,12 @@ jobs:
         # This is safe on all OSes — Linux/Windows have 16 GB and ignore the cap.
         env:
           NODE_OPTIONS: "--max-old-space-size=6144"
+          # Enterprise Entra ID auth — baked in at Vite build time.
+          # Set these as GitHub repository secrets:
+          #   ENTRA_CLIENT_ID, ENTRA_TENANT_ID
+          MAIN_VITE_ENTERPRISE_AUTH_ENABLED: "true"
+          MAIN_VITE_ENTRA_CLIENT_ID: ${{ secrets.ENTRA_CLIENT_ID }}
+          MAIN_VITE_ENTRA_TENANT_ID: ${{ secrets.ENTRA_TENANT_ID }}
         run: bun run build
 
       - name: "📦 Package for ${{ matrix.name }} (unsigned)"

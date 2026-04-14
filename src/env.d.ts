@@ -10,7 +10,7 @@ declare global {
     readonly MAIN_VITE_API_URL?: string;
     readonly MAIN_VITE_DEV_BYPASS_AUTH?: string;
     readonly MAIN_VITE_OPENAI_API_KEY?: string;
-    // Enterprise Entra ID auth (dev-only; packaged builds use DB / Settings UI)
+    // Enterprise Entra ID auth (baked in at build time by Vite)
     readonly MAIN_VITE_ENTERPRISE_AUTH_ENABLED?: string;
     readonly MAIN_VITE_ENTRA_CLIENT_ID?: string;
     readonly MAIN_VITE_ENTRA_TENANT_ID?: string;
