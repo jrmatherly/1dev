@@ -46,6 +46,11 @@
 - `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env` — skips login, creates `dev@localhost`
 - Only works when `!app.isPackaged`
 
+## Packaged Build Self-Heal (2026-04-14)
+- **Quarantine strip:** `getBundledClaudeBinaryPath()` runs `xattr -rd com.apple.quarantine` on `Resources/bin/` at first launch. Without this, macOS Gatekeeper blocks spawning the unsigned Claude/Codex binaries (surfaces as ENOENT). Users must also use `xattr -rd` (recursive), not `xattr -d`.
+- **PATH augmentation:** `getShellEnvironment()` in `shell-env.ts` adds `~/.bun/bin`, `/opt/homebrew/bin`, `~/.nvm/current/bin`, `/usr/local/bin`, `~/.cargo/bin`, `~/.local/bin`, `~/Library/pnpm` to the resolved PATH. Bun's installer puts PATH in `~/.zshrc` (interactive) not `~/.zprofile` (login), so `/bin/zsh -lc env` misses it.
+- **Auto-update redirect:** On macOS, "Update to vX.X.X..." menu opens GitHub Releases page via `safeOpenExternal()` instead of calling `downloadUpdate()` which silently fails through Squirrel.Mac code signature validation. Menu stays visible (not reset on `update-downloaded` on macOS).
+
 ## Docs Build (xyd)
 - Build script cleans `.xyd/host/node_modules` and `.xyd/build` first (Node 24 rmSync fix)
 - React key warning (FwSubNav) and Orama sourcemap warnings are upstream bugs — cosmetic
