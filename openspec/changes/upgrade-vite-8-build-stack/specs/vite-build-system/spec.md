@@ -25,7 +25,7 @@ Vite 8 replaces esbuild and Rollup with Rolldown. The new bundler SHALL produce 
 
 ### Requirement: External modules resolve at runtime
 
-Modules marked as external (electron, better-sqlite3, @prisma/client, @anthropic-ai/claude-agent-sdk) SHALL resolve correctly at runtime under the new bundler.
+Modules marked as external (electron, better-sqlite3, @anthropic-ai/claude-agent-sdk) SHALL resolve correctly at runtime under the new bundler.
 
 #### Scenario: Native and SDK modules load correctly
 
@@ -35,7 +35,7 @@ Modules marked as external (electron, better-sqlite3, @prisma/client, @anthropic
 
 ### Requirement: CJS interop handles bundled modules
 
-Modules in `externalizeDeps.exclude` (superjson, trpc-electron, gray-matter, async-mutex) SHALL import correctly under both Vite 7's and Vite 8's changed CJS interop behavior.
+Modules in `externalizeDeps.exclude` (superjson, trpc-electron, front-matter, async-mutex) SHALL import correctly under both Vite 7's and Vite 8's changed CJS interop behavior.
 
 #### Scenario: Excluded externals import correctly
 
@@ -53,13 +53,6 @@ Plugin-react v6 uses Oxc instead of Babel for JSX transforms. The `jsxImportSour
 - **WHEN** the renderer process runs in dev mode
 - **THEN** `jsxImportSource` option for WDYR integration works correctly
 
-### Requirement: Shiki v4 syntax highlighting works
-
-Shiki v4 is a minor cleanup release with no API changes affecting this project. All highlighting APIs SHALL work identically after the upgrade.
-
-#### Scenario: Code blocks highlight correctly
-
-- **GIVEN** Shiki is upgraded from v3 to v4
-- **WHEN** code blocks appear in chat messages
-- **THEN** syntax highlighting works for all supported languages
-- **AND** theme mapping produces correct colors
+<!-- Shiki v4 requirement removed 2026-04-14: Shiki 3→4 was split out into the standalone
+     `upgrade-shiki-4` change and archived 2026-04-10 (PR #11). The Shiki requirement is now
+     captured in `openspec/specs/shiki-highlighter/spec.md` as a baseline, not here. -->

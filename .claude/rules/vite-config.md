@@ -18,12 +18,12 @@ The config has `externalizeDeps.exclude` listing modules that must be bundled in
 
 ```bash
 # Want 0 — these should be bundled, not external
-grep -cE 'require\("(superjson|trpc-electron|gray-matter|async-mutex)"\)' out/main/index.js
+grep -cE 'require\("(superjson|trpc-electron|front-matter|async-mutex)"\)' out/main/index.js
 
 # Spot-check distinctive internal symbols (these prove they're bundled):
 grep -c "SuperJSON\|superjson_parse"                          out/main/index.js  # superjson
 grep -c "Mutex\|semaphore\|waitUnlock\|acquireQueue"          out/main/index.js  # async-mutex
-grep -c "parseMatter\|engines.js"                             out/main/index.js  # gray-matter
+grep -c "bodyBegin\|parseFrontMatter"                         out/main/index.js  # front-matter
 grep -c "electronTRPC"                                        out/preload/index.js  # trpc-electron
 ```
 

@@ -20,7 +20,7 @@ Vite 8 is the most significant architectural change in Vite's history — **Roll
 
 **Vite 7 breaking changes affecting us:**
 - `build.target` default changed from `'modules'` to `'baseline-widely-available'` (Chrome 107+) — non-issue for Electron
-- CJS interop change — modules with both `browser` and `module` fields now respect `resolve.mainFields` order. May affect `superjson`, `trpc-electron`, `gray-matter`, `async-mutex` (all in `externalizeDeps.exclude`)
+- CJS interop change — modules with both `browser` and `module` fields now respect `resolve.mainFields` order. May affect `superjson`, `trpc-electron`, `front-matter`, `async-mutex` (all in `externalizeDeps.exclude`; `gray-matter` was swapped for `front-matter` on 2026-04-12 via `replace-gray-matter-with-front-matter`)
 - `splitVendorChunkPlugin` removed — already resolved (not in our config)
 
 **plugin-react v5 breaking changes:**

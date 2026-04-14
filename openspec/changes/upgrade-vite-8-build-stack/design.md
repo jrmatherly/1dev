@@ -77,4 +77,23 @@ Plugin-react v6 uses Oxc instead of Babel for JSX transforms. The `jsxImportSour
 1. Rolldown output comparison — bundle sizes, format correctness
 2. CJS require chains — `better-sqlite3`, `node-pty`, `@anthropic-ai/claude-agent-sdk`
 3. WDYR integration — dev mode console output
-4. Full quality gates — all 5
+4. Full quality gates — 5 CI + 1 local-only lint advisory
+5. Run `.claude/rules/vite-config.md` static-verification playbook against `out/` (CJS bundling, ESM-only dynamic imports preserved, `import.meta.env` fully replaced, single React instance)
+
+### Rollback Plan (Phase B)
+
+If Rolldown produces broken CJS output, the `.claude/rules/vite-config.md` static-check gate fails, or any of the 5 CI quality gates regresses **and cannot be resolved in-session**, revert to the known-good Phase A state:
+
+```bash
+# Revert pins
+bun install vite@7.3.2 electron-vite@5.0.0 @vitejs/plugin-react@5.2.0
+
+# Revert config (git restore if rolldownOptions rename landed)
+git restore electron.vite.config.ts
+
+# Clean rebuild to eliminate any Rolldown-cached artifacts
+rm -rf out/ node_modules/.cache
+bun run build
+```
+
+Phase A state is empirically validated (see tasks.md §1-4, all ✅) and is the stable fallback. Document the failure mode in `docs/operations/roadmap.md` with reproduction steps so the next Phase B attempt can target the specific regression.

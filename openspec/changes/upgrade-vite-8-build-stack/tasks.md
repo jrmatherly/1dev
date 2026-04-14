@@ -28,19 +28,19 @@
 
 ## 5. Phase B — Bump to Vite 8 + electron-vite 6 + plugin-react 6 (blocked on electron-vite 6.0.0 stable)
 
-- [ ] 5.1 Verify electron-vite 6.0.0 stable released on npm (prerequisite)
+- [ ] 5.1 Verify electron-vite 6.0.0 stable released on npm (prerequisite) — **Check command:** `bun info electron-vite@latest version` must return `6.x.x` (not `5.x.x`). As of 2026-04-14 latest is `5.0.0`; `6.0.0-beta.1` was published 2026-04-12 on the `beta` dist-tag.
 - [ ] 5.2 Update `package.json`: `"vite": "^8.0.8"`, `"electron-vite": "^6.0.0"`, `"@vitejs/plugin-react": "^6.0.1"`
 - [ ] 5.3 Run `bun install`
-- [ ] 5.4 Verify `@swc/core` peer dependency — may be dropped in electron-vite 6.x
-- [ ] 5.5 Verify `@babel/core` dependency — may be replaced by Oxc
-- [ ] 5.6 Update `@swc/core` in devDependencies if needed
+- [ ] 5.4 Verify `@swc/core` peer dependency status — **Pre-documented (beta.1, 2026-04-12):** `@swc/core: "^1.0.0"` is retained as an optional peer dep. Task is verification, not migration. Keep current `"@swc/core": "^1.15.24"` unless stable release changes this.
+- [ ] 5.5 Verify `@babel/core` dependency status — **Pre-documented (beta.1, 2026-04-12):** electron-vite 6.x still ships with `@babel/core: "^7.29.0"` + `@babel/plugin-transform-arrow-functions` as internal dependencies. Babel was NOT replaced by Oxc at the electron-vite layer (plugin-react v6 uses Oxc independently). Task is verification, not migration.
+- [ ] 5.6 Update `@swc/core` in devDependencies if needed (likely no change based on beta.1 signals)
 
 ## 6. Phase B — Migrate electron.vite.config.ts
 
-- [ ] 6.1 Rename `rollupOptions` to `rolldownOptions` in all 3 sections (main, preload, renderer)
-- [ ] 6.2 Remove `@prisma/client` from `external` array (dead config)
+- [ ] 6.1 Rename `rollupOptions` to `rolldownOptions` in all 3 sections (main, preload, renderer). Advisory only — Rolldown's compatibility layer auto-converts `rollupOptions` but emits deprecation warnings; rename eliminates them.
+- [x] 6.2 Remove `@prisma/client` from `external` array (dead config) — **Already done** (shipped 2026-04-12 via PR #18 security-hardening Phase B sweep; `electron.vite.config.ts:19-22` now lists only `electron`, `better-sqlite3`, `@anthropic-ai/claude-agent-sdk`).
 - [ ] 6.3 Consider adding `node-pty` to explicit `external` array
-- [ ] 6.4 Remove `pnpm.overrides` section from `package.json` (project uses bun)
+- [ ] 6.4 Remove `pnpm.overrides` section from `package.json:272-273` (project uses bun) — still pending as of 2026-04-14
 - [ ] 6.5 Verify `externalizeDeps` option works in electron-vite 6.x
 
 ## 7. Phase B — Validate Rolldown output
