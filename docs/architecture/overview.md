@@ -21,7 +21,7 @@ The renderer is the UI; the main process is the privileged backend; the preload 
 
 ## IPC architecture — tRPC over `trpc-electron`
 
-All renderer → main communication uses **tRPC** transported by `trpc-electron`, not raw `ipcMain.handle` / `ipcRenderer.invoke`. The main process composes 22 routers in `createAppRouter` (see [tRPC routers](./trpc-routers)). The renderer imports a typed client from `src/renderer/lib/trpc.ts` that mirrors the router tree. Inputs are validated by `zod` schemas; outputs are serialized by `superjson` to preserve `Date`, `Map`, `Set`, and `undefined`.
+All renderer → main communication uses **tRPC** transported by `trpc-electron`, not raw `ipcMain.handle` / `ipcRenderer.invoke`. The main process composes 23 routers in `createAppRouter` (see [tRPC routers](./trpc-routers)). The renderer imports a typed client from `src/renderer/lib/trpc.ts` that mirrors the router tree. Inputs are validated by `zod` schemas; outputs are serialized by `superjson` to preserve `Date`, `Map`, `Set`, and `undefined`.
 
 Security-sensitive procedures (enterprise-auth `signOut`/`refreshToken`, `external.openExternal`) are wrapped with `authedProcedure` in `src/main/lib/trpc/index.ts`, which throws `TRPCError UNAUTHORIZED` when `authManager.isAuthenticated()` returns false. The middleware honors `isDevAuthBypassed()` so local development with `MAIN_VITE_DEV_BYPASS_AUTH=true` skips the guard.
 

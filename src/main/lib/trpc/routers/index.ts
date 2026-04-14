@@ -20,6 +20,7 @@ import { voiceRouter } from "./voice";
 import { pluginsRouter } from "./plugins";
 import { featureFlagsRouter } from "./feature-flags";
 import { enterpriseAuthRouter } from "./enterprise-auth";
+import { litellmModelsRouter } from "./litellm-models";
 import { createGitRouter } from "../../git";
 import { BrowserWindow } from "electron";
 
@@ -50,6 +51,7 @@ export function createAppRouter(getWindow: () => BrowserWindow | null) {
     plugins: pluginsRouter,
     featureFlags: featureFlagsRouter,
     enterpriseAuth: enterpriseAuthRouter,
+    litellmModels: litellmModelsRouter,
     // Git operations - named "changes" to match Superset API
     changes: createGitRouter(),
   });

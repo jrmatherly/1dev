@@ -16,7 +16,7 @@ icon: layers
 | **State (UI)** | Jotai | — | Atoms for UI state (selected chat, sidebar open, preview settings). |
 | **State (persisted)** | Zustand | — | Sub-chat tabs and pinned state. `useAgentSubChatStore` does NOT use `persist()` middleware — rebuilt from DB on `setChatId()`. |
 | **State (server)** | React Query via tRPC | — | Auto-caching, refetch, optimistic updates. |
-| **IPC** | tRPC + trpc-electron | — | 22 routers in `createAppRouter`. See [tRPC Routers](./trpc-routers.md). |
+| **IPC** | tRPC + trpc-electron | — | 23 routers in `createAppRouter`. See [tRPC Routers](./trpc-routers.md). |
 | **Database** | Drizzle ORM + better-sqlite3 | — | 7 tables, auto-migration on startup. See [Database](./database.md). |
 | **Terminal** | node-pty + xterm.js | — | Lazy-loaded in `session.ts` to prevent crash if native module fails. |
 | **Editor** | Monaco Editor | — | Code viewer and diff display. |

@@ -3,11 +3,11 @@ title: tRPC Routers
 icon: route
 ---
 
-# tRPC Routers {subtitle="22 routers composed in createAppRouter"}
+# tRPC Routers {subtitle="23 routers composed in createAppRouter"}
 
 The Electron **main process** exposes functionality to the **renderer** via tRPC over IPC (`trpc-electron`). Every feature that crosses the process boundary — database queries, subprocess spawning, file I/O, OS integration — goes through a typed tRPC procedure.
 
-Composition happens in [`src/main/lib/trpc/routers/index.ts`](https://github.com/jrmatherly/1dev/blob/main/src/main/lib/trpc/routers/index.ts) via `createAppRouter`, which mounts **21 feature routers + 1 git router** (the git router is created via a factory `createGitRouter()` so it can be instantiated with config).
+Composition happens in [`src/main/lib/trpc/routers/index.ts`](https://github.com/jrmatherly/1dev/blob/main/src/main/lib/trpc/routers/index.ts) via `createAppRouter`, which mounts **22 feature routers + 1 git router** (the git router is created via a factory `createGitRouter()` so it can be instantiated with config).
 
 ## Router inventory
 
@@ -34,9 +34,10 @@ Composition happens in [`src/main/lib/trpc/routers/index.ts`](https://github.com
 | `plugins` | `routers/plugins.ts` | Claude Code plugin discovery |
 | `featureFlags` | `routers/feature-flags.ts` | Read/write feature flags (DB-backed with in-memory cache) |
 | `enterpriseAuth` | `routers/enterprise-auth.ts` | MSAL Entra ID sign-in / sign-out / refresh |
+| `litellmModels` | `routers/litellm-models.ts` | Query LiteLLM proxy `/v1/models` with a virtual key (BYOK-LiteLLM onboarding wizard auto-populate, Group 8 of `add-dual-mode-llm-routing`) |
 | `changes` | (via `createGitRouter()`) | Git diff / status / commit / branch / log (11 files in `src/main/lib/git/`) |
 
-**22 routers total.** The count is enforced by the `trpc-router-auditor` subagent and the `docs-drift-check` skill.
+**23 routers total.** The count is enforced by the `trpc-router-auditor` subagent and the `docs-drift-check` skill.
 
 ## Router conventions
 

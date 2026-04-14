@@ -49,9 +49,9 @@
 
 ## 8. litellmModels tRPC router
 
-- [ ] 8.1 Create `src/main/lib/trpc/routers/litellm-models.ts` exporting a router with a `listUserModels` procedure: input `{ virtualKey: string }`, output `{ models: Array<{ id: string }> }`. Implementation: `fetch(${MAIN_VITE_LITELLM_BASE_URL}/v1/models, { headers: { Authorization: 'Bearer ' + virtualKey } })`. Handle 401 / network errors by rethrowing with a user-facing message.
-- [ ] 8.2 Mount the new router in `src/main/lib/trpc/routers/index.ts` as `litellmModels`. Update `docs/architecture/trpc-routers.md` count (22 → 23).
-- [ ] 8.3 Run the `trpc-router-auditor` subagent (or `bun run check:trpc-routers` if wired) to confirm counts align.
+- [x] 8.1 Created `src/main/lib/trpc/routers/litellm-models.ts` exporting `litellmModelsRouter` with `listUserModels` query procedure (input `{ virtualKey }`, output `{ models: [{ id }] }`). Reads `MAIN_VITE_LITELLM_BASE_URL` from env; throws INTERNAL_SERVER_ERROR when unset. Distinguishes 401/403 → UNAUTHORIZED, network failure + non-ok → BAD_GATEWAY, malformed body → UNPROCESSABLE_CONTENT. Projects OpenAI-compatible envelope to minimal `{ id }` shape so wizard consumers don't couple to the full upstream contract.
+- [x] 8.2 Mounted as `litellmModels: litellmModelsRouter` in `createAppRouter` between `enterpriseAuth` and `changes`. Updated `docs/architecture/trpc-routers.md` header (22 → 23), intro (21 feature + 1 git → 22 feature + 1 git), table row added, total count footer (22 → 23). Followup drift fixes in `docs/architecture/tech-stack.md:19` + `docs/architecture/overview.md:24` caught by the `trpc-router-auditor` subagent.
+- [x] 8.3 Ran `trpc-router-auditor` subagent — initially reported 3 drift points (trpc-routers.md:40 total-count footer + tech-stack.md:19 + overview.md:24), all fixed. Convention checks passed: Router-suffix export name, `publicProcedure`, Zod input schema, conventional imports. Added shape-based regression guard at `tests/regression/litellm-models-router.test.ts` (12 tests) — asserts router shape, env-var read (not hardcoded URL), Bearer auth, 401/403 distinction, BAD_GATEWAY mapping, projection to `{ id }` shape, createAppRouter mount.
 
 ## 9. Settings UI wizard (two account types)
 
