@@ -8,7 +8,7 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - React 19.2.5, TypeScript 6.0.2, Tailwind CSS 4, Bun
 - @anthropic-ai/claude-agent-sdk 0.2.104, **@anthropic-ai/sdk ^0.81.0** (explicit dep, for aux-AI module), Codex CLI 0.118.0, Ollama
 - 7 Drizzle tables, **23 tRPC routers** (incl. enterprise-auth, litellmModels), better-sqlite3, node-pty (lazy-loaded)
-- **31 test files in `tests/regression/`** (30 regression guards + 1 frontmatter shim unit test — 186 tests / 435 expect() / ~6s). Recent additions via `remediate-dev-server-findings` (archived 2026-04-13): `aux-ai-provider-dispatch`, `no-apollosai-aux-ai-fetch`, `signed-fetch-cache`, `raw-logger-concurrent-writes`, `no-legacy-oauth-byok-leak`. Plus `litellm-models-router` (2026-04-13, from active `add-dual-mode-llm-routing` Group 8). Plus 20 service test files in `services/1code-api/tests/`.
+- **32 test files in `tests/regression/`** (31 regression guards + 1 frontmatter shim unit test — 191 tests / 441 expect() / ~6s). Recent additions via `remediate-dev-server-findings` (archived 2026-04-13): `aux-ai-provider-dispatch`, `no-apollosai-aux-ai-fetch`, `signed-fetch-cache`, `raw-logger-concurrent-writes`, `no-legacy-oauth-byok-leak`. Plus `litellm-models-router` (2026-04-13, from active `add-dual-mode-llm-routing` Group 8) and `subscription-lock-model-picker` (2026-04-13, Group 9.10). Plus 20 service test files in `services/1code-api/tests/`.
 
 ## Current State (2026-04-13, mid-afternoon after Group 8 + 10 of add-dual-mode-llm-routing)
 - **Phase 0:** 15/15 hard gates complete
@@ -29,8 +29,10 @@ Local-first Electron desktop app for parallel AI-assisted development. Enterpris
 - **Dev auth bypass:** `MAIN_VITE_DEV_BYPASS_AUTH=true` in `.env`
 - **Centralized roadmap:** `docs/operations/roadmap.md` — single source of truth.
 - **Release pipeline:** GitHub Actions `release.yml` 3-OS matrix. Current: **v0.0.85** (2026-04-13).
-- **Active OpenSpec changes (4 as of 2026-04-13):**
-  - `add-dual-mode-llm-routing` (36/55, Groups 1-8 + 10 landed: Entra decoupling + dual-mode routing at `51318e1` + `8befc62` + `0f43165`; litellmModels router at `6354ea6`; llm-routing-patterns doc at `5948383`. Remaining: Group 9 Settings wizard + 11 manual smoke + 12 quality gates + 13 archive)
+- **Active OpenSpec changes (6 as of 2026-04-13 late):**
+  - `add-dual-mode-llm-routing` (46/59, Groups 1-9 + 10 landed: Entra decoupling + dual-mode routing at `51318e1` + `8befc62` + `0f43165`; litellmModels router at `6354ea6`; llm-routing-patterns doc at `5948383`; Settings UI wizard §9.1-§9.10 + subscription-lock model-picker gate appended 2026-04-13. Remaining: Group 9.11 manual smoke + 11-13)
+  - `fix-preferred-editor-detection` (0/31, scaffolded 2026-04-13 commit `3def1a8` — npm `which`-based PATH detection porting the ShipIT pattern + OS-default derivation + `preferredEditorAtom` default null-ification)
+  - `add-entra-graph-profile` (0/45, scaffolded 2026-04-13 commit `3def1a8` — Graph `User.Read` delegated scope + `/me` profile fields + `/me/photo/$value` avatar with initials fallback)
   - `improve-dev-launch-keychain-ux` (0/23, proposal scaffolded)
   - `wire-login-button-to-msal` (45/57, awaiting smoke + archive)
   - `upgrade-vite-8-build-stack` (15/50, Phase B blocked on electron-vite 6.0.0)

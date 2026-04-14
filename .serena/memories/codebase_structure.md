@@ -9,7 +9,7 @@ openspec/      — OpenSpec change proposals + 16 capability specs (116 requirem
 .claude/rules/ — 9 behavioral rules (2 global + 7 path-scoped)
 .claude/skills/ — 17 workflow skills incl. `project-orchestrator`
 .claude/agents/ — Subagents (db-schema-auditor, trpc-router-auditor, etc.)
-tests/regression/ — **31 bun:test files** (30 regression guards + 1 frontmatter shim unit test; 186 tests / 435 expect() / ~6s)
+tests/regression/ — **32 bun:test files** (31 regression guards + 1 frontmatter shim unit test; 191 tests / 441 expect() / ~6s)
 tests/fixtures/   — Test fixtures
 drizzle/       — Database migration files (0010_flowery_blackheart.sql is hand-edited exception)
 services/1code-api/ — Backend API service (Fastify+tRPC+Drizzle/PostgreSQL). 20 test files.
