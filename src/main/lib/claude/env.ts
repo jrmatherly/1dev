@@ -96,6 +96,24 @@ export function getBundledClaudeBinaryPath(): string {
     console.log("[claude-binary] exists:", exists);
     console.log("[claude-binary] size:", sizeMB, "MB");
     console.log("[claude-binary] isExecutable:", isExecutable);
+
+    // macOS: strip quarantine from Resources/bin/ on first launch.
+    // Users run `xattr -d com.apple.quarantine /Applications/1Code.app`
+    // but -d without -r doesn't recurse into Resources/bin/, leaving the
+    // bundled binaries quarantined. Gatekeeper blocks spawn() with ENOENT.
+    if (!isDev && currentPlatform === "darwin") {
+      try {
+        const { execFileSync } = require("node:child_process");
+        const binDir = path.dirname(binaryPath);
+        execFileSync("xattr", ["-rd", "com.apple.quarantine", binDir], {
+          timeout: 5000,
+          stdio: "pipe",
+        });
+        console.log("[claude-binary] Stripped quarantine from", binDir);
+      } catch {
+        // xattr fails if no quarantine is set — safe to ignore
+      }
+    }
   }
   console.log("[claude-binary] ============================================");
 

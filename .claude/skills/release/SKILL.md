@@ -57,7 +57,7 @@ gh workflow run release.yml --ref main --field version=v0.0.XX
 The tag must already exist.
 
 ### Important Notes
-- **First iteration releases are UNSIGNED** — macOS users need `xattr -d com.apple.quarantine /Applications/1Code.app` after install. Code signing is tracked as a roadmap item.
+- **First iteration releases are UNSIGNED** — macOS users need `xattr -rd com.apple.quarantine /Applications/1Code.app` after install. Code signing is tracked as a roadmap item.
 - **v0.0.72 users must manually reinstall** — older installs have the dead CDN provider baked in and cannot auto-update. See release.md "First Release After Pipeline Migration" section.
 - **Beta channel is disabled** — `auto-updater.ts` is locked to "latest" channel. Beta support requires `generateUpdatesFilesForAllChannels: true` in the electron-builder config.
 

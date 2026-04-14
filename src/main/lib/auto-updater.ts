@@ -125,10 +125,23 @@ export async function initAutoUpdater(getWindows: () => BrowserWindow[]) {
   // Event: Update downloaded
   autoUpdater.on("update-downloaded", (info: UpdateInfo) => {
     log.info(`[AutoUpdater] Update downloaded: v${info.version}`);
-    // Reset menu back to "Check for Updates..." since update is ready
     const setUpdateAvailable = globalThis.__setUpdateAvailable;
-    if (setUpdateAvailable) {
-      setUpdateAvailable(false);
+    if (process.platform === "darwin") {
+      // On macOS, electron-updater fires "update-downloaded" when its own
+      // download completes, BEFORE Squirrel.Mac attempts the install.
+      // Squirrel silently fails on unsigned builds, so keep the menu
+      // showing "Update to vX.X.X..." — the click handler redirects to
+      // GitHub Releases for manual download.
+      log.warn(
+        "[AutoUpdater] macOS: update downloaded but Squirrel.Mac install " +
+          "may fail on unsigned builds. Menu keeps update prompt.",
+      );
+    } else {
+      // On Windows/Linux, the download completing means the update is
+      // ready to install on next quit.
+      if (setUpdateAvailable) {
+        setUpdateAvailable(false);
+      }
     }
     sendToAllRenderers("update:downloaded", {
       version: info.version,
@@ -140,6 +153,17 @@ export async function initAutoUpdater(getWindows: () => BrowserWindow[]) {
   // Event: Error
   autoUpdater.on("error", (error: Error) => {
     log.error("[AutoUpdater] Error:", error.message);
+    if (
+      process.platform === "darwin" &&
+      (error.message.includes("Code signature") ||
+        error.message.includes("Squirrel") ||
+        error.message.includes("Could not get code signature"))
+    ) {
+      log.warn(
+        "[AutoUpdater] macOS Squirrel code signature failure — " +
+          "expected for unsigned builds. Users should download from GitHub Releases.",
+      );
+    }
     sendToAllRenderers("update:error", error.message);
   });
 

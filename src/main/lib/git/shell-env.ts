@@ -13,6 +13,38 @@ let cachedEnv: Record<string, string> | null = null;
 let cacheTime = 0;
 let isFallbackCache = false;
 const CACHE_TTL_MS = 60_000; // 1 minute cache
+
+/**
+ * Augment PATH with common tool directories that may not be in login shell
+ * profiles. Bun's installer adds to ~/.zshrc (interactive) not ~/.zprofile
+ * (login), so `/bin/zsh -lc env` misses it. Same for nvm, homebrew on
+ * Apple Silicon, Rust/cargo, and pnpm.
+ */
+function augmentPathWithCommonDirs(env: Record<string, string>): void {
+  if (process.platform === "win32") return;
+  const home = env.HOME || os.homedir();
+  const candidates = [
+    path.join(home, ".bun/bin"),
+    "/opt/homebrew/bin",
+    "/opt/homebrew/sbin",
+    path.join(home, ".nvm/current/bin"),
+    "/usr/local/bin",
+    path.join(home, ".cargo/bin"),
+    path.join(home, ".local/bin"),
+    path.join(home, "Library/pnpm"),
+  ];
+  const currentPath = env.PATH || "";
+  const pathSet = new Set(currentPath.split(":"));
+  const additions: string[] = [];
+  for (const dir of candidates) {
+    if (!pathSet.has(dir)) {
+      additions.push(dir);
+    }
+  }
+  if (additions.length > 0) {
+    env.PATH = [...additions, currentPath].join(":");
+  }
+}
 const FALLBACK_CACHE_TTL_MS = 10_000; // 10 second cache for fallback (retry sooner)
 
 // Track PATH fix state for macOS GUI app PATH fix
@@ -138,6 +170,7 @@ export async function getShellEnvironment(): Promise<Record<string, string>> {
       }
     }
 
+    augmentPathWithCommonDirs(env);
     cachedEnv = env;
     cacheTime = now;
     isFallbackCache = false;
@@ -154,6 +187,7 @@ export async function getShellEnvironment(): Promise<Record<string, string>> {
         fallback[key] = value;
       }
     }
+    augmentPathWithCommonDirs(fallback);
     cachedEnv = fallback;
     cacheTime = now;
     isFallbackCache = true;

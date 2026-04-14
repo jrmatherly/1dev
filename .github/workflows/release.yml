@@ -294,7 +294,7 @@ jobs:
             > Apple Developer ID and Windows EV certificates are provisioned.
             >
             > **macOS unsigned install:** after dragging to Applications, run:
-            > `xattr -d com.apple.quarantine /Applications/1Code.app`
+            > `xattr -rd com.apple.quarantine /Applications/1Code.app`
             > This removes only the quarantine flag (not all xattrs). Only run
             > this if you trust the source of this download (this GitHub Release).
 

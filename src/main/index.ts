@@ -694,15 +694,27 @@ if (gotTheLock) {
               label: updateAvailable
                 ? `Update to v${availableVersion}...`
                 : "Check for Updates...",
-              click: () => {
+              click: async () => {
                 // Send event to renderer to clear dismiss state
                 const win = getWindow();
                 if (win) {
                   win.webContents.send("update:manual-check");
                 }
-                // If update is already available, start downloading immediately
                 if (updateAvailable) {
-                  downloadUpdate();
+                  // On macOS, unsigned builds cannot use Squirrel.Mac for
+                  // install — it silently fails on code signature validation.
+                  // Redirect to GitHub Releases for manual download until
+                  // code signing is enabled.
+                  if (process.platform === "darwin") {
+                    const { safeOpenExternal } = await import(
+                      "./lib/safe-external"
+                    );
+                    await safeOpenExternal(
+                      `https://github.com/jrmatherly/1dev/releases/tag/v${availableVersion}`,
+                    );
+                  } else {
+                    downloadUpdate();
+                  }
                 } else {
                   checkForUpdates(true);
                 }

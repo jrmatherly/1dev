@@ -124,7 +124,7 @@ Users will see:
 
 - **macOS:** Gatekeeper will refuse to open the unsigned app by default. Workaround after dragging to Applications:
   ```bash
-  xattr -d com.apple.quarantine /Applications/1Code.app
+  xattr -rd com.apple.quarantine /Applications/1Code.app
   ```
 - **Windows:** SmartScreen will warn "Windows protected your PC". Users click "More info" → "Run anyway".
 - **Linux:** No signing required for AppImage/DEB; these run normally.

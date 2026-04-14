@@ -59,6 +59,6 @@ Default is `patch`. Pass `minor` or `major` as argument.
 
 - The release workflow uses a **shared concurrency group with cancel-in-progress** — triggering a new release cancels any in-progress older build.
 - Releases are created as **drafts** by the workflow. The publish step makes them visible.
-- **Unsigned builds** — macOS users need `xattr -d com.apple.quarantine /Applications/1Code.app`.
+- **Unsigned builds** — macOS users need `xattr -rd com.apple.quarantine /Applications/1Code.app`.
 - If GitHub secrets `ENTRA_CLIENT_ID` and `ENTRA_TENANT_ID` are not set, enterprise auth will not work in the packaged build.
 - See `docs/operations/release.md` for the full runbook.
