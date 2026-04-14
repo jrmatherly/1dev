@@ -5,6 +5,7 @@ node_modules/
 dist/
 /release/
 release-*/
+!.claude/skills/release-smoke/
 out/
 
 # IDE

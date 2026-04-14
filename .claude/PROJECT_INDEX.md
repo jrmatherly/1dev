@@ -237,7 +237,7 @@ bun run release =
 
 Regression guards (no Jest/Vitest/Playwright). Run with `bun test` from the repo root to execute the full suite across the main app and the `1code-api` service.
 
-- **30 test files in `tests/regression/`** (29 regression guards + 1 frontmatter shim unit test; **174 tests / 414 expect() / ~6s**): authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Recent additions 2026-04-13 (from archived `remediate-dev-server-findings`): `aux-ai-provider-dispatch`, `no-apollosai-aux-ai-fetch`, `signed-fetch-cache`, `raw-logger-concurrent-writes`, `no-legacy-oauth-byok-leak`, `login-flow-uses-msal`, `spawn-env-invariants`, `no-entra-in-anthropic-auth-token`, `no-legacy-litellm-proxy-url`, `no-migrate-legacy`.
+- **32 test files in `tests/regression/`** (31 regression guards + 1 frontmatter shim unit test; **191 tests / 441 expect() / ~6s**): authoritative catalog at [`docs/conventions/regression-guards.md`](../docs/conventions/regression-guards.md). Recent additions 2026-04-13/14 (active `add-dual-mode-llm-routing`): `litellm-models-router` (Group 8), `subscription-lock-model-picker` (Group 9.10). From archived `remediate-dev-server-findings`: `aux-ai-provider-dispatch`, `no-apollosai-aux-ai-fetch`, `signed-fetch-cache`, `raw-logger-concurrent-writes`, `no-legacy-oauth-byok-leak`, `login-flow-uses-msal`, `spawn-env-invariants`, `no-entra-in-anthropic-auth-token`, `no-legacy-litellm-proxy-url`, `no-migrate-legacy`.
 - **20 service test files** under `services/1code-api/tests/` covering unit tests (`tests/lib/`, `tests/services/`, `tests/routes/`) and 3 docker-compose integration tests (`tests/integration/`) that skip without the harness.
 - **Combined total: 207 tests across 37 files** (197 pass + 10 skipped integration, 0 fail) as of 2026-04-12 post-`replace-gray-matter-with-front-matter` archive.
 
@@ -296,9 +296,17 @@ Each change directory contains `proposal.md`, `tasks.md`, `README.md`, and `spec
 | `skills/upstream-boundary-check/` | Guards `remoteTrpc.*` and `${apiUrl}/...` call sites |
 | `skills/new-router/` | Scaffold new tRPC router |
 | `skills/release/` | Release pipeline helper |
+| `skills/release-smoke/` | 3-OS post-release smoke checklist (manual-only) |
+| `skills/cluster-handoff/` | Generates a self-contained prompt for the Talos cluster repo |
 | `agents/security-reviewer.md` | Security-focused subagent |
 | `agents/ui-reviewer.md` | UI-focused subagent |
 | `agents/upstream-dependency-auditor.md` | Investigates F1–F12 upstream dependencies |
+| `agents/db-schema-auditor.md` | Drizzle schema ↔ migration ↔ doc drift |
+| `agents/trpc-router-auditor.md` | tRPC router count / composition drift |
+| `agents/test-coverage-auditor.md` | Source files missing regression guard coverage |
+| `agents/openspec-task-progress-auditor.md` | OpenSpec active-change task completion drift |
+| `agents/regression-guard-catalog-auditor.md` | Guard file ↔ catalog row ↔ count drift |
+| `agents/litellm-oss-boundary-auditor.md` | Scans OpenSpec proposals for LiteLLM Enterprise-gated features |
 
 ---
 
