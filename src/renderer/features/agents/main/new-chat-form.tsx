@@ -252,6 +252,21 @@ export function NewChatForm({
     anthropicOnboardingCompleted ||
     apiKeyOnboardingCompleted ||
     hasCustomClaudeConfig;
+
+  // Subscription-aware model-picker gate: enterprise-auth sessions on a
+  // managed Claude subscription hide the "Add Models" footer so end users
+  // can't bypass LiteLLM's centralized audit / rate-limiting / team-allowlist
+  // enforcement. See openspec/changes/add-dual-mode-llm-routing/specs/
+  // llm-routing/spec.md → "Subscription-aware model picker access control".
+  const { data: activeAccount } = trpc.anthropicAccounts.getActive.useQuery();
+  const { data: enterpriseAuthStatus } =
+    trpc.enterpriseAuth.isEnabled.useQuery();
+  const enterpriseAuthEnabled = Boolean(enterpriseAuthStatus?.enabled);
+  const canAddModels = !(
+    activeAccount?.accountType === "claude-subscription" &&
+    enterpriseAuthEnabled
+  );
+
   const setSettingsDialogOpen = useSetAtom(agentsSettingsDialogOpenAtom);
   const setSettingsActiveTab = useSetAtom(agentsSettingsDialogActiveTabAtom);
   const setJustCreatedIds = useSetAtom(justCreatedIdsAtom);
@@ -1982,10 +1997,14 @@ export function NewChatForm({
                             setLastSelectedAgentId(provider);
                           }}
                           selectedModelLabel={selectedModelLabel}
-                          onOpenModelsSettings={() => {
-                            setSettingsActiveTab("models");
-                            setSettingsDialogOpen(true);
-                          }}
+                          onOpenModelsSettings={
+                            canAddModels
+                              ? () => {
+                                  setSettingsActiveTab("models");
+                                  setSettingsDialogOpen(true);
+                                }
+                              : undefined
+                          }
                           claude={{
                             models: availableModels.models.filter(
                               (m) => !hiddenModels.includes(m.id),

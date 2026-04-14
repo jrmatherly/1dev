@@ -93,6 +93,8 @@ export const anthropicAccountsRouter = router({
             email: anthropicAccounts.email,
             displayName: anthropicAccounts.displayName,
             connectedAt: anthropicAccounts.connectedAt,
+            accountType: anthropicAccounts.accountType,
+            routingMode: anthropicAccounts.routingMode,
           })
           .from(anthropicAccounts)
           .where(eq(anthropicAccounts.id, settings.activeAccountId))
@@ -109,7 +111,11 @@ export const anthropicAccountsRouter = router({
       // Tables don't exist yet, fall through to legacy
     }
 
-    // Fallback: if legacy credential exists, treat it as active
+    // Fallback: if legacy credential exists, treat it as active.
+    // Legacy rows predate the accountType/routingMode columns; surface
+    // the only historically valid combination so renderer gates (e.g.
+    // the subscription-aware model-picker in new-chat-form.tsx) resolve
+    // uniformly without special-casing the legacy branch.
     try {
       const legacyCred = db
         .select()
@@ -123,6 +129,8 @@ export const anthropicAccountsRouter = router({
           email: null,
           displayName: "Anthropic Account",
           connectedAt: legacyCred.connectedAt?.toISOString() ?? null,
+          accountType: "claude-subscription" as const,
+          routingMode: "direct" as const,
         };
       }
     } catch {
@@ -280,9 +288,7 @@ export const anthropicAccountsRouter = router({
       const encOauth = input.oauthToken
         ? encryptCredential(input.oauthToken)
         : null;
-      const encApiKey = input.apiKey
-        ? encryptCredential(input.apiKey)
-        : null;
+      const encApiKey = input.apiKey ? encryptCredential(input.apiKey) : null;
       const encVirtualKey = input.virtualKey
         ? encryptCredential(input.virtualKey)
         : null;
@@ -334,6 +340,40 @@ export const anthropicAccountsRouter = router({
         `[AnthropicAccounts] Added new account: ${newId} (type=${input.accountType}, routing=${input.routingMode})`,
       );
       return { id: newId, success: true };
+    }),
+
+  /**
+   * Attach a LiteLLM virtual key to an existing account (typically the
+   * one just created by storeOAuthToken during the subscription-litellm
+   * wizard path). The wizard collects the virtual key upfront, then
+   * launches the Claude OAuth modal; on success this mutation stitches
+   * the two credentials together without blocking on the modal flow.
+   */
+  attachVirtualKey: publicProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        virtualKey: z.string().min(1),
+      }),
+    )
+    .mutation(({ input }) => {
+      const db = getDatabase();
+      const encVirtualKey = encryptCredential(input.virtualKey);
+
+      const result = db
+        .update(anthropicAccounts)
+        .set({ virtualKey: encVirtualKey })
+        .where(eq(anthropicAccounts.id, input.accountId))
+        .run();
+
+      if (result.changes === 0) {
+        throw new Error("Account not found");
+      }
+
+      console.log(
+        `[AnthropicAccounts] Attached virtual key to account: ${input.accountId}`,
+      );
+      return { success: true };
     }),
 
   /**

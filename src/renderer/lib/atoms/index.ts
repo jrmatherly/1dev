@@ -696,6 +696,12 @@ export const codexLoginModalOpenAtom = atom<boolean>(false);
 export type ClaudeLoginModalConfig = {
   hideCustomModelSettingsLink: boolean;
   autoStartAuth: boolean;
+  // Optional callback fired after an OAuth token has been successfully
+  // imported (either from the system Keychain or via the interactive
+  // browser flow). Used by the Add Anthropic Account wizard for the
+  // subscription+litellm path to stitch a pre-collected LiteLLM virtual
+  // key onto the just-created account row.
+  onTokenStored?: () => void | Promise<void>;
 };
 
 export const claudeLoginModalConfigAtom = atom<ClaudeLoginModalConfig>({

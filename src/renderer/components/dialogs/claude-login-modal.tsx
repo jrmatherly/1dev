@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { pendingAuthRetryMessageAtom } from "../../features/agents/atoms";
@@ -9,6 +9,7 @@ import {
   agentsSettingsDialogActiveTabAtom,
   agentsSettingsDialogOpenAtom,
   anthropicOnboardingCompletedAtom,
+  claudeLoginModalConfigAtom,
   type SettingsTab,
 } from "../../lib/atoms";
 import { appStore } from "../../lib/jotai-store";
@@ -34,6 +35,10 @@ export function ClaudeLoginModal({
   const setAnthropicOnboardingCompleted = useSetAtom(
     anthropicOnboardingCompletedAtom,
   );
+  // Pull the full modal config from the atom rather than props so the
+  // Add Anthropic Account wizard can pass `onTokenStored` alongside the
+  // flags it already sets via `setClaudeLoginModalConfig`.
+  const loginModalConfig = useAtomValue(claudeLoginModalConfigAtom);
   const setSettingsOpen = useSetAtom(agentsSettingsDialogOpenAtom);
   const setSettingsActiveTab = useSetAtom(agentsSettingsDialogActiveTabAtom);
   const [isUsingExistingToken, setIsUsingExistingToken] = useState(false);
@@ -80,7 +85,19 @@ export function ClaudeLoginModal({
       trpcUtils.anthropicAccounts.list.invalidate(),
       trpcUtils.anthropicAccounts.getActive.invalidate(),
       trpcUtils.claudeCode.getIntegration.invalidate(),
-    ]);
+    ]).then(async () => {
+      // Fire the post-token-store hook AFTER invalidation so callers (e.g.
+      // the Add Anthropic Account wizard) can read the freshly-created
+      // account row via getActive. Errors in the hook are logged but not
+      // surfaced; the account itself is already valid.
+      if (loginModalConfig.onTokenStored) {
+        try {
+          await loginModalConfig.onTokenStored();
+        } catch (err) {
+          console.error("[ClaudeLoginModal] onTokenStored hook failed:", err);
+        }
+      }
+    });
   };
 
   const handleUseExistingToken = async () => {

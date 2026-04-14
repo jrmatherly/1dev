@@ -25,6 +25,16 @@ function assertEnterprise(): void {
 
 export const enterpriseAuthRouter = router({
   /**
+   * Non-throwing flag probe. Renderer gates that conditionally render
+   * affordances only for enterprise-auth sessions (e.g. the model-picker
+   * "Add Models" footer) use this to avoid catching PRECONDITION_FAILED
+   * on every load.
+   */
+  isEnabled: publicProcedure.query(() => {
+    return { enabled: getFlag("enterpriseAuthEnabled") };
+  }),
+
+  /**
    * Trigger interactive Entra sign-in (opens browser via MSAL).
    */
   signIn: publicProcedure.mutation(async () => {

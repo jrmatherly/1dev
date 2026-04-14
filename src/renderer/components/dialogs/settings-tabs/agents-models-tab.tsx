@@ -3,8 +3,6 @@ import { ChevronDown, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  agentsLoginModalOpenAtom,
-  claudeLoginModalConfigAtom,
   codexApiKeyAtom,
   codexLoginModalOpenAtom,
   codexOnboardingAuthMethodAtom,
@@ -37,6 +35,7 @@ import {
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Switch } from "../../ui/switch";
+import { AddAnthropicAccountWizard } from "../add-anthropic-account-wizard";
 
 // Hook to detect narrow screen
 function useIsNarrowScreen(): boolean {
@@ -142,19 +141,18 @@ function AccountRow({
 
 // Anthropic accounts section component
 function AnthropicAccountsSection() {
-  const {
-    data: accounts,
-    isLoading: isAccountsLoading,
-    refetch: refetchList,
-  } = trpc.anthropicAccounts.list.useQuery(undefined, {
-    refetchOnMount: true,
-    staleTime: 0,
-  });
-  const { data: activeAccount, refetch: refetchActive } =
-    trpc.anthropicAccounts.getActive.useQuery(undefined, {
+  const { data: accounts, isLoading: isAccountsLoading } =
+    trpc.anthropicAccounts.list.useQuery(undefined, {
       refetchOnMount: true,
       staleTime: 0,
     });
+  const { data: activeAccount } = trpc.anthropicAccounts.getActive.useQuery(
+    undefined,
+    {
+      refetchOnMount: true,
+      staleTime: 0,
+    },
+  );
   const trpcUtils = trpc.useUtils();
 
   // `migrateLegacy` auto-migration removed by add-dual-mode-llm-routing.
@@ -257,8 +255,6 @@ export function AgentsModelsTab() {
   const [model, setModel] = useState(storedConfig.model);
   const [baseUrl, setBaseUrl] = useState(storedConfig.baseUrl);
   const [token, setToken] = useState(storedConfig.token);
-  const setClaudeLoginModalConfig = useSetAtom(claudeLoginModalConfigAtom);
-  const setClaudeLoginModalOpen = useSetAtom(agentsLoginModalOpenAtom);
   const setCodexLoginModalOpen = useSetAtom(codexLoginModalOpenAtom);
   const isNarrowScreen = useIsNarrowScreen();
   const { data: claudeCodeIntegration, isLoading: isClaudeCodeLoading } =
@@ -339,12 +335,12 @@ export function AgentsModelsTab() {
 
   const canReset = Boolean(model.trim() || baseUrl.trim() || token.trim());
 
+  // The "Add Account" button now opens the four-step wizard; the
+  // wizard delegates to the Claude login modal for subscription OAuth
+  // while handling BYOK entirely in-process.
+  const [isAddAccountWizardOpen, setIsAddAccountWizardOpen] = useState(false);
   const handleClaudeCodeSetup = () => {
-    setClaudeLoginModalConfig({
-      hideCustomModelSettingsLink: true,
-      autoStartAuth: true,
-    });
-    setClaudeLoginModalOpen(true);
+    setIsAddAccountWizardOpen(true);
   };
 
   const handleCodexSetup = () => {
@@ -608,45 +604,45 @@ export function AgentsModelsTab() {
               Loading account...
             </div>
           ) : (
-              <div className="flex items-center justify-between gap-6 p-4 hover:bg-muted/50">
-                <div>
-                  <div className="text-sm font-medium">Codex Subscription</div>
-                  <div className="text-xs text-muted-foreground">
-                    {codexConnectionText}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {isCodexSubscriptionActive && (
-                    <Badge variant="secondary" className="text-xs">
-                      Active
-                    </Badge>
-                  )}
-                  {isCodexSubscriptionConnected ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => void handleCodexLogout()}
-                      disabled={codexLogoutMutation.isPending}
-                    >
-                      {codexLogoutMutation.isPending ? "..." : "Logout"}
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => void handleCodexSetup()}
-                      disabled={
-                        isCodexLoading ||
-                        codexLogoutMutation.isPending ||
-                        isSavingCodexApiKey
-                      }
-                    >
-                      Connect
-                    </Button>
-                  )}
+            <div className="flex items-center justify-between gap-6 p-4 hover:bg-muted/50">
+              <div>
+                <div className="text-sm font-medium">Codex Subscription</div>
+                <div className="text-xs text-muted-foreground">
+                  {codexConnectionText}
                 </div>
               </div>
+
+              <div className="flex items-center gap-2">
+                {isCodexSubscriptionActive && (
+                  <Badge variant="secondary" className="text-xs">
+                    Active
+                  </Badge>
+                )}
+                {isCodexSubscriptionConnected ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => void handleCodexLogout()}
+                    disabled={codexLogoutMutation.isPending}
+                  >
+                    {codexLogoutMutation.isPending ? "..." : "Logout"}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => void handleCodexSetup()}
+                    disabled={
+                      isCodexLoading ||
+                      codexLogoutMutation.isPending ||
+                      isSavingCodexApiKey
+                    }
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -812,6 +808,11 @@ export function AgentsModelsTab() {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      <AddAnthropicAccountWizard
+        open={isAddAccountWizardOpen}
+        onOpenChange={setIsAddAccountWizardOpen}
+      />
     </div>
   );
 }
